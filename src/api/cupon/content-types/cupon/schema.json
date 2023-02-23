@@ -1,0 +1,32 @@
+{
+  "kind": "collectionType",
+  "collectionName": "cupons",
+  "info": {
+    "singularName": "cupon",
+    "pluralName": "cupons",
+    "displayName": "cupon"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "nombre": {
+      "type": "string",
+      "required": true
+    },
+    "users_permissions_user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "curso": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::curso.curso"
+    },
+    "descripcion": {
+      "type": "text"
+    }
+  }
+}

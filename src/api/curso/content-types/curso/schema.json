@@ -1,0 +1,60 @@
+{
+  "kind": "collectionType",
+  "collectionName": "cursos",
+  "info": {
+    "singularName": "curso",
+    "pluralName": "cursos",
+    "displayName": "Curso",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true,
+      "minLength": 2,
+      "maxLength": 500,
+      "private": true
+    },
+    "descripcion": {
+      "type": "text",
+      "minLength": 2
+    },
+    "precio": {
+      "type": "decimal",
+      "required": true
+    },
+    "imagen": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "cupon_descuento": {
+      "type": "string"
+    },
+    "instructor": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "tipo": {
+      "type": "enumeration",
+      "enum": [
+        "curso",
+        "conferencia"
+      ],
+      "required": true,
+      "default": "curso"
+    },
+    "certificado": {
+      "type": "boolean",
+      "default": false
+    }
+  }
+}

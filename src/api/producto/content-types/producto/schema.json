@@ -1,0 +1,28 @@
+{
+  "kind": "collectionType",
+  "collectionName": "productos",
+  "info": {
+    "singularName": "producto",
+    "pluralName": "productos",
+    "displayName": "producto"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "nombre": {
+      "type": "string",
+      "required": true
+    },
+    "precio": {
+      "type": "string"
+    },
+    "descripcion": {
+      "type": "text"
+    },
+    "uuid": {
+      "type": "uid"
+    }
+  }
+}

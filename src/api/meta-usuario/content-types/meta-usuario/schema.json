@@ -1,0 +1,45 @@
+{
+  "kind": "collectionType",
+  "collectionName": "meta_usuarios",
+  "info": {
+    "singularName": "meta-usuario",
+    "pluralName": "meta-usuarios",
+    "displayName": "meta-usuario",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "usuario": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "notificacion_promocion": {
+      "type": "boolean",
+      "default": false
+    },
+    "notificacion_mensajes": {
+      "type": "boolean",
+      "default": false
+    },
+    "notificacion_anuncios_instructores": {
+      "type": "boolean",
+      "default": false
+    },
+    "uuid": {
+      "type": "uid",
+      "required": true
+    },
+    "profesion": {
+      "type": "string",
+      "required": true
+    },
+    "biografia": {
+      "type": "text",
+      "required": true
+    }
+  }
+}

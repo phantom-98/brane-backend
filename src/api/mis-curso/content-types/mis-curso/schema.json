@@ -1,0 +1,34 @@
+{
+  "kind": "collectionType",
+  "collectionName": "mis_cursos",
+  "info": {
+    "singularName": "mis-curso",
+    "pluralName": "mis-cursos",
+    "displayName": "mis_curso"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "curso": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::curso.curso"
+    },
+    "users_permissions_user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "completado": {
+      "type": "boolean",
+      "default": false
+    },
+    "clase": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::clase.clase"
+    }
+  }
+}

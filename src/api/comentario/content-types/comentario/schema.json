@@ -1,0 +1,42 @@
+{
+  "kind": "collectionType",
+  "collectionName": "comentarios",
+  "info": {
+    "singularName": "comentario",
+    "pluralName": "comentarios",
+    "displayName": "comentario",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "comentario": {
+      "type": "text",
+      "required": true
+    },
+    "autor": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "clase": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::clase.clase"
+    },
+    "fecha_de_publicacion": {
+      "type": "datetime",
+      "required": true
+    },
+    "lecturas": {
+      "type": "integer"
+    },
+    "curso": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::curso.curso"
+    }
+  }
+}
