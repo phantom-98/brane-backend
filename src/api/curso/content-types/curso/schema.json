@@ -59,6 +59,10 @@
     "uuid": {
       "type": "uid",
       "required": false
+    },
+    "slug": {
+      "type": "string",
+      "unique": true
     }
   }
 }

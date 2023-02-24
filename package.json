@@ -14,7 +14,8 @@
     "@strapi/plugin-i18n": "4.6.2",
     "@strapi/plugin-users-permissions": "4.6.2",
     "@strapi/strapi": "4.6.2",
-    "mysql": "2.18.1"
+    "mysql": "2.18.1",
+    "strapi-plugin-slugify": "^2.3.2"
   },
   "author": {
     "name": "A Strapi developer"
