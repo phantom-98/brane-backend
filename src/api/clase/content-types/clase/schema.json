@@ -4,7 +4,8 @@
   "info": {
     "singularName": "clase",
     "pluralName": "clases",
-    "displayName": "clase"
+    "displayName": "clase",
+    "description": ""
   },
   "options": {
     "draftAndPublish": true
@@ -22,14 +23,14 @@
       "target": "api::curso.curso"
     },
     "clase": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
       "allowedTypes": [
         "images",
         "files",
         "videos"
-      ],
-      "type": "media",
-      "multiple": true,
-      "required": false
+      ]
     },
     "descripcion": {
       "type": "text"
@@ -37,6 +38,9 @@
     "nombre": {
       "type": "string",
       "required": true
+    },
+    "uuid": {
+      "type": "uid"
     }
   }
 }

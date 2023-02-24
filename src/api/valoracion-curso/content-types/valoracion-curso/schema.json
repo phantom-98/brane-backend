@@ -4,7 +4,8 @@
   "info": {
     "singularName": "valoracion-curso",
     "pluralName": "valoracion-cursos",
-    "displayName": "valoracion_curso"
+    "displayName": "valoracion_curso",
+    "description": ""
   },
   "options": {
     "draftAndPublish": true
@@ -34,6 +35,9 @@
       "required": true,
       "min": 1,
       "max": 5
+    },
+    "uuid": {
+      "type": "uid"
     }
   }
 }

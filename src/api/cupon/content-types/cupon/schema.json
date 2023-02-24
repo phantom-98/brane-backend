@@ -4,7 +4,8 @@
   "info": {
     "singularName": "cupon",
     "pluralName": "cupons",
-    "displayName": "cupon"
+    "displayName": "cupon",
+    "description": ""
   },
   "options": {
     "draftAndPublish": true
@@ -27,6 +28,9 @@
     },
     "descripcion": {
       "type": "text"
+    },
+    "uuid": {
+      "type": "uid"
     }
   }
 }

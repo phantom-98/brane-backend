@@ -29,6 +29,9 @@
       "type": "relation",
       "relation": "oneToOne",
       "target": "api::categoria.categoria"
+    },
+    "uuid": {
+      "type": "uid"
     }
   }
 }

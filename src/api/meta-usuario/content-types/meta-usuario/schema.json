@@ -31,7 +31,7 @@
     },
     "uuid": {
       "type": "uid",
-      "required": true
+      "required": false
     },
     "profesion": {
       "type": "string",

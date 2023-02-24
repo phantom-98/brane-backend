@@ -4,7 +4,8 @@
   "info": {
     "singularName": "mis-curso",
     "pluralName": "mis-cursos",
-    "displayName": "mis_curso"
+    "displayName": "mis_curso",
+    "description": ""
   },
   "options": {
     "draftAndPublish": true
@@ -29,6 +30,9 @@
       "type": "relation",
       "relation": "oneToOne",
       "target": "api::clase.clase"
+    },
+    "uuid": {
+      "type": "uid"
     }
   }
 }

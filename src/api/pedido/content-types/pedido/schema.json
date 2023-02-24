@@ -4,7 +4,8 @@
   "info": {
     "singularName": "pedido",
     "pluralName": "pedidos",
-    "displayName": "pedido"
+    "displayName": "pedido",
+    "description": ""
   },
   "options": {
     "draftAndPublish": true
@@ -29,6 +30,9 @@
     },
     "descuento": {
       "type": "decimal"
+    },
+    "uuid": {
+      "type": "uid"
     }
   }
 }

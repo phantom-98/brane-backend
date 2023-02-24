@@ -37,6 +37,9 @@
       "type": "relation",
       "relation": "oneToOne",
       "target": "api::curso.curso"
+    },
+    "uuid": {
+      "type": "uid"
     }
   }
 }
