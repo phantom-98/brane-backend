@@ -55,6 +55,10 @@
     "certificado": {
       "type": "boolean",
       "default": false
+    },
+    "uuid": {
+      "type": "uid",
+      "required": false
     }
   }
 }
