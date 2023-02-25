@@ -12,11 +12,6 @@
   },
   "pluginOptions": {},
   "attributes": {
-    "instructor": {
-      "type": "relation",
-      "relation": "oneToOne",
-      "target": "plugin::users-permissions.user"
-    },
     "curso": {
       "type": "relation",
       "relation": "oneToOne",
