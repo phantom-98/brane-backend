@@ -13,6 +13,7 @@
     "@strapi/plugin-documentation": "^4.6.2",
     "@strapi/plugin-i18n": "4.6.2",
     "@strapi/plugin-users-permissions": "4.6.2",
+    "@strapi/provider-upload-cloudinary": "^4.6.2",
     "@strapi/strapi": "4.6.2",
     "mysql": "2.18.1",
     "strapi-plugin-slugify": "^2.3.2"
