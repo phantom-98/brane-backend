@@ -240,7 +240,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
           const clases = await strapi.db
             .query("api::clase.clase")
-            .findMany({ where: { curso: id }, select: ["nombre", "duracion"] });
+            .findMany({ where: { curso: id }, select: ["nombre", "duracion", "descripcion"] });
 
           // busco las valoraciones del curso que se quiere consultar
 
@@ -360,7 +360,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
             const clases = await strapi.db
               .query("api::clase.clase")
-              .findMany({ where: { curso: id }, select: ["nombre", "duracion"] });
+              .findMany({ where: { curso: id }, select: ["nombre", "duracion", "descripcion"] });
 
             // busco las valoraciones del curso que se quiere consultar
 
@@ -421,7 +421,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
       const clases = await strapi.db
         .query("api::clase.clase")
-        .findMany({ where: { curso: id }, select: ["nombre", "duracion"] });
+        .findMany({ where: { curso: id }, select: ["nombre", "duracion", "descripcion"] });
 
       // busco las valoraciones del curso que se quiere consultar
 
