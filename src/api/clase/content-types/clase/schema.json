@@ -36,6 +36,10 @@
     },
     "uuid": {
       "type": "uid"
+    },
+    "publico": {
+      "type": "boolean",
+      "default": false
     }
   }
 }
