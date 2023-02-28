@@ -40,6 +40,9 @@
     "publico": {
       "type": "boolean",
       "default": false
+    },
+    "duracion": {
+      "type": "string"
     }
   }
 }
