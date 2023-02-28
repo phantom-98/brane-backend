@@ -221,13 +221,13 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
         const clases = await strapi.db
           .query("api::clase.clase")
-          .find({ where: { curso: id }, select: ["nombre", "duracion"] });
+          .findMany({ where: { curso: id }, select: ["nombre", "duracion"] });
 
         // busco las valoraciones del curso que se quiere consultar
 
         const valoraciones = await strapi.db
           .query("api::valoracion.valoracion")
-          .find({ where: { curso: id } });
+          .findMany({ where: { curso: id } });
 
         // armo la respuesta con los datos publicos del curso
 
@@ -249,13 +249,13 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
         const clases = await strapi.db
           .query("api::clase.clase")
-          .find({ where: { curso: id } });
+          .findMany({ where: { curso: id } });
 
         // busco las valoraciones del curso que se quiere consultar
 
         const valoraciones = await strapi.db
           .query("api::valoracion.valoracion")
-          .find({ where: { curso: id } });
+          .findMany({ where: { curso: id } });
 
         // armo la respuesta con todos los datos del curso
 
@@ -276,13 +276,13 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
       const clases = await strapi.db
         .query("api::clase.clase")
-        .find({ where: { curso: id } });
+        .findMany({ where: { curso: id } });
 
       // busco las valoraciones del curso que se quiere consultar
 
       const valoraciones = await strapi.db
         .query("api::valoracion.valoracion")
-        .find({ where: { curso: id } });
+        .findMany({ where: { curso: id } });
 
       // armo la respuesta con todos los datos del curso
 
@@ -307,13 +307,13 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
         const clases = await strapi.db
           .query("api::clase.clase")
-          .find({ where: { curso: id } });
+          .findMany({ where: { curso: id } });
 
         // busco las valoraciones del curso que se quiere consultar
 
         const valoraciones = await strapi.db
           .query("api::valoracion.valoracion")
-          .find({ where: { curso: id } });
+          .findMany({ where: { curso: id } });
 
         // armo la respuesta con todos los datos del curso
 
@@ -342,13 +342,13 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
           const clases = await strapi.db
             .query("api::clase.clase")
-            .find({ where: { curso: id }, select: ["nombre", "duracion"] });
+            .findMany({ where: { curso: id }, select: ["nombre", "duracion"] });
 
           // busco las valoraciones del curso que se quiere consultar
 
           const valoraciones = await strapi.db
             .query("api::valoracion.valoracion")
-            .find({ where: { curso: id } });
+            .findMany({ where: { curso: id } });
 
           // armo la respuesta con los datos publicos del curso
 
@@ -370,13 +370,13 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
           const clases = await strapi.db
             .query("api::clase.clase")
-            .find({ where: { curso: id } });
+            .findMany({ where: { curso: id } });
 
           // busco las valoraciones del curso que se quiere consultar
 
           const valoraciones = await strapi.db
             .query("api::valoracion.valoracion")
-            .find({ where: { curso: id } });
+            .findMany({ where: { curso: id } });
 
           // armo la respuesta con todos los datos del curso
 
@@ -403,13 +403,13 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
           const clases = await strapi.db
             .query("api::clase.clase")
-            .find({ where: { curso: id }, select: ["nombre", "duracion"] });
+            .findMany({ where: { curso: id }, select: ["nombre", "duracion"] });
 
           // busco las valoraciones del curso que se quiere consultar
 
           const valoraciones = await strapi.db
             .query("api::valoracion.valoracion")
-            .find({ where: { curso: id } });
+            .findMany({ where: { curso: id } });
 
           // armo la respuesta con los datos publicos del curso
 
