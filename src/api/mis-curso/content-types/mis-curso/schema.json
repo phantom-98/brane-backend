@@ -17,7 +17,7 @@
       "relation": "oneToOne",
       "target": "api::curso.curso"
     },
-    "users_permissions_user": {
+    "usuario": {
       "type": "relation",
       "relation": "oneToOne",
       "target": "plugin::users-permissions.user"

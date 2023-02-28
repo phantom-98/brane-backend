@@ -224,7 +224,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
         // verifico en la tabla mis cursos si el usuario que está haciendo la petición tiene el curso que se quiere consultar
 
         const misCursos = await strapi.db
-          .query("api::mis-cursos.mis-cursos")
+          .query("api::mis-curso.mis-curso")
           .findOne({ where: { curso: id, usuario: user.id } });
 
         // si el usuario no es dueño del curso y no está inscrito en el curso, envio solo datos publicos
@@ -344,7 +344,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
           // verifico si tiene el curso en mis cursos
 
           const misCursos = await strapi.db
-            .query("api::mis-cursos.mis-cursos")
+            .query("api::mis-curso.mis-curso")
             .findOne({ where: { curso: id, usuario: user.id } });
 
           // si el usuario no es dueño del curso y no está inscrito en el curso, envio solo datos publicos
@@ -452,16 +452,6 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
       delete data.curso.instructor.resetPasswordToken;
 
     }
-
-    
-
-
-
-
-
-
-
-
 
 
     return { data, meta };
