@@ -197,6 +197,22 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
     // consulto si el curso que se quiere consultar existe
 
+    const curso = await strapi.db.query("api::curso.curso").findOne({
+      // uid syntax: 'api::api-name.content-type-name'
+      where: {
+        id,
+      },
+      populate: { instructor: true },
+    });
+
+    // si el curso no existe, retorno error 404 not found
+
+    if (!curso) {
+      return ctx.notFound();
+    }
+    
+
+
     // verifico si el usuario esta logueado o no 
 
     if (user) {
