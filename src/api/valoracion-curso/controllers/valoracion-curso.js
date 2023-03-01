@@ -38,7 +38,7 @@ module.exports = createCoreController(
 
       // verifico en la tabla mis cursos si el usuario que está haciendo la petición tiene el curso que se quiere valorar
 
-      const misCursos = await strapi.db.query("api::mis-curso.mis-curso").find({
+      const misCursos = await strapi.db.query("api::mis-curso.mis-curso").findOne({
         usuario: user.id,
         curso: curso.id,
         });
