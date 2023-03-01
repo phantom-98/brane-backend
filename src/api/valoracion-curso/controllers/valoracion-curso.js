@@ -40,6 +40,10 @@ module.exports = createCoreController(
         return ctx.unauthorized(`You can't create this entry`);
       }
 
+      // inyecto el usuario que está haciendo la petición en el body de la petición
+
+      ctx.request.body.data.usuario = user.id;
+
       // si el usuario que está haciendo la petición está inscrito en el curso o es administrador, puede crear la valoración
 
       return await super.create(ctx);
