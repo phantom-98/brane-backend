@@ -26,11 +26,6 @@
       "type": "boolean",
       "default": false
     },
-    "clase": {
-      "type": "relation",
-      "relation": "oneToOne",
-      "target": "api::clase.clase"
-    },
     "uuid": {
       "type": "uid"
     }
