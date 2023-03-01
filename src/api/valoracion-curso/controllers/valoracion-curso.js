@@ -18,42 +18,28 @@ module.exports = createCoreController(
 
       //obtengo el id del curso al que se le quiere crear la valoración
 
-      console.log(ctx.request.body);
-
-      
-             
-      const id = ctx.request.body.data.curso;
-        console.log(id);
-      //obtengo el curso al que se le quiere crear la valoración 
-
-
-      const curso = await strapi.db.query("api::curso.curso").findOne({ id: id });
-
-
-     //verifico si el curso que se quiere valorar existe
-
-        if (!curso) {
-            return ctx.notFound("Curso no encontrado");
-        }
-
-      // verifico en la tabla mis cursos si el usuario que está haciendo la petición tiene el curso que se quiere valorar
-
-      const misCursos = await strapi.db.query("api::mis-curso.mis-curso").findOne({
-        usuario: user.id,
-        curso: curso.id,
-        });
-
-        console.log(misCursos)
-
       //    si el usuario que está haciendo la petición no está logueado, no puede crear la valoración
 
       if (!user) {
         return ctx.unauthorized(`You can't create this entry`);
       }
 
+      
+             
+      const id = ctx.request.body.data.curso;
+
+      // busco el curso verificando si pertece al usuario que está haciendo la petición
+
+      const misCursos = await strapi.db.query("api::mis-curso.mis-curso").findOne({
+        where: { usuario: user.id, curso: id },
+      });
+
+
+
+
       // si el usuario que está haciendo la petición no está inscrito en el curso y no es administrador, no puede crear la valoración
 
-      if (misCursos.length == 0 && user.role.type != "administrador") {
+      if (!misCursos && user.role.type != "administrador") {
         return ctx.unauthorized(`You can't create this entry`);
       }
 
