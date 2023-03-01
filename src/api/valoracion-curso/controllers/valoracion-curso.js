@@ -43,6 +43,8 @@ module.exports = createCoreController(
         curso: curso.id,
         });
 
+        console.log(misCursos)
+
       //    si el usuario que está haciendo la petición no está logueado, no puede crear la valoración
 
       if (!user) {
