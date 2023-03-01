@@ -21,7 +21,7 @@ module.exports = createCoreController(
       console.log(ctx.request.body);
 
       
-             
+              
       const id = ctx.request.body.data.curso;
 
       //obtengo el curso al que se le quiere crear la valoración 
