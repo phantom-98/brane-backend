@@ -23,9 +23,8 @@ module.exports = createCoreController(
       
              
       const id = ctx.request.body.data.curso;
-        console.log(id);
-      //obtengo el curso al que se le quiere crear la valoración 
 
+      //obtengo el curso al que se le quiere crear la valoración 
 
       const curso = await strapi.db.query("api::curso.curso").findOne({ id: id });
 
@@ -38,12 +37,12 @@ module.exports = createCoreController(
 
       // verifico en la tabla mis cursos si el usuario que está haciendo la petición tiene el curso que se quiere valorar
 
-      const misCursos = await strapi.db.query("api::mis-curso.mis-curso").findOne({
-        usuario: user.id,
-        curso: curso.id,
-        });
 
-        console.log(misCursos)
+        const misCursos = await strapi.db.query("api::mis-curso.mis-curso").findOne({
+            where: { usuario: user.id, curso: id },
+          });
+        
+        //console.log(misCursos)
 
       //    si el usuario que está haciendo la petición no está logueado, no puede crear la valoración
 
