@@ -1,5 +1,7 @@
 "use strict";
 
+const { conforms } = require("lodash");
+
 /**
  * valoracion-curso controller
  */
@@ -30,9 +32,17 @@ module.exports = createCoreController(
         
         //console.log(misCursos)
 
-      //    si el usuario que está haciendo la petición no está logueado, no puede crear la valoración
+      // si usuario es el instructor due;o del curso no puede crear la valoración
 
-
+        if (user.role.type == "instructor") {
+            const curso = await strapi.db.query("api::curso.curso").findOne({
+                where: { id: id },
+                populate: { instructor: true },
+            });
+            if (user.id == curso.instructor.id) {
+                return ctx.unauthorized(`No tienes permisos para crear una valoración`);
+            }
+        }
 
       // si el usuario que está haciendo la petición no está inscrito en el curso y no es administrador, no puede crear la valoración
 
@@ -47,8 +57,108 @@ module.exports = createCoreController(
       // si el usuario que está haciendo la petición está inscrito en el curso o es administrador, puede crear la valoración
 
       return await super.create(ctx);
+
     },
 
+    //modifico el update para que solo el usuario que la creó  y el administrador pueda modificarla
+
+    async update(ctx) {
+
+        // obtengo el usuario que está haciendo la petición
+    
+        const user = ctx.state.user;
+    
+        // si el usuario que está haciendo la petición no está logueado, no puede modificar la valoración
+    
+        if (!user) {
+    
+            return ctx.unauthorized(`You can't update this entry`);
+    
+        }
+    
+        // obtengo el id de la valoración que quiero modificar
+    
+        const id = ctx.params.id;
+    
+        // obtengo la valoración que quiero modificar
+    
+        const valoracion = await strapi.db.query("api::valoracion-curso.valoracion-curso").findOne({
+            where: { id: id},
+            populate: { usuario: true },
+        });
+        
+
+        //verifico que la valoracion exista
+
+        if (!valoracion) {  
+            return ctx.notFound(`No existe la valoración con id ${id}`);
+        }
+
+        // si el usuario que está haciendo la petición no es el que creó la valoración y no es administrador, no puede modificar la valoración
+ 
+        if (user.id != valoracion.usuario.id && user.role.type != "administrador") {
+    
+            return ctx.unauthorized(`No tienes permiso `);
+    
+        }
+    
+        // si el usuario que está haciendo la petición es el que creó la valoración o es administrador, puede modificar la valoración
+    
+        return await super.update(ctx);
+    
+        },
+
+    //modifico el delete para que solo el usuario que la creó  y el administrador pueda eliminarla
+
+    async delete(ctx) {
+
+        // obtengo el usuario que está haciendo la petición
+
+        const user = ctx.state.user;
+
+        // si el usuario que está haciendo la petición no está logueado, no puede eliminar la valoración
+
+        if (!user) {
+
+            return ctx.unauthorized(`You can't delete this entry`);
+
+        }
+
+        // obtengo el id de la valoración que quiero eliminar
+
+        const id = ctx.params.id;
+
+        // obtengo la valoración que quiero eliminar
+
+        const valoracion = await strapi.db.query("api::valoracion-curso.valoracion-curso").findOne({
+
+            where: { id: id},
+
+            populate: { usuario: true },
+
+        });
+
+        //verifico que la valoracion exista
+
+        if (!valoracion) {
+
+            return ctx.notFound(`No existe la valoración con id ${id}`);
+
+        }
+
+        // si el usuario que está haciendo la petición no es el que creó la valoración y no es administrador, no puede eliminar la valoración
+
+        if (user.id != valoracion.usuario.id && user.role.type != "administrador") {
+
+            return ctx.unauthorized(`No tienes permiso `);
+
+        }
+
+        // si el usuario que está haciendo la petición es el que creó la valoración o es administrador, puede eliminar la valoración
+
+        return await super.delete(ctx);
+
+    }
 
   })
 );
