@@ -77,7 +77,7 @@ module.exports = createCoreController(
       const promedio = suma / (valoraciones.length + 1);
 
       await strapi.db.query("api::curso.curso").update({
-        where: { id: 1 },
+        where: { id: id },
         data: {
           averageScore: promedio,
         },
