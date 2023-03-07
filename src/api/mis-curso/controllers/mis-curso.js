@@ -16,7 +16,7 @@ module.exports = createCoreController('api::mis-curso.mis-curso', ({ strapi }) =
 
 								const misCursos = await strapi.db
 								.query("api::mis-curso.mis-curso")
-								.findMany({ where: { usuario: user.id } });
+								.findMany({ where: { usuario: user.id } }); 
 
 
 
