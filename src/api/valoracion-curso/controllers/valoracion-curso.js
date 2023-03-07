@@ -209,7 +209,7 @@ module.exports = createCoreController(
       const valoraciones = await strapi.db
         .query("api::valoracion-curso.valoracion-curso")
         .findMany({
-          where: { curso: valoracion.curso.id },
+          where: { curso: id },
         });
 
       let suma = 0;
@@ -223,7 +223,7 @@ module.exports = createCoreController(
       const promedio = suma / (valoraciones.length - 1);
 
       await strapi.db.query("api::curso.curso").update({
-        where: { id: valoracion.curso.id },
+        where: { id: 1 },
 
         data: {
           averageScore: promedio,
