@@ -6,4 +6,10 @@
 
 const { createCoreController } = require('@strapi/strapi').factories;
 
-module.exports = createCoreController('api::mis-curso.mis-curso');
+module.exports = createCoreController('api::mis-curso.mis-curso', ({ strapi }) => ({
+
+
+
+
+})
+)

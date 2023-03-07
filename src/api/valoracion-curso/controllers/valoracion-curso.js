@@ -190,7 +190,7 @@ console.log("este es el promedio", promedio)
         .findOne({
           where: { id: id},
 
-          populate: { usuario: true },
+          populate: { usuario: true, curso: true },
         });
 
       //verifico que la valoracion exista
@@ -223,7 +223,6 @@ console.log("este es el promedio", promedio)
       for (let i = 0; i < valoraciones.length; i++) {
         suma += valoraciones[i].valoracion;
       }
-
       suma -= valoracion.valoracion;
 
       const promedio = suma / (valoraciones.length - 1);
