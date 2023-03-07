@@ -9,7 +9,7 @@ const { createCoreController } = require('@strapi/strapi').factories;
 module.exports = createCoreController('api::mis-curso.mis-curso', ({ strapi }) => ({
 
 //modifico el metodo find para que me traiga los cursos que estan en el usuario logueado
-    async findMany(ctx) {
+    async find(ctx) {
 
 
         const { user } = ctx.state;

@@ -210,6 +210,7 @@ console.log("este es el promedio", promedio)
 
       // si el usuario que está haciendo la petición es el que creó la valoración o es administrador, puede eliminar la valoración
 
+      
       //actualizo el campo valoracion del curso con la nueva valoración
 
       const valoraciones = await strapi.db
