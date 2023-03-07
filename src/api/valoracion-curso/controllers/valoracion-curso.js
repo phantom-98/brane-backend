@@ -208,9 +208,13 @@ module.exports = createCoreController(
             id: id,
           },
 
+<<<<<<< HEAD
           populate: {
             usuario: true,
           },
+=======
+          populate: { usuario: true, curso: true },
+>>>>>>> 12ca770452cb0084c2be4d3fbc2a5d9035a1870e
         });
 
       //verifico que la valoracion exista
@@ -245,7 +249,6 @@ module.exports = createCoreController(
       for (let i = 0; i < valoraciones.length; i++) {
         suma += valoraciones[i].valoracion;
       }
-
       suma -= valoracion.valoracion;
 
       const promedio = suma / (valoraciones.length - 1);
