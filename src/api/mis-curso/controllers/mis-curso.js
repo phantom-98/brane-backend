@@ -11,16 +11,21 @@ module.exports = createCoreController('api::mis-curso.mis-curso', ({ strapi }) =
 //modifico el metodo find para que me traiga los cursos que estan en el usuario logueado
     async find(ctx) {
 
-
-        const { user } = ctx.state;
-
-								const misCursos = await strapi.db
-								.query("api::mis-curso.mis-curso")
-								.findMany({ where: { usuario: user.id } });
+				const user = ctx.state.user;
 
 
+					const entries = await strapi.entityService.findMany('api::mis-curso.mis-curso', {
 
-								return misCursos;
+						...ctx.query,
+
+						where: { usuario: user.id },
+
+
+				});
+
+
+				return entries;
+
     }
 
 })
