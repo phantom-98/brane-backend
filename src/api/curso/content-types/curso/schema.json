@@ -63,6 +63,9 @@
     "slug": {
       "type": "string",
       "unique": true
+    },
+    "averageScore": {
+      "type": "decimal"
     }
   }
 }

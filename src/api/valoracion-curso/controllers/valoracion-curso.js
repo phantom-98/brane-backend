@@ -59,7 +59,7 @@ module.exports = createCoreController(
       // actualizo el campo valoracion del curso con la nueva valoración
 
 
-        const valoraciones = await strapi.db.query("api::valoracion-curso.valoracion-curso").find({
+        const valoraciones = await strapi.db.query("api::valoracion-curso.valoracion-curso").findMany({
             where: { curso: id },
         });
 
