@@ -22,27 +22,29 @@ module.exports = createCoreController(
         return ctx.unauthorized(`You can't create this entry`);
       }
 
-      
-              
       const id = ctx.request.body.data.curso;
 
-      const misCursos = await strapi.db.query("api::mis-curso.mis-curso").findOne({
-            where: { usuario: user.id, curso: id },
-      });
-        
-        //console.log(misCursos)
+      const misCursos = await strapi.db
+        .query("api::mis-curso.mis-curso")
+        .findOne({
+          where: { usuario: user.id, curso: id },
+        });
+
+      //console.log(misCursos)
 
       // si usuario es el instructor due;o del curso no puede crear la valoración
 
-        if (user.role.type == "instructor") {
-            const curso = await strapi.db.query("api::curso.curso").findOne({
-                where: { id: id },
-                populate: { instructor: true },
-            });
-            if (user.id == curso.instructor.id) {
-                return ctx.unauthorized(`No tienes permisos para crear una valoración`);
-            }
+      if (user.role.type == "instructor") {
+        const curso = await strapi.db.query("api::curso.curso").findOne({
+          where: { id: id },
+          populate: { instructor: true },
+        });
+        if (user.id == curso.instructor.id) {
+          return ctx.unauthorized(
+            `No tienes permisos para crear una valoración`
+          );
         }
+      }
 
       // si el usuario que está haciendo la petición no está inscrito en el curso y no es administrador, no puede crear la valoración
 
@@ -58,133 +60,177 @@ module.exports = createCoreController(
 
       // actualizo el campo valoracion del curso con la nueva valoración
 
-
-        const valoraciones = await strapi.db.query("api::valoracion-curso.valoracion-curso").findMany({
-            where: { curso: id },
+      const valoraciones = await strapi.db
+        .query("api::valoracion-curso.valoracion-curso")
+        .findMany({
+          where: { curso: id },
         });
+
+      let suma = 0;
+
+      for (let i = 0; i < valoraciones.length; i++) {
+        suma += valoraciones[i].valoracion;
+      }
+
+      suma += ctx.request.body.data.valoracion;
+
+      const promedio = suma / (valoraciones.length + 1);
+
+      await strapi.db.query("api::curso.curso").update({
+        where: { id: 1 },
+        data: {
+          averageScore: promedio,
+        },
+      });
+
+      return await super.create(ctx);
+    },
+
+    //modifico el update para que solo el usuario que la creó  y el administrador pueda modificarla
+
+    async update(ctx) {
+      // obtengo el usuario que está haciendo la petición
+
+      const user = ctx.state.user;
+
+      // si el usuario que está haciendo la petición no está logueado, no puede modificar la valoración
+
+      if (!user) {
+        return ctx.unauthorized(`You can't update this entry`);
+      }
+
+      // obtengo el id de la valoración que quiero modificar
+
+      const id = ctx.params.id;
+
+      // obtengo la valoración que quiero modificar
+
+      const valoracion = await strapi.db
+        .query("api::valoracion-curso.valoracion-curso")
+        .findOne({
+          where: { id: id },
+          populate: { usuario: true },
+        });
+
+      //verifico que la valoracion exista
+
+      if (!valoracion) {
+        return ctx.notFound(`No existe la valoración con id ${id}`);
+      }
+
+      // si el usuario que está haciendo la petición no es el que creó la valoración y no es administrador, no puede modificar la valoración
+
+      if (
+        user.id != valoracion.usuario.id &&
+        user.role.type != "administrador"
+      ) {
+        return ctx.unauthorized(`No tienes permiso `);
+      }
+
+      // si el usuario que está haciendo la petición es el que creó la valoración o es administrador, puede modificar la valoración
+      //verifico si el usuario modificó la valoración
+
+      if (valoracion.valoracion != ctx.request.body.data.valoracion) {
+        //actualizo el campo valoracion del curso con la nueva valoración
+
+        const valoraciones = await strapi.db
+          .query("api::valoracion-curso.valoracion-curso")
+          .findMany({
+            where: { curso: id },
+          });
 
         let suma = 0;
 
         for (let i = 0; i < valoraciones.length; i++) {
-            suma += valoraciones[i].valoracion;
+          suma += valoraciones[i].valoracion;
         }
 
         suma += ctx.request.body.data.valoracion;
 
         const promedio = suma / (valoraciones.length + 1);
 
-         await strapi.db.query("api::curso.curso").update({
-            where: { id: 1 },
-            data: {
-                averageScore: promedio
-            },
-          });
-
-
-
-      return await super.create(ctx);
-
-    },
-
-    //modifico el update para que solo el usuario que la creó  y el administrador pueda modificarla
-
-    async update(ctx) {
-
-        // obtengo el usuario que está haciendo la petición
-    
-        const user = ctx.state.user;
-    
-        // si el usuario que está haciendo la petición no está logueado, no puede modificar la valoración
-    
-        if (!user) {
-    
-            return ctx.unauthorized(`You can't update this entry`);
-    
-        }
-    
-        // obtengo el id de la valoración que quiero modificar
-    
-        const id = ctx.params.id;
-    
-        // obtengo la valoración que quiero modificar
-    
-        const valoracion = await strapi.db.query("api::valoracion-curso.valoracion-curso").findOne({
-            where: { id: id},
-            populate: { usuario: true },
+        await strapi.db.query("api::curso.curso").update({
+          where: { id: 1 },
+          data: {
+            averageScore: promedio,
+          },
         });
-        
+      }
 
-        //verifico que la valoracion exista
-
-        if (!valoracion) {  
-            return ctx.notFound(`No existe la valoración con id ${id}`);
-        }
-
-        // si el usuario que está haciendo la petición no es el que creó la valoración y no es administrador, no puede modificar la valoración
- 
-        if (user.id != valoracion.usuario.id && user.role.type != "administrador") {
-    
-            return ctx.unauthorized(`No tienes permiso `);
-    
-        }
-    
-        // si el usuario que está haciendo la petición es el que creó la valoración o es administrador, puede modificar la valoración
-    
-        return await super.update(ctx);
-    
-        },
+      return await super.update(ctx);
+    },
 
     //modifico el delete para que solo el usuario que la creó  y el administrador pueda eliminarla
 
     async delete(ctx) {
+      // obtengo el usuario que está haciendo la petición
 
-        // obtengo el usuario que está haciendo la petición
+      const user = ctx.state.user;
 
-        const user = ctx.state.user;
+      // si el usuario que está haciendo la petición no está logueado, no puede eliminar la valoración
 
-        // si el usuario que está haciendo la petición no está logueado, no puede eliminar la valoración
+      if (!user) {
+        return ctx.unauthorized(`You can't delete this entry`);
+      }
 
-        if (!user) {
+      // obtengo el id de la valoración que quiero eliminar
 
-            return ctx.unauthorized(`You can't delete this entry`);
+      const id = ctx.params.id;
 
-        }
+      // obtengo la valoración que quiero eliminar
 
-        // obtengo el id de la valoración que quiero eliminar
+      const valoracion = await strapi.db
+        .query("api::valoracion-curso.valoracion-curso")
+        .findOne({
+          where: { id: id },
 
-        const id = ctx.params.id;
-
-        // obtengo la valoración que quiero eliminar
-
-        const valoracion = await strapi.db.query("api::valoracion-curso.valoracion-curso").findOne({
-
-            where: { id: id},
-
-            populate: { usuario: true },
-
+          populate: { usuario: true },
         });
 
-        //verifico que la valoracion exista
+      //verifico que la valoracion exista
 
-        if (!valoracion) {
+      if (!valoracion) {
+        return ctx.notFound(`No existe la valoración con id ${id}`);
+      }
 
-            return ctx.notFound(`No existe la valoración con id ${id}`);
+      // si el usuario que está haciendo la petición no es el que creó la valoración y no es administrador, no puede eliminar la valoración
 
-        }
+      if (
+        user.id != valoracion.usuario.id &&
+        user.role.type != "administrador"
+      ) {
+        return ctx.unauthorized(`No tienes permiso `);
+      }
 
-        // si el usuario que está haciendo la petición no es el que creó la valoración y no es administrador, no puede eliminar la valoración
+      // si el usuario que está haciendo la petición es el que creó la valoración o es administrador, puede eliminar la valoración
 
-        if (user.id != valoracion.usuario.id && user.role.type != "administrador") {
+      //actualizo el campo valoracion del curso con la nueva valoración
 
-            return ctx.unauthorized(`No tienes permiso `);
+      const valoraciones = await strapi.db
+        .query("api::valoracion-curso.valoracion-curso")
+        .findMany({
+          where: { curso: valoracion.curso.id },
+        });
 
-        }
+      let suma = 0;
 
-        // si el usuario que está haciendo la petición es el que creó la valoración o es administrador, puede eliminar la valoración
+      for (let i = 0; i < valoraciones.length; i++) {
+        suma += valoraciones[i].valoracion;
+      }
 
-        return await super.delete(ctx);
+      suma -= valoracion.valoracion;
 
-    }
+      const promedio = suma / (valoraciones.length - 1);
 
+      await strapi.db.query("api::curso.curso").update({
+        where: { id: valoracion.curso.id },
+
+        data: {
+          averageScore: promedio,
+        },
+      });
+
+      return await super.delete(ctx);
+    },
   })
 );
