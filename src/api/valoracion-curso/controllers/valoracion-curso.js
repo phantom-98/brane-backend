@@ -56,6 +56,30 @@ module.exports = createCoreController(
 
       // si el usuario que está haciendo la petición está inscrito en el curso o es administrador, puede crear la valoración
 
+      // actualizo el campo valoracion del curso con la nueva valoración
+
+
+        const valoraciones = await strapi.db.query("api::valoracion-curso.valoracion-curso").find({
+            where: { curso: id },
+        });
+
+        let suma = 0;
+
+        for (let i = 0; i < valoraciones.length; i++) {
+            suma += valoraciones[i].valoracion;
+        }
+
+        suma += ctx.request.body.data.valoracion;
+
+        const promedio = suma / (valoraciones.length + 1);
+
+        const cursoActualizado = await strapi.db.query("api::curso.curso").update( { id: id }, { valoracion: promedio });
+
+        
+
+
+
+
       return await super.create(ctx);
 
     },
