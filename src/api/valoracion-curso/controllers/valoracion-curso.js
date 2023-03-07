@@ -109,7 +109,7 @@ module.exports = createCoreController(
         .query("api::valoracion-curso.valoracion-curso")
         .findOne({
           where: { id: id },
-          populate: { usuario: true },
+          populate: { usuario: true, curso: true },
         });
 
       //verifico que la valoracion exista
@@ -136,7 +136,7 @@ module.exports = createCoreController(
         const valoraciones = await strapi.db
           .query("api::valoracion-curso.valoracion-curso")
           .findMany({
-            where: { curso: id },
+            where: { curso: valoracion.curso.id },
           });
 
         let suma = 0;
