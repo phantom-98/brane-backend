@@ -14,9 +14,13 @@ module.exports = createCoreController('api::mis-curso.mis-curso', ({ strapi }) =
 
         const { user } = ctx.state;
 
-        const entities = await strapi.services['mis-curso'].findMany({ usuario: user.id });
+								const misCursos = await strapi.db
+								.query("api::mis-curso.mis-curso")
+								.findMany({ where: { usuario: user.id } });
 
-        return entities.map(entity => strapi.services['mis-curso'].sanitizeEntity(entity, { model: strapi.models['mis-curso'] }));
+
+
+								return misCursos;
     }
 
 })
