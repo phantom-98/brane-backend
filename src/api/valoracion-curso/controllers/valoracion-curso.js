@@ -27,10 +27,7 @@ module.exports = createCoreController(
       const misCursos = await strapi.db
         .query("api::mis-curso.mis-curso")
         .findOne({
-          where: {
-            usuario: user.id,
-            curso: id,
-          },
+          where: { usuario: user.id, curso: id },
         });
 
       //console.log(misCursos)
@@ -39,12 +36,8 @@ module.exports = createCoreController(
 
       if (user.role.type == "instructor") {
         const curso = await strapi.db.query("api::curso.curso").findOne({
-          where: {
-            id: id,
-          },
-          populate: {
-            instructor: true,
-          },
+          where: { id: id },
+          populate: { instructor: true },
         });
         if (user.id == curso.instructor.id) {
           return ctx.unauthorized(
@@ -70,9 +63,7 @@ module.exports = createCoreController(
       const valoraciones = await strapi.db
         .query("api::valoracion-curso.valoracion-curso")
         .findMany({
-          where: {
-            curso: id,
-          },
+          where: { curso: id },
         });
 
       let suma = 0;
@@ -86,9 +77,7 @@ module.exports = createCoreController(
       const promedio = suma / (valoraciones.length + 1);
 
       await strapi.db.query("api::curso.curso").update({
-        where: {
-          id: id,
-        },
+        where: { id: id },
         data: {
           averageScore: promedio,
         },
@@ -119,13 +108,8 @@ module.exports = createCoreController(
       const valoracion = await strapi.db
         .query("api::valoracion-curso.valoracion-curso")
         .findOne({
-          where: {
-            id: id,
-          },
-          populate: {
-            usuario: true,
-            curso: true,
-          },
+          where: { id: id },
+          populate: { usuario: true, curso: true },
         });
 
       //verifico que la valoracion exista
@@ -152,27 +136,27 @@ module.exports = createCoreController(
         const valoraciones = await strapi.db
           .query("api::valoracion-curso.valoracion-curso")
           .findMany({
-            where: {
-              curso: valoracion.curso.id,
-            },
+            where: { curso: valoracion.curso.id },
           });
-
+console.log(valoraciones)
         let suma = 0;
 
         for (let i = 0; i < valoraciones.length; i++) {
+
           if (valoraciones[i].id != id) {
-            suma += valoraciones[i].valoracion;
+          suma += valoraciones[i].valoracion;
+
           }
+
         }
 
         suma += ctx.request.body.data.valoracion;
-
+console.log("esta es la suma",suma)
         const promedio = suma / (valoraciones.length + 1);
-
+console.log("este es el promedio", promedio)
         await strapi.db.query("api::curso.curso").update({
-          where: {
-            id: valoracion.curso.id,
-          },
+            
+          where: { id: valoracion.curso.id },
           data: {
             averageScore: promedio,
           },
@@ -204,17 +188,9 @@ module.exports = createCoreController(
       const valoracion = await strapi.db
         .query("api::valoracion-curso.valoracion-curso")
         .findOne({
-          where: {
-            id: id,
-          },
+          where: { id: id},
 
-<<<<<<< HEAD
-          populate: {
-            usuario: true,
-          },
-=======
           populate: { usuario: true, curso: true },
->>>>>>> 12ca770452cb0084c2be4d3fbc2a5d9035a1870e
         });
 
       //verifico que la valoracion exista
@@ -234,14 +210,13 @@ module.exports = createCoreController(
 
       // si el usuario que está haciendo la petición es el que creó la valoración o es administrador, puede eliminar la valoración
 
+      
       //actualizo el campo valoracion del curso con la nueva valoración
 
       const valoraciones = await strapi.db
         .query("api::valoracion-curso.valoracion-curso")
         .findMany({
-          where: {
-            curso: valoracion.curso.id,
-          },
+          where: { curso: valoracion.curso.id },
         });
 
       let suma = 0;
@@ -254,9 +229,7 @@ module.exports = createCoreController(
       const promedio = suma / (valoraciones.length - 1);
 
       await strapi.db.query("api::curso.curso").update({
-        where: {
-          id: valoracion.curso.id,
-        },
+        where: { id: valoracion.curso.id },
 
         data: {
           averageScore: promedio,
