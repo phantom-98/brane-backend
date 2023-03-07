@@ -138,7 +138,7 @@ module.exports = createCoreController(
           .findMany({
             where: { curso: valoracion.curso.id },
           });
-
+console.log(valoraciones)
         let suma = 0;
 
         for (let i = 0; i < valoraciones.length; i++) {
@@ -151,12 +151,12 @@ module.exports = createCoreController(
         }
 
         suma += ctx.request.body.data.valoracion;
-
+console.log("esta es la suma",suma)
         const promedio = suma / (valoraciones.length + 1);
-
+console.log("este es el promedio", promedio)
         await strapi.db.query("api::curso.curso").update({
             
-          where: { id: id },
+          where: { id: valoracion.curso.id },
           data: {
             averageScore: promedio,
           },
@@ -215,7 +215,7 @@ module.exports = createCoreController(
       const valoraciones = await strapi.db
         .query("api::valoracion-curso.valoracion-curso")
         .findMany({
-          where: { curso: id },
+          where: { curso: valoracion.curso.id },
         });
 
       let suma = 0;
@@ -229,7 +229,7 @@ module.exports = createCoreController(
       const promedio = suma / (valoraciones.length - 1);
 
       await strapi.db.query("api::curso.curso").update({
-        where: { id: id },
+        where: { id: valoracion.curso.id },
 
         data: {
           averageScore: promedio,
