@@ -18,7 +18,13 @@ module.exports = createCoreController('api::mis-curso.mis-curso', ({ strapi }) =
 
 						...ctx.query,
 
-						where: { usuario: user.id },
+						filters: {
+							$and: [
+									{
+											usuario: user.id,
+									}
+							],
+						},
 
 
 				});
