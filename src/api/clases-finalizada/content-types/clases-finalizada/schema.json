@@ -4,10 +4,11 @@
   "info": {
     "singularName": "clases-finalizada",
     "pluralName": "clases-finalizadas",
-    "displayName": "Clases finalizada"
+    "displayName": "Clases finalizada",
+    "description": ""
   },
   "options": {
-    "draftAndPublish": true
+    "draftAndPublish": false
   },
   "pluginOptions": {},
   "attributes": {
