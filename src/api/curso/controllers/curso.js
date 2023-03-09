@@ -149,11 +149,15 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
       return ctx.unauthorized(`You can't create this entry`);
     }
 
-    // verifico que el curso tiene el campo instructor lleno, sino  coloco el usuario que está haciendo la petición como instructor solo si es de tipo	instructor sino doy mensaje de error de validacion de campo instructor vacio y no se crea el curso
+    // si el usuario que esta haciendo la peticion es de tipo instructor le asigno el instructor al curso
 
-    if (!ctx.request.body.data.instructor && user.role.type == "instructor") {
+    if (user.role.type == "instructor") {
       ctx.request.body.data.instructor = user.id;
-    } else if (
+    }
+    console.log(ctx.request.body.data.instructor);
+    // si el usuario que esta haciendo la peticion es de tipo administrador y no envia el instructor, no puede crear el curso
+     
+    if (
       !ctx.request.body.data.instructor &&
       user.role.type != "instructor"
     ) {

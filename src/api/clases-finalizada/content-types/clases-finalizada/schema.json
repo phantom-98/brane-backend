@@ -20,7 +20,7 @@
     "curso": {
       "type": "relation",
       "relation": "oneToOne",
-      "target": "api::mis-curso.mis-curso"
+      "target": "api::curso.curso"
     },
     "usuario": {
       "type": "relation",

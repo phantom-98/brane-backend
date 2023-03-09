@@ -29,7 +29,7 @@ module.exports = createCoreController(
       // si el usuario que está haciendo la petición no está inscrito en el curso y no es administrador, no puede crear la clase finalizada
 
       const id = ctx.request.body.data.curso;
-
+      console.log(ctx.request.body.data)
       const misCursos = await strapi.db
         .query("api::mis-curso.mis-curso")
         .findOne({
@@ -71,13 +71,12 @@ module.exports = createCoreController(
       });
 
       //agrego la clase finalizada
-      console.log("este es el body", ctx.request.body.data.clase);
+      console.log("este es el body", ctx.request.body.data);
       const claseFinalizadaCreada = await strapi.db
         .query("api::clases-finalizada.clases-finalizada")
         .create({
             data: {
                 usuario: user.id,
-                curso: id,
                 clase: ctx.request.body.data.clase,
                 status: true,
             }

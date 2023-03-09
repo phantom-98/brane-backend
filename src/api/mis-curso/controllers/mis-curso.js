@@ -36,8 +36,37 @@ module.exports = createCoreController('api::mis-curso.mis-curso', ({ strapi }) =
 			...(ctx.query.filters || {}),
 			usuario: user.id,
 		};
+
 		return super.find(ctx);
 
-	}
+	},
+	//modifico el metodo create para que cuando se cree mis curso se agregue el campo progress con valor 0
+	async create(ctx) {
+
+		const user = ctx.state.user;
+
+		// si no hay usuario 
+
+		if (!user) {
+			return ctx.badRequest(null, [
+				{
+
+					messages: [
+						{
+							id: 'No autorizado',
+							message: 'No autorizado',
+						},
+					],
+				},
+			]);
+		}
+
+		// si hay usuario, le agrego el filtro de usuario		
+
+		ctx.request.body.data.usuario = user.id;
+		ctx.request.body.data.progress = 0;
+
+		return super.create(ctx);
+	},
 })
 )
