@@ -77,6 +77,7 @@ module.exports = createCoreController(
         .create({
             data: {
                 usuario: user.id,
+                curso: id,
                 clase: ctx.request.body.data.clase,
                 status: true,
             }
