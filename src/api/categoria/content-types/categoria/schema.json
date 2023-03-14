@@ -32,6 +32,10 @@
     },
     "uuid": {
       "type": "uid"
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "nombre"
     }
   }
 }

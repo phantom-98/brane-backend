@@ -83,9 +83,8 @@
         "images"
       ]
     },
-    "uuid": {
-      "type": "uid",
-      "required": false
+    "slug": {
+      "type": "uid"
     }
   }
 }

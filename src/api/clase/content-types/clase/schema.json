@@ -8,7 +8,7 @@
     "description": ""
   },
   "options": {
-    "draftAndPublish": true
+    "draftAndPublish": false
   },
   "pluginOptions": {},
   "attributes": {
@@ -43,6 +43,10 @@
     },
     "duracion": {
       "type": "string"
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "nombre"
     }
   }
 }
