@@ -66,6 +66,11 @@
     },
     "averageScore": {
       "type": "decimal"
+    },
+    "categoria": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::categoria.categoria"
     }
   }
 }

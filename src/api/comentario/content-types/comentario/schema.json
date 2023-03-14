@@ -40,6 +40,14 @@
     },
     "uuid": {
       "type": "uid"
+    },
+    "tipo": {
+      "type": "enumeration",
+      "enum": [
+        "comentario",
+        "mensaje"
+      ],
+      "default": "comentario"
     }
   }
 }

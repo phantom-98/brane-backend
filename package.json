@@ -16,8 +16,8 @@
     "@strapi/provider-upload-cloudinary": "^4.6.2",
     "@strapi/strapi": "4.6.2",
     "mysql": "2.18.1",
-    "strapi-plugin-slugify": "^2.3.2"
-    
+    "strapi-plugin-slugify": "^2.3.2",
+    "strapi-stripe": "^3.2.1"
   },
   "author": {
     "name": "A Strapi developer"
