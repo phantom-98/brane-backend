@@ -65,7 +65,7 @@
     },
     "nombre": {
       "type": "string",
-      "required": true,
+      "required": false,
       "minLength": 2,
       "maxLength": 100
     },
@@ -76,16 +76,16 @@
       "maxLength": 250
     },
     "avatar": {
-      "allowedTypes": [
-        "images"
-      ],
       "type": "media",
       "multiple": false,
-      "required": false
+      "required": false,
+      "allowedTypes": [
+        "images"
+      ]
     },
     "uuid": {
       "type": "uid",
-      "required": true
+      "required": false
     }
   }
 }

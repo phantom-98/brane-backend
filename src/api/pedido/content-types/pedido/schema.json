@@ -33,6 +33,14 @@
     },
     "uuid": {
       "type": "uid"
+    },
+    "usuario": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "metodo_de_pago": {
+      "type": "string"
     }
   }
 }
