@@ -36,6 +36,12 @@
     "biografia": {
       "type": "text",
       "required": true
+    },
+    "birthday": {
+      "type": "date"
+    },
+    "address": {
+      "type": "string"
     }
   }
 }
