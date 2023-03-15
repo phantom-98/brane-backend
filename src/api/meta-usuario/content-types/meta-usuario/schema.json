@@ -29,10 +29,6 @@
       "type": "boolean",
       "default": false
     },
-    "uuid": {
-      "type": "uid",
-      "required": false
-    },
     "profesion": {
       "type": "string",
       "required": true
