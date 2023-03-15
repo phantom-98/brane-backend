@@ -43,10 +43,6 @@
     },
     "duracion": {
       "type": "string"
-    },
-    "slug": {
-      "type": "uid",
-      "targetField": "nombre"
     }
   }
 }

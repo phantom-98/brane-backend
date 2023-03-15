@@ -30,9 +30,6 @@
       "relation": "oneToOne",
       "target": "api::categoria.categoria"
     },
-    "uuid": {
-      "type": "uid"
-    },
     "slug": {
       "type": "uid",
       "targetField": "nombre"

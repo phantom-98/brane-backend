@@ -206,6 +206,87 @@ module.exports = createCoreController('api::clase.clase', ({ strapi }) => ({
 
         },
 
+    //modifico el findOne para que solo usuarios que tengan el curso al que pertenece la clase, el instructor dueño del curso y el administrador puedan ver la clase
+    
+    async findOne(ctx) {
+
+        //obtengo el usuario que está haciendo la petición
+
+        const user = ctx.state.user;
+
+        //obtengo el id de la clase que se quiere ver
+
+        const { id } = ctx.params;
+
+        //si el usuario que está haciendo la petición no está logueado, no puede ver la clase
+
+        if (!user) {
+
+            return ctx.unauthorized(`No has iniciado sesión`);
+
+        }
+
+        //obtengo la clase que se quiere ver
+
+        const clase = await strapi.db.query('api::clase.clase').findOne({
+
+            // uid syntax: 'api::api-name.content-type-name'
+
+            where: { id },
+
+            populate: { curso: true },
+
+        });
+
+        //si la clase no existe, no puede ver la clase
+
+        if (!clase) {
+
+            return ctx.unauthorized(`la clase no existe`);
+
+        }
+
+        //busco el curso al cua pertenece la clase y obtengo el instructor
+
+        const curso = await strapi.db.query('api::curso.curso').findOne({
+
+            // uid syntax: 'api::api-name.content-type-name'
+
+            where: { id: clase.curso.id },
+
+            populate: { instructor: true },
+
+        });
+        //busco si el usuario que está haciendo la petición tiene el curso en miscursos
+
+        
+        const misCurso = await strapi.db.query('api::mis-curso.mis-curso').findOne({
+
+            // uid syntax: 'api::api-name.content-type-name'
+
+            where: { usuario: user.id, curso: curso.id },
+
+        });
+
+        //si el usuario que está haciendo la petición no tiene el curso en miscursos, no es el instructor de la clase ni es administrador, no puede ver la clase
+
+        if (!misCurso && user.id != curso.instructor.id && user.role.type != 'administrador') {
+
+            return ctx.unauthorized(`No tienes permisos para ver la clase`);
+
+        }
+
+
+        //si el usuario que está haciendo la petición es el instructor de la clase o es administrador, puede ver la clase
+
+        return await super.findOne(ctx);
+
+
+    },
+
+ 
+    
+
 }
 
 
