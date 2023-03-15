@@ -13,18 +13,18 @@ module.exports = ({ env }) => ({
           field: "slug",
           references: ["nombre", "apellidos"],
         },
-		clases: {	
-		  field: "slug",
-		  references: "nombre",
-		},
-		categoria: {
-			field: "slug",
-			references: "nombre",
-		},
-		cupon: {
-			field: "slug",
-			references: "nombre",
-		},
+        clases: {
+          field: "slug",
+          references: "nombre",
+        },
+        categoria: {
+          field: "slug",
+          references: "nombre",
+        },
+        cupon: {
+          field: "slug",
+          references: "nombre",
+        },
       },
     },
   },
