@@ -31,14 +31,52 @@ module.exports = createCoreController('api::meta-usuario.meta-usuario', ({ strap
 			]);
 		}
 
-		// metodo findOne para traer la meta del usuario logueado
 
 
 
-		// si hay usuario, lo agrego como parametro id
+		const meta = await strapi.db
+			.query("api::meta-usuario.meta-usuario")
+			.findOne({ usuario: user.id });
 
-		ctx.params.id = user.id;
-		return super.findOne(ctx);
+		console.log(meta);
+
+		if (!meta) {
+
+			return ctx.notFound(null, [
+
+				{
+
+					messages: [
+
+						{
+
+							id: 'No tienes una meta creada',
+
+							message: 'No tienes una meta creada',
+
+						},
+
+					],
+
+				},
+
+			]);
+
+		}
+
+		// si hay meta data, la retorno dentro de un objeto data {id:meta.id, attributes : meta}
+
+
+
+
+
+
+
+
+
+		return ctx.send({ data: { id: meta.id, attributes: meta } });
+
+
 	},
 
 	async updateMe(ctx) {
@@ -63,7 +101,46 @@ module.exports = createCoreController('api::meta-usuario.meta-usuario', ({ strap
 
 		// si hay usuario, lo agrego como parametro id
 
-		ctx.params.id = user.id;
+		// busco el id de la meta del usuario logueado
+
+		const meta = await strapi.db
+			.query("api::meta-usuario.meta-usuario")
+			.findOne({ usuario: user.id });
+
+
+		console.log(meta);
+
+		if (!meta) {
+
+			return ctx.notFound(null, [
+
+				{
+
+					messages: [
+
+						{
+
+							id: 'No tienes una meta creada',
+
+							message: 'No tienes una meta creada',
+
+						},
+
+					],
+
+				},
+
+			]);
+
+		}
+
+
+
+
+
+		ctx.params.id = meta.id;
+
+
 
 
 
@@ -104,6 +181,8 @@ module.exports = createCoreController('api::meta-usuario.meta-usuario', ({ strap
 
 		}
 
+
+
 		// verifico si el usuario logueado es admin con el role 5 
 
 		if (user.role.id != 5) {
@@ -113,7 +192,43 @@ module.exports = createCoreController('api::meta-usuario.meta-usuario', ({ strap
 			ctx.request.body.usuario = user.id;
 
 		}
-		
+
+		// verifico quue el usuario no tenga ya una meta creada
+
+
+
+		const meta = await strapi.db
+			.query("api::meta-usuario.meta-usuario")
+			.findOne({ usuario: user.id });
+
+
+
+		if (meta) {
+
+			return ctx.badRequest(null, [
+
+				{
+
+					messages: [
+
+						{
+
+							id: 'Ya tienes una meta creada',
+
+							message: 'Ya tienes una meta creada',
+
+						},
+
+					],
+
+				},
+
+			]);
+
+		}
+
+
+
 
 		return super.create(ctx);
 

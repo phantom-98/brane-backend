@@ -41,7 +41,7 @@
       "type": "date"
     },
     "address": {
-      "type": "string"
+      "type": "text"
     }
   }
 }
