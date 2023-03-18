@@ -1,0 +1,33 @@
+{
+  "kind": "collectionType",
+  "collectionName": "fa_qs",
+  "info": {
+    "singularName": "fa-q",
+    "pluralName": "fa-qs",
+    "displayName": "FaQ",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "curso": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::curso.curso"
+    },
+    "user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "text"
+    }
+  }
+}

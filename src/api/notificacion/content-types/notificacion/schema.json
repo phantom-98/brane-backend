@@ -1,0 +1,40 @@
+{
+  "kind": "collectionType",
+  "collectionName": "notificacions",
+  "info": {
+    "singularName": "notificacion",
+    "pluralName": "notificacions",
+    "displayName": "Notificacion"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "fecha": {
+      "type": "datetime"
+    },
+    "estado": {
+      "type": "boolean",
+      "default": false
+    },
+    "tipo": {
+      "type": "enumeration",
+      "enum": [
+        "curso",
+        "mensaje",
+        "pago",
+        "descuento"
+      ]
+    },
+    "descripcion": {
+      "type": "text",
+      "maxLength": 200
+    }
+  }
+}
