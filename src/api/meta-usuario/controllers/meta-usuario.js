@@ -36,7 +36,7 @@ module.exports = createCoreController('api::meta-usuario.meta-usuario', ({ strap
 
 		const meta = await strapi.db
 			.query("api::meta-usuario.meta-usuario")
-			.findOne({ usuario: user.id });
+			.findOne({ where: { usuario: user.id } });
 
 		console.log(meta);
 
@@ -105,7 +105,7 @@ module.exports = createCoreController('api::meta-usuario.meta-usuario', ({ strap
 
 		const meta = await strapi.db
 			.query("api::meta-usuario.meta-usuario")
-			.findOne({ usuario: user.id });
+			.findOne({ where: { usuario: user.id }});
 
 
 		console.log(meta);
@@ -199,7 +199,7 @@ module.exports = createCoreController('api::meta-usuario.meta-usuario', ({ strap
 
 		const meta = await strapi.db
 			.query("api::meta-usuario.meta-usuario")
-			.findOne({ usuario: user.id });
+			.findOne({ where: { usuario: user.id }});
 
 
 
