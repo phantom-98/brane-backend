@@ -151,7 +151,7 @@ module.exports = createCoreController('api::meta-usuario.meta-usuario', ({ strap
 	//modifico el metodo create para inyectar el id del usuario logueado en el campo usuario, al menos que quien envie	la peticion sea un admin
 
 
-	async create(ctx) {
+	async createMe(ctx) {
 
 		const user = ctx.state.user;
 
@@ -159,7 +159,7 @@ module.exports = createCoreController('api::meta-usuario.meta-usuario', ({ strap
 
 		if (!user) {
 
-			return ctx.badRequest(null, [
+			return ctx.badRequest(401, [
 
 				{
 
@@ -181,6 +181,7 @@ module.exports = createCoreController('api::meta-usuario.meta-usuario', ({ strap
 
 		}
 
+		console.log("USER",user);
 
 
 		// verifico si el usuario logueado es admin con el role 5 
@@ -189,9 +190,11 @@ module.exports = createCoreController('api::meta-usuario.meta-usuario', ({ strap
 
 			// si es distinto al admin, inyecto el id del usuario logueado en el campo usuario
 
-			ctx.request.body.usuario = user.id;
+			ctx.request.body.data.usuario = user.id;
 
 		}
+
+		console.log("BODY",ctx.request.body);
 
 		// verifico quue el usuario no tenga ya una meta creada
 
@@ -201,11 +204,11 @@ module.exports = createCoreController('api::meta-usuario.meta-usuario', ({ strap
 			.query("api::meta-usuario.meta-usuario")
 			.findOne({ where: { usuario: user.id }});
 
-
+		console.log("META",meta);
 
 		if (meta) {
 
-			return ctx.badRequest(null, [
+			return ctx.badRequest(500, [
 
 				{
 

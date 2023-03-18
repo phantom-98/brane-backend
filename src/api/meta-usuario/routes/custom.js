@@ -13,6 +13,10 @@ module.exports = {
 				path: "/meta-usuario/me",
 				handler: "meta-usuario.updateMe",
 			},
-			
+			{
+				method: "POST",
+				path: "/meta-usuario/me",
+				handler: "meta-usuario.createMe",
+			},			
 	],
 };
