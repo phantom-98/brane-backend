@@ -85,6 +85,11 @@
     },
     "slug": {
       "type": "uid"
+    },
+    "averageScore": {
+      "type": "decimal",
+      "default": 0,
+      "max": 5
     }
   }
 }

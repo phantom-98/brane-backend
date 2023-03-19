@@ -21,16 +21,33 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
     for (let i = 0; i < data.length; i++) {
       const curso = data[i];
-      console.log(curso)
-      curso.instructor = await strapi.db.query("plugin::users-permissions.user").findOne({
+      console.log(curso.attributes.instructor)
+      curso.attributes.instructor = await strapi.db.query("plugin::users-permissions.user").findOne({
         // uid syntax: 'api::api-name.content-type-name'
         where: {
-          id: curso.instructor,
+          id: curso.attributes.instructor.data.id,
         },
         //selecciono solo el instructor
-        
         populate: true,
       });
+
+      let arrayEliminar = [
+        "password",
+        "provider",
+        "resetPasswordToken",
+        "confirmationToken",
+        "confirmed",
+        "blocked",
+        "username",
+        "createdAt",
+        "updatedAt",
+        "publishedAt",
+      ]
+      arrayEliminar.forEach((element) => {
+        delete curso.attributes.instructor[element];
+      }
+      );
+
     }
 
     // some more custom logic
