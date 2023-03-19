@@ -16,8 +16,7 @@
       "type": "string",
       "required": true,
       "minLength": 2,
-      "maxLength": 500,
-      "private": true
+      "maxLength": 500
     },
     "descripcion": {
       "type": "text",

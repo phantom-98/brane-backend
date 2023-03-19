@@ -17,16 +17,19 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
     // Calling the default core action
     const { data, meta } = await super.find(ctx);
 
-    // recorro los cursos y anexo el profesor
+    // recorro los cursos y anexo el instructor
 
     for (let i = 0; i < data.length; i++) {
       const curso = data[i];
-      curso.profesor = await strapi.db.query("api::curso.curso").findOne({
+      console.log(curso)
+      curso.instructor = await strapi.db.query("plugin::users-permissions.user").findOne({
         // uid syntax: 'api::api-name.content-type-name'
         where: {
-          id: curso.id,
+          id: curso.instructor,
         },
-        populate: { instructor: true },
+        //selecciono solo el instructor
+        
+        populate: true,
       });
     }
 
