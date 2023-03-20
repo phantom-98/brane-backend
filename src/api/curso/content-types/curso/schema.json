@@ -70,6 +70,12 @@
       "type": "relation",
       "relation": "oneToOne",
       "target": "api::categoria.categoria"
+    },
+    "idioma": {
+      "type": "string"
+    },
+    "subtitle": {
+      "type": "string"
     }
   }
 }
