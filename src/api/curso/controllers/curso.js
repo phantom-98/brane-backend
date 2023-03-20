@@ -98,9 +98,15 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
     if (user.id != curso.instructor.id && user.role.type != "administrador") {
       return ctx.unauthorized(`You can't update this entry`);
     }
+    const { subTitles, whatYouWillLearn, requirements } = ctx.request.body.data;
 
-    // si el usuario que está haciendo la petición es el instructor del curso o es administrador, puede actualizar el curso
+    // son de tipo array, los serializo para poder guardarlos en la base de datos
 
+    ctx.request.body.data.subTitles = JSON.stringify(subTitles);
+
+    ctx.request.body.data.whatYouWillLearn = JSON.stringify(whatYouWillLearn);
+
+    ctx.request.body.data.requirements = JSON.stringify(requirements);
     return await super.update(ctx);
   },
 
