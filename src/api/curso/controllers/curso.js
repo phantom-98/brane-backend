@@ -107,6 +107,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
     ctx.request.body.data.whatYouWillLearn = JSON.stringify(whatYouWillLearn);
 
     ctx.request.body.data.requirements = JSON.stringify(requirements);
+    ctx.request.body.data.additionalResources = JSON.stringify(additionalResources);
     return await super.update(ctx);
   },
 
@@ -182,7 +183,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
     }
     console.log(ctx.request.body.data.instructor);
     // si el usuario que esta haciendo la peticion es de tipo administrador y no envia el instructor, no puede crear el curso
-     
+
     if (
       !ctx.request.body.data.instructor &&
       user.role.type != "instructor"
@@ -211,9 +212,9 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
     ctx.request.body.data.requirements = JSON.stringify(requirements);
 
+    ctx.request.body.data.additionalResources = JSON.stringify(additionalResources);
 
 
-    
 
     /* if (!ctx.request.body.instructor) {
       if (user.role.type == 'instructor') {
@@ -509,10 +510,13 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
     delete data.curso.updatedBy;
 
     data.curso.subTitles = JSON.parse(data.curso.subTitles);
-    
+
     data.curso.whatYouWillLearn = JSON.parse(data.curso.whatYouWillLearn);
-    
+
     data.curso.requirements = JSON.parse(data.curso.requirements);
+    data.curso.additionalResources = JSON.parse(data.curso.additionalResources);
+
+
 
     // para el campo data.curso.summary, necesito cantidad de clases (sus duraciones), cantidad de projects y si tiene project final
 
@@ -520,8 +524,15 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
     data.clases.forEach((clase) => {
 
+      // verifico no sea undefined
 
-      data.curso.duracionTotal += clase.duracion;
+      if (data.curso.duracionTotal === undefined) {
+
+        data.curso.duracionTotal = 0;
+
+      }
+
+      data.curso.duracionTotal += parseFloat(clase.duracion);
 
 
 
@@ -530,8 +541,8 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
     // busco los projects del curso
 
     const projects = await strapi.db
-    .query("api::project.project")
-    .findMany({ where: { curso: id }, populate: {media:true}});
+      .query("api::project.project")
+      .findMany({ where: { curso: id }, populate: { media: true } });
     let cantidadProjects = 0;
     // cantidad de projects
     if (projects) {
@@ -551,35 +562,365 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
       }
 
     });
-    
 
 
 
-  data.curso.summary = [{cantidadClases: data.clases.length, duracionTotal: data.curso.duracionTotal, cantidadProjects, projectFinal}]
+
+    data.curso.summary = [{ cantidadClases: data.clases.length, duracionTotal: data.curso.duracionTotal, cantidadProjects, projectFinal }]
 
 
-  data.projects = projects;
-    
+    data.projects = projects;
+
 
 
     return { data, meta };
   },
-   
-   async findBySlug(ctx) {
-    const {slug} = ctx.params;
+
+  async findBySlug(ctx) {
+    const { slug } = ctx.params;
     console.log(ctx.params)
-    const entity = await strapi.db.query("api::curso.curso").findOne({where: { slug: slug },
-    populate: true });
+    const entity = await strapi.db.query("api::curso.curso").findOne({
+      where: { slug: slug },
+      populate: true
+    });
+
+    if (!entity) {
+
+      return ctx.notFound();
+
+    }
+
+    // saco el id del curso
+
+    const id = entity.id;
+
+    const user = ctx.state.user;
 
 
-    entity.subTitles = JSON.parse(entity.subTitles);
-    
-    entity.whatYouWillLearn = JSON.parse(entity.whatYouWillLearn);
-    
-    entity.requirements = JSON.parse(entity.requirements);
-    
-    const sanitizedResults = await this.sanitizeOutput(entity, ctx);
 
-    return this.transformResponse(sanitizedResults);
+
+
+    let data = {};
+
+
+
+    // verifico si el usuario esta logueado o no 
+
+    if (user) {
+
+      if (user.role.type != "administrador" && user.role.type != "instructor") {
+        // verifico en la tabla mis cursos si el usuario que está haciendo la petición tiene el curso que se quiere consultar
+
+        const misCursos = await strapi.db
+          .query("api::mis-curso.mis-curso")
+          .findOne({ where: { curso: id, usuario: user.id } });
+
+        // si el usuario no es dueño del curso y no está inscrito en el curso, envio solo datos publicos
+
+        if (!misCursos) {
+          // obtengo el curso que se quiere consultar
+
+          const curso = await strapi.db
+            .query("api::curso.curso")
+            .findOne({ where: { id }, populate: true });
+
+          // busco las clases del curso que se quiere consultar y muestro solo los siguientes campos de la tabla clase nombre, descripcion, fecha, hora, duracion
+
+          const clases = await strapi.db
+            .query("api::clase.clase")
+            .findMany({ where: { curso: id }, select: ["nombre", "duracion", "descripcion"] });
+
+          // busco las valoraciones del curso que se quiere consultar
+
+          const valoraciones = await strapi.db
+            .query("api::valoracion-curso.valoracion-curso")
+            .findMany({ where: { curso: id } });
+
+          // armo la respuesta con los datos publicos del curso
+
+          data = { curso, clases, valoraciones };
+
+
+
+
+        } else {
+          // si el usuario es dueño del curso o está inscrito en el curso, envio todos los datos del curso
+
+          // obtengo el curso que se quiere consultar
+
+          const curso = await strapi.db
+            .query("api::curso.curso")
+            .findOne({ where: { id }, populate: true });
+
+          // busco las clases del curso que se quiere consultar
+
+          const clases = await strapi.db
+            .query("api::clase.clase")
+            .findMany({ where: { curso: id } });
+
+          // busco las valoraciones del curso que se quiere consultar
+
+          const valoraciones = await strapi.db
+            .query("api::valoracion-curso.valoracion-curso")
+            .findMany({ where: { curso: id } });
+
+          // armo la respuesta con todos los datos del curso
+
+          data = { curso, clases, valoraciones };
+
+
+        }
+      } else if (user.role.type == "administrador") {
+        // si es administrador le devulevo todos los datos del curso
+
+        // obtengo el curso que se quiere consultar
+
+        const curso = await strapi.db
+          .query("api::curso.curso")
+          .findOne({ where: { id }, populate: true });
+
+        // busco las clases del curso que se quiere consultar
+
+        const clases = await strapi.db
+          .query("api::clase.clase")
+          .findMany({ where: { curso: id } });
+
+        // busco las valoraciones del curso que se quiere consultar
+
+        const valoraciones = await strapi.db
+          .query("api::valoracion-curso.valoracion-curso")
+          .findMany({ where: { curso: id } });
+
+        // armo la respuesta con todos los datos del curso
+
+        data = { curso, clases, valoraciones };
+
+        // hago el return de la respuesta
+
+      } else if (user.role.type == "instructor") {
+        // verifico si el instructor es dueño del curso o es instructor de dicho curso
+
+        const curso = await strapi.db
+          .query("api::curso.curso")
+          .findOne({
+            where: { id, instructor: user.id },
+            populate: true,
+          });
+
+        // si el instructor es dueño del curso o es instructor de dicho curso, envio todos los datos del curso
+
+        if (curso) {
+          // busco las clases del curso que se quiere consultar
+
+          const clases = await strapi.db
+            .query("api::clase.clase")
+            .findMany({ where: { curso: id } });
+
+          // busco las valoraciones del curso que se quiere consultar
+
+          const valoraciones = await strapi.db
+            .query("api::valoracion-curso.valoracion-curso")
+            .findMany({ where: { curso: id } });
+
+          // armo la respuesta con todos los datos del curso
+
+          data = { curso, clases, valoraciones };
+
+          // hago el return de la respuesta
+
+        } else {
+          // verifico si tiene el curso en mis cursos
+
+          const misCursos = await strapi.db
+            .query("api::mis-curso.mis-curso")
+            .findOne({ where: { curso: id, usuario: user.id } });
+
+          // si el usuario no es dueño del curso y no está inscrito en el curso, envio solo datos publicos
+
+          if (!misCursos) {
+            // obtengo el curso que se quiere consultar
+
+            const curso = await strapi.db
+              .query("api::curso.curso")
+              .findOne({ where: { id }, populate: true });
+
+            // busco las clases del curso que se quiere consultar y muestro solo los siguientes campos de la tabla clase nombre, descripcion, fecha, hora, duracion
+
+            const clases = await strapi.db
+              .query("api::clase.clase")
+              .findMany({ where: { curso: id }, select: ["nombre", "duracion", "descripcion"] });
+
+            // busco las valoraciones del curso que se quiere consultar
+
+            const valoraciones = await strapi.db
+              .query("api::valoracion-curso.valoracion-curso")
+              .findMany({ where: { curso: id } });
+
+            // armo la respuesta con los datos publicos del curso
+
+            data = { curso, clases, valoraciones };
+
+            // hago el return de la respuesta
+
+
+          } else {
+            // si el usuario es dueño del curso o está inscrito en el curso, envio todos los datos del curso
+
+            // obtengo el curso que se quiere consultar
+
+            const curso = await strapi.db
+              .query("api::curso.curso")
+              .findOne({ where: { id }, populate: true });
+
+            // busco las clases del curso que se quiere consultar
+
+            const clases = await strapi.db
+              .query("api::clase.clase")
+              .findMany({ where: { curso: id } });
+
+            // busco las valoraciones del curso que se quiere consultar
+
+            const valoraciones = await strapi.db
+              .query("api::valoracion-curso.valoracion-curso")
+              .findMany({ where: { curso: id } });
+
+            // armo la respuesta con todos los datos del curso
+
+
+
+
+
+
+
+
+            data = { curso, clases, valoraciones };
+
+            // hago el return de la respuesta
+
+
+          }
+        }
+      }
+
+    } else {
+
+      // si no está logueado, envio solo datos publicos
+
+      // obtengo el curso que se quiere consultar
+
+      const curso = await strapi.db
+        .query("api::curso.curso")
+        .findOne({ where: { id }, populate: true });
+
+      // busco las clases del curso que se quiere consultar y muestro solo los siguientes campos de la tabla clase nombre, duracion
+
+      const clases = await strapi.db
+        .query("api::clase.clase")
+        .findMany({ where: { curso: id }, select: ["nombre", "duracion", "descripcion"] });
+
+      // busco las valoraciones del curso que se quiere consultar
+
+      const valoraciones = await strapi.db
+        .query("api::valoracion-curso.valoracion-curso")
+        .findMany({ where: { curso: id } });
+
+      // armo la respuesta con los datos publicos del curso
+
+      data = { curso, clases, valoraciones };
+
+
+
+    }
+
+
+
+    const meta = {};
+
+    // some more custom logic
+    meta.date = Date.now();
+
+    // elimino el campo password, confirmationToken, resetPasswordToken,  del instructor si posee el campo isntructor
+
+    if (data.curso.instructor) {
+      delete data.curso.instructor.password;
+      delete data.curso.instructor.confirmationToken;
+      delete data.curso.instructor.resetPasswordToken;
+
+    }
+
+    delete data.curso.createdBy;
+
+    delete data.curso.updatedBy;
+
+    data.curso.subTitles = JSON.parse(data.curso.subTitles);
+
+    data.curso.whatYouWillLearn = JSON.parse(data.curso.whatYouWillLearn);
+
+    data.curso.requirements = JSON.parse(data.curso.requirements);
+    data.curso.additionalResources = JSON.parse(data.curso.additionalResources);
+
+
+
+    // para el campo data.curso.summary, necesito cantidad de clases (sus duraciones), cantidad de projects y si tiene project final
+
+    // uso las clases en data.clases para obtener la cantidad de clases y sus duraciones
+
+    data.clases.forEach((clase) => {
+
+      // verifico no sea undefined
+
+      if (data.curso.duracionTotal === undefined) {
+
+        data.curso.duracionTotal = 0;
+
+      }
+      // sumo las duraciones de las clases conviertiendo a numero
+
+
+      data.curso.duracionTotal += parseFloat(clase.duracion);
+
+
+
+    });
+
+    // busco los projects del curso
+
+    const projects = await strapi.db
+      .query("api::project.project")
+      .findMany({ where: { curso: id }, populate: { media: true } });
+    let cantidadProjects = 0;
+    // cantidad de projects
+    if (projects) {
+      cantidadProjects = projects.length;
+    }
+
+    // recorro los projects para ver si tiene project final
+
+    let projectFinal = false;
+
+    projects.forEach((project) => {
+
+      if (project.projectFinal) {
+
+        projectFinal = true;
+
+      }
+
+    });
+
+
+
+
+    data.curso.summary = [{ cantidadClases: data.clases.length, duracionTotal: data.curso.duracionTotal, cantidadProjects, projectFinal }]
+
+
+    data.projects = projects;
+
+
+
+    return { data, meta };
+
+
+
   },
 }));
