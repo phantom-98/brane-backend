@@ -71,8 +71,15 @@
       "relation": "oneToOne",
       "target": "api::categoria.categoria"
     },
-    "whatYouWillLearn": {
-      "type": "richtext"
+    "idioma": {
+      "type": "string"
+    },
+    "subtitle": {
+      "type": "string"
+    },
+    "cantidadEstudiantes": {
+      "type": "integer",
+      "default": 0
     }
   }
 }
