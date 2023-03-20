@@ -193,7 +193,21 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
       ]);
     }
 
-    console.log(ctx.request.body.data);
+    // extraigo los campos subTitles , whatYouWillLearn y requirements
+
+    const { subTitles, whatYouWillLearn, requirements } = ctx.request.body.data;
+
+    // son de tipo array, los serializo para poder guardarlos en la base de datos
+
+    ctx.request.body.data.subTitles = JSON.stringify(subTitles);
+
+    ctx.request.body.data.whatYouWillLearn = JSON.stringify(whatYouWillLearn);
+
+    ctx.request.body.data.requirements = JSON.stringify(requirements);
+
+
+
+    
 
     /* if (!ctx.request.body.instructor) {
       if (user.role.type == 'instructor') {
@@ -422,7 +436,10 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
             // armo la respuesta con todos los datos del curso
 
-            // elimino createdBy y updatedBy de curso 
+
+
+
+
 
 
 
@@ -485,6 +502,59 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
     delete data.curso.updatedBy;
 
+    data.curso.subTitles = JSON.parse(data.curso.subTitles);
+    
+    data.curso.whatYouWillLearn = JSON.parse(data.curso.whatYouWillLearn);
+    
+    data.curso.requirements = JSON.parse(data.curso.requirements);
+
+    // para el campo data.curso.summary, necesito cantidad de clases (sus duraciones), cantidad de projects y si tiene project final
+
+    // uso las clases en data.clases para obtener la cantidad de clases y sus duraciones
+
+    data.clases.forEach((clase) => {
+
+
+      data.curso.duracionTotal += clase.duracion;
+
+
+
+    });
+
+    // busco los projects del curso
+
+    const projects = await strapi.db
+    .query("api::project.project")
+    .findMany({ where: { curso: id }, populate: {media:true}});
+    let cantidadProjects = 0;
+    // cantidad de projects
+    if (projects) {
+      cantidadProjects = projects.length;
+    }
+
+    // recorro los projects para ver si tiene project final
+
+    let projectFinal = false;
+
+    projects.forEach((project) => {
+
+      if (project.projectFinal) {
+
+        projectFinal = true;
+
+      }
+
+    });
+    
+
+
+
+  data.curso.summary = [{cantidadClases: data.clases.length, duracionTotal: data.curso.duracionTotal, cantidadProjects, projectFinal}]
+
+
+  data.projects = projects;
+    
+
 
     return { data, meta };
   },
@@ -495,6 +565,12 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
     const entity = await strapi.db.query("api::curso.curso").findOne({where: { slug: slug },
     populate: true });
 
+
+    entity.subTitles = JSON.parse(entity.subTitles);
+    
+    entity.whatYouWillLearn = JSON.parse(entity.whatYouWillLearn);
+    
+    entity.requirements = JSON.parse(entity.requirements);
     
     const sanitizedResults = await this.sanitizeOutput(entity, ctx);
 
