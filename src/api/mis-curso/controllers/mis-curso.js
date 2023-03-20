@@ -37,7 +37,22 @@ module.exports = createCoreController('api::mis-curso.mis-curso', ({ strapi }) =
 			usuario: user.id,
 		};
 
-		return super.find(ctx);
+		let  data = await super.find(ctx);
+
+		// recorro los cursos y elimino el campo usuario
+
+console.log(data);
+		if (data.data) {
+			data.data.forEach((element) => {
+
+				console.log(element.attributes);
+
+				delete element.attributes.usuario;
+
+			});
+		}
+
+		return data
 
 	},
 	//modifico el metodo create para que cuando se cree mis curso se agregue el campo progress con valor 0

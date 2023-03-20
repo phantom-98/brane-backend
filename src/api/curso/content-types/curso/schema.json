@@ -70,6 +70,9 @@
       "type": "relation",
       "relation": "oneToOne",
       "target": "api::categoria.categoria"
+    },
+    "whatYouWillLearn": {
+      "type": "richtext"
     }
   }
 }

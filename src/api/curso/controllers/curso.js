@@ -258,7 +258,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
           const curso = await strapi.db
             .query("api::curso.curso")
-            .findOne({ where: { id }, populate: { instructor: true } });
+            .findOne({ where: { id }, populate: true });
 
           // busco las clases del curso que se quiere consultar y muestro solo los siguientes campos de la tabla clase nombre, descripcion, fecha, hora, duracion
 
@@ -286,7 +286,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
           const curso = await strapi.db
             .query("api::curso.curso")
-            .findOne({ where: { id }, populate: { instructor: true } });
+            .findOne({ where: { id }, populate: true });
 
           // busco las clases del curso que se quiere consultar
 
@@ -313,7 +313,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
         const curso = await strapi.db
           .query("api::curso.curso")
-          .findOne({ where: { id }, populate: { instructor: true } });
+          .findOne({ where: { id }, populate: true });
 
         // busco las clases del curso que se quiere consultar
 
@@ -340,7 +340,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
           .query("api::curso.curso")
           .findOne({
             where: { id, instructor: user.id },
-            populate: { instructor: true },
+            populate: true,
           });
 
         // si el instructor es dueño del curso o es instructor de dicho curso, envio todos los datos del curso
@@ -378,7 +378,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
             const curso = await strapi.db
               .query("api::curso.curso")
-              .findOne({ where: { id }, populate: { instructor: true } });
+              .findOne({ where: { id }, populate: true });
 
             // busco las clases del curso que se quiere consultar y muestro solo los siguientes campos de la tabla clase nombre, descripcion, fecha, hora, duracion
 
@@ -406,7 +406,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
             const curso = await strapi.db
               .query("api::curso.curso")
-              .findOne({ where: { id }, populate: { instructor: true } });
+              .findOne({ where: { id }, populate: true });
 
             // busco las clases del curso que se quiere consultar
 
@@ -421,6 +421,10 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
               .findMany({ where: { curso: id } });
 
             // armo la respuesta con todos los datos del curso
+
+            // elimino createdBy y updatedBy de curso 
+
+
 
             data = { curso, clases, valoraciones };
 
@@ -439,7 +443,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
       const curso = await strapi.db
         .query("api::curso.curso")
-        .findOne({ where: { id }, populate: { instructor: true } });
+        .findOne({ where: { id }, populate: true });
 
       // busco las clases del curso que se quiere consultar y muestro solo los siguientes campos de la tabla clase nombre, duracion
 
@@ -476,6 +480,10 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
       delete data.curso.instructor.resetPasswordToken;
 
     }
+
+    delete data.curso.createdBy;
+
+    delete data.curso.updatedBy;
 
 
     return { data, meta };
