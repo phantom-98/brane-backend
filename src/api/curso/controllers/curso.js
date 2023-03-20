@@ -566,7 +566,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
 
 
-    data.curso.summary = [{ cantidadClases: data.clases.length, duracionTotal: data.curso.duracionTotal, cantidadProjects, projectFinal }]
+    data.curso.summary = [{ cantidadClases: data.clases.length, duracionTotal: data.curso.duracionTotal, cantidadProjects, projectFinal,additionalResources:data.curso.additionalResources }]
 
 
     data.projects = projects;
@@ -911,7 +911,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
 
 
-    data.curso.summary = [{ cantidadClases: data.clases.length, duracionTotal: data.curso.duracionTotal, cantidadProjects, projectFinal }]
+    data.curso.summary = [{ cantidadClases: data.clases.length, duracionTotal: data.curso.duracionTotal, cantidadProjects, projectFinal,additionalResources:data.curso.additionalResources }]
 
 
     data.projects = projects;
