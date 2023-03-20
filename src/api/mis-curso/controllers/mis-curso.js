@@ -1,72 +1,81 @@
-'use strict';
+"use strict";
 
 /**
-	* mis-curso controller
-	*/
+ * mis-curso controller
+ */
 
-const { createCoreController } = require('@strapi/strapi').factories;
+const { createCoreController } = require("@strapi/strapi").factories;
 
-module.exports = createCoreController('api::mis-curso.mis-curso', ({ strapi }) => ({
+module.exports = createCoreController(
+  "api::mis-curso.mis-curso",
+  ({ strapi }) => ({
+    //modifico el metodo find para que me traiga los cursos que estan en el usuario logueado
+    async find(ctx) {
+      const user = ctx.state.user;
 
-	//modifico el metodo find para que me traiga los cursos que estan en el usuario logueado
-	async find(ctx) {
+      // si no hay usuario
 
-		const user = ctx.state.user;
+      if (!user) {
+        return ctx.badRequest(null, [
+          {
+            messages: [
+              {
+                id: "No autorizado",
+                message: "No autorizado",
+              },
+            ],
+          },
+        ]);
+      }
 
-		// si no hay usuario 
+      // si hay usuario, le agrego el filtro de usuario
 
-		if (!user) {
-			return ctx.badRequest(null, [
-				{
+      ctx.query.filters = {
+        ...(ctx.query.filters || {}),
+        usuario: user.id,
+      };
 
-					messages: [
-						{
-							id: 'No autorizado',
-							message: 'No autorizado',
-						},
-					],
-				},
-			]);
-		}
+      return super.find(ctx);
+    },
+    //modifico el metodo create para que cuando se cree mis curso se agregue el campo progress con valor 0
+    async create(ctx) {
+      const user = ctx.state.user;
 
-		// si hay usuario, le agrego el filtro de usuario
+      // si no hay usuario
 
+      if (!user) {
+        return ctx.badRequest(null, [
+          {
+            messages: [
+              {
+                id: "No autorizado",
+                message: "No autorizado",
+              },
+            ],
+          },
+        ]);
+      }
 
-		ctx.query.filters = {
-			...(ctx.query.filters || {}),
-			usuario: user.id,
-		};
+      // si hay usuario, le agrego el filtro de usuario
 
-		return super.find(ctx);
+      ctx.request.body.data.usuario = user.id;
+      ctx.request.body.data.progress = 0;
 
-	},
-	//modifico el metodo create para que cuando se cree mis curso se agregue el campo progress con valor 0
-	async create(ctx) {
+      //obtengo el curso que se quiere agregar
 
-		const user = ctx.state.user;
+      const curso = await strapi.db.query("api::curso.curso").findOne({
+        where: { id: ctx.request.body.data.curso },
+      });
 
-		// si no hay usuario 
+      //actualizo el numero de usuarios que tiene el curso
+console.log("curso", curso)
 
-		if (!user) {
-			return ctx.badRequest(null, [
-				{
+      await strapi.db.query("api::curso.curso").update({
+        where: { id: curso.id },
+        data: { cantidadEstudiantes: curso.cantidadEstudiantes + 1 },
+      });
 
-					messages: [
-						{
-							id: 'No autorizado',
-							message: 'No autorizado',
-						},
-					],
-				},
-			]);
-		}
-
-		// si hay usuario, le agrego el filtro de usuario		
-
-		ctx.request.body.data.usuario = user.id;
-		ctx.request.body.data.progress = 0;
-
-		return super.create(ctx);
-	},
-})
-)
+      return super.create(ctx);
+    },
+  })
+);

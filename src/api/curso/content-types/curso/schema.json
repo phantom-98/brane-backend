@@ -76,6 +76,10 @@
     },
     "subtitle": {
       "type": "string"
+    },
+    "cantidadEstudiantes": {
+      "type": "integer",
+      "default": 0
     }
   }
 }
