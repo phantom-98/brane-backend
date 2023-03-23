@@ -1,0 +1,31 @@
+{
+  "kind": "collectionType",
+  "collectionName": "list_wishlists",
+  "info": {
+    "singularName": "list-wishlist",
+    "pluralName": "list-wishlists",
+    "displayName": "list_wishlist",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "imagen": {
+      "allowedTypes": [
+        "images"
+      ],
+      "type": "media",
+      "multiple": true
+    }
+  }
+}

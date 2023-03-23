@@ -4,7 +4,8 @@
   "info": {
     "singularName": "wishlist",
     "pluralName": "wishlists",
-    "displayName": "Wishlist"
+    "displayName": "Wishlist",
+    "description": ""
   },
   "options": {
     "draftAndPublish": false
@@ -20,6 +21,11 @@
       "type": "relation",
       "relation": "oneToOne",
       "target": "api::curso.curso"
+    },
+    "list_wishlist": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::list-wishlist.list-wishlist"
     }
   }
 }

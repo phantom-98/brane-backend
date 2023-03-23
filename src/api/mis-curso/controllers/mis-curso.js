@@ -34,7 +34,7 @@ module.exports = createCoreController(
         ...(ctx.query.filters || {}),
         usuario: user.id,
       };
-
+      
       return super.find(ctx);
     },
     //modifico el metodo create para que cuando se cree mis curso se agregue el campo progress con valor 0
