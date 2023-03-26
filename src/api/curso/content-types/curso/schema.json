@@ -85,6 +85,12 @@
     },
     "descripcion": {
       "type": "richtext"
+    },
+    "additionalResources": {
+      "type": "text"
+    },
+    "shortDescription": {
+      "type": "richtext"
     }
   }
 }
