@@ -477,6 +477,118 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
     }
 
+    delete data.curso.createdBy;
+
+    delete data.curso.updatedBy;
+
+
+    if( data.curso.subTitles ){
+        
+        data.curso.subTitles = JSON.parse(data.curso.subTitles);
+  
+    }else{
+
+        data.curso.subTitles = [];
+
+    }
+
+
+    if( data.curso.whatYouWillLearn ){
+
+        data.curso.whatYouWillLearn = JSON.parse(data.curso.whatYouWillLearn);
+
+
+    }else{
+
+        data.curso.whatYouWillLearn = [];
+
+    }
+
+
+
+    if( data.curso.requirements ){
+
+        data.curso.requirements = JSON.parse(data.curso.requirements);
+
+    }else{
+
+
+        data.curso.requirements = [];
+
+    } 
+
+
+    if( data.curso.additionalResources ){
+
+
+
+        data.curso.additionalResources = JSON.parse(data.curso.additionalResources);
+
+    }else   
+
+    {
+
+        data.curso.additionalResources = [];
+
+    } 
+
+
+
+    // para el campo data.curso.summary, necesito cantidad de clases (sus duraciones), cantidad de projects y si tiene project final
+
+    // uso las clases en data.clases para obtener la cantidad de clases y sus duraciones
+
+    data.clases.forEach((clase) => {
+
+      // verifico no sea undefined
+
+      if (data.curso.duracionTotal === undefined) {
+
+        data.curso.duracionTotal = 0;
+
+      }
+      // sumo las duraciones de las clases conviertiendo a numero
+
+
+      data.curso.duracionTotal += parseFloat(clase.duracion);
+
+
+
+    });
+
+    // busco los projects del curso
+
+    const projects = await strapi.db
+      .query("api::project.project")
+      .findMany({ where: { curso: id }, populate: { media: true } });
+    let cantidadProjects = 0;
+    // cantidad de projects
+    if (projects) {
+      cantidadProjects = projects.length;
+    }
+
+    // recorro los projects para ver si tiene project final
+
+    let projectFinal = false;
+
+    projects.forEach((project) => {
+
+      if (project.projectFinal) {
+
+        projectFinal = true;
+
+      }
+
+    });
+
+
+
+
+    data.curso.summary = [{ cantidadClases: data.clases.length, duracionTotal: data.curso.duracionTotal, cantidadProjects, projectFinal,additionalResources:data.curso.additionalResources }]
+
+
+    data.projects = projects;
+
 
     return { data, meta };
   },
@@ -762,20 +874,36 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
         
         data.curso.subTitles = JSON.parse(data.curso.subTitles);
   
+    }else{
+
+        data.curso.subTitles = [];
+
     }
+
 
     if( data.curso.whatYouWillLearn ){
 
         data.curso.whatYouWillLearn = JSON.parse(data.curso.whatYouWillLearn);
 
 
+    }else{
+
+        data.curso.whatYouWillLearn = [];
+
     }
+
+
 
     if( data.curso.requirements ){
 
         data.curso.requirements = JSON.parse(data.curso.requirements);
 
-    }
+    }else{
+
+
+        data.curso.requirements = [];
+
+    } 
 
 
     if( data.curso.additionalResources ){
@@ -784,7 +912,13 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
         data.curso.additionalResources = JSON.parse(data.curso.additionalResources);
 
-    }
+    }else   
+
+    {
+
+        data.curso.additionalResources = [];
+
+    } 
 
 
 
