@@ -757,12 +757,34 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
     delete data.curso.updatedBy;
 
-    data.curso.subTitles = JSON.parse(data.curso.subTitles);
 
-    data.curso.whatYouWillLearn = JSON.parse(data.curso.whatYouWillLearn);
+    if( data.curso.subTitles ){
+        
+        data.curso.subTitles = JSON.parse(data.curso.subTitles);
+  
+    }
 
-    data.curso.requirements = JSON.parse(data.curso.requirements);
-    data.curso.additionalResources = JSON.parse(data.curso.additionalResources);
+    if( data.curso.whatYouWillLearn ){
+
+        data.curso.whatYouWillLearn = JSON.parse(data.curso.whatYouWillLearn);
+
+
+    }
+
+    if( data.curso.requirements ){
+
+        data.curso.requirements = JSON.parse(data.curso.requirements);
+
+    }
+
+
+    if( data.curso.additionalResources ){
+
+
+
+        data.curso.additionalResources = JSON.parse(data.curso.additionalResources);
+
+    }
 
 
 
