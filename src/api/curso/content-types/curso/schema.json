@@ -18,10 +18,6 @@
       "minLength": 2,
       "maxLength": 500
     },
-    "descripcion": {
-      "type": "text",
-      "minLength": 2
-    },
     "precio": {
       "type": "decimal",
       "required": true
@@ -74,12 +70,27 @@
     "idioma": {
       "type": "string"
     },
-    "subtitle": {
-      "type": "string"
-    },
     "cantidadEstudiantes": {
       "type": "integer",
       "default": 0
+    },
+    "subTitles": {
+      "type": "string"
+    },
+    "whatYouWillLearn": {
+      "type": "text"
+    },
+    "requirements": {
+      "type": "text"
+    },
+    "descripcion": {
+      "type": "richtext"
+    },
+    "additionalResources": {
+      "type": "text"
+    },
+    "shortDescription": {
+      "type": "richtext"
     }
   }
 }
