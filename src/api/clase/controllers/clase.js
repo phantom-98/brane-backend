@@ -257,4 +257,6 @@ module.exports = createCoreController("api::clase.clase", ({ strapi }) => ({
     return { ...data, clase };
 
   },
+
+
 }));
