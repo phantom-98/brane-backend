@@ -104,7 +104,7 @@ module.exports = createCoreController(
 
         //creo un array de los campos que quiero que se muestren de cada curso: id, name, descripcion, imagen, cantidadEstudiantes, nombre y apellido del instructor y nombre de la categoria
 
-        let arrayEliminar = ["createdAt", "updatedAt", "publishedAt", "precio", "cupon_descuento", "tipo", "certificado", "idioma", "subtitle","uuid", "averageScore", "slug", "createdBy", "updatedBy"];
+        let arrayEliminar = ["createdAt", "updatedAt", "publishedAt", "precio", "cupon_descuento", "tipo", "certificado","uuid", "averageScore", "createdBy", "updatedBy"];
         
         //recorro el array y elimino los campos de cada curso
         
@@ -113,7 +113,7 @@ module.exports = createCoreController(
                 delete cursosWishlist[i][element];
             })};
 
-        let arrayEliminarInstructor = ["createdAt", "updatedAt", "publishedAt", "email", "password", "resetPasswordToken", "provider", "confirmed", "blocked", "role", "uuid", "createdBy", "updatedBy", "username", "confirmationToken", "slug", "averageScore"];
+        let arrayEliminarInstructor = ["createdAt", "updatedAt", "publishedAt", "email", "password", "resetPasswordToken", "provider", "confirmed", "blocked", "role", "uuid", "createdBy", "updatedBy", "username", "confirmationToken", "averageScore"];
 
         for (let i = 0; i < cursosWishlist.length; i++) {
             arrayEliminarInstructor.forEach((element) => {
@@ -123,7 +123,7 @@ module.exports = createCoreController(
 
 
     //agrego los cursos a la listwishlist
-
+            
         listwishlist.cursos = cursosWishlist;
 
       return ctx.send(listwishlist);
