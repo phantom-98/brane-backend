@@ -266,20 +266,8 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
             .query("api::clase.clase")
             .findMany({ where: { curso: id }, select: ["nombre", "duracion", "descripcion"] });
 
-            //verifico si las clases tienen clases finalizadas y le agrego un campo status a la clase
+           
 
-            for (let i = 0; i < clases.length; i++) {
-              const clase = clases[i];
-              const claseFinalizada = await strapi.db
-                .query("api::clase-finalizada.clase-finalizada")
-                .findOne({ where: { clase: clase.id, usuario: user.id } });
-              if (claseFinalizada) {
-                clase.status = "finalizada";
-              } else {
-                clase.status = "pendiente";
-              }
-            }
-            
 
             
           // busco las valoraciones del curso que se quiere consultar
@@ -309,6 +297,21 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
           const clases = await strapi.db
             .query("api::clase.clase")
             .findMany({ where: { curso: id } });
+
+          //verfico las clases del curso que estan finalizada y envio un status de finalizada o no finalizada
+
+          for (let i = 0; i < clases.length; i++) {
+            const clase = clases[i];
+            const clase_id = clase.id;
+            const clase_finalizada = await strapi.db
+              .query("api::clases-finalizada.clases-finalizada")
+              .findOne({ where: { clase: clase_id, usuario: user.id, curso: curso.id } });
+            if (clase_finalizada) {
+              clases[i].status = "finalizada";
+            } else {
+              clases[i].status = "no finalizada";
+            }
+          }
 
           // busco las valoraciones del curso que se quiere consultar
 
@@ -429,6 +432,21 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
             const clases = await strapi.db
               .query("api::clase.clase")
               .findMany({ where: { curso: id } });
+
+              //verfico las clases del curso que estan finalizada y envio un status de finalizada o no finalizada
+
+          for (let i = 0; i < clases.length; i++) {
+            const clase = clases[i];
+            const clase_id = clase.id;
+            const clase_finalizada = await strapi.db
+              .query("api::clases-finalizada.clases-finalizada")
+              .findOne({ where: { clase: clase_id, usuario: user.id, curso: curso.id } });
+            if (clase_finalizada) {
+              clases[i].status = "finalizada";
+            } else {
+              clases[i].status = "no finalizada";
+            }
+          }
 
             // busco las valoraciones del curso que se quiere consultar
 
@@ -691,6 +709,21 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
             .query("api::clase.clase")
             .findMany({ where: { curso: id } });
 
+            //verfico las clases del curso que estan finalizada y envio un status de finalizada o no finalizada
+
+          for (let i = 0; i < clases.length; i++) {
+            const clase = clases[i];
+            const clase_id = clase.id;
+            const clase_finalizada = await strapi.db
+              .query("api::clases-finalizada.clases-finalizada")
+              .findOne({ where: { clase: clase_id, usuario: user.id, curso: curso.id } });
+            if (clase_finalizada) {
+              clases[i].status = "finalizada";
+            } else {
+              clases[i].status = "no finalizada";
+            }
+          }
+
           // busco las valoraciones del curso que se quiere consultar
 
           const valoraciones = await strapi.db
@@ -810,6 +843,21 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
             const clases = await strapi.db
               .query("api::clase.clase")
               .findMany({ where: { curso: id } });
+
+              //verfico las clases del curso que estan finalizada y envio un status de finalizada o no finalizada
+
+          for (let i = 0; i < clases.length; i++) {
+            const clase = clases[i];
+            const clase_id = clase.id;
+            const clase_finalizada = await strapi.db
+              .query("api::clases-finalizada.clases-finalizada")
+              .findOne({ where: { clase: clase_id, usuario: user.id, curso: curso.id } });
+            if (clase_finalizada) {
+              clases[i].status = "finalizada";
+            } else {
+              clases[i].status = "no finalizada";
+            }
+          }
 
             // busco las valoraciones del curso que se quiere consultar
 
