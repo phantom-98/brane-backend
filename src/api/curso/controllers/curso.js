@@ -176,7 +176,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
     }
     console.log(ctx.request.body.data.instructor);
     // si el usuario que esta haciendo la peticion es de tipo administrador y no envia el instructor, no puede crear el curso
-     
+
     if (
       !ctx.request.body.data.instructor &&
       user.role.type != "instructor"
@@ -266,10 +266,10 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
             .query("api::clase.clase")
             .findMany({ where: { curso: id }, select: ["nombre", "duracion", "descripcion"] });
 
-           
 
 
-            
+
+
           // busco las valoraciones del curso que se quiere consultar
 
           const valoraciones = await strapi.db
@@ -433,20 +433,20 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
               .query("api::clase.clase")
               .findMany({ where: { curso: id } });
 
-              //verfico las clases del curso que estan finalizada y envio un status de finalizada o no finalizada
+            //verfico las clases del curso que estan finalizada y envio un status de finalizada o no finalizada
 
-          for (let i = 0; i < clases.length; i++) {
-            const clase = clases[i];
-            const clase_id = clase.id;
-            const clase_finalizada = await strapi.db
-              .query("api::clases-finalizada.clases-finalizada")
-              .findOne({ where: { clase: clase_id, usuario: user.id, curso: curso.id } });
-            if (clase_finalizada) {
-              clases[i].status = "finalizada";
-            } else {
-              clases[i].status = "no finalizada";
+            for (let i = 0; i < clases.length; i++) {
+              const clase = clases[i];
+              const clase_id = clase.id;
+              const clase_finalizada = await strapi.db
+                .query("api::clases-finalizada.clases-finalizada")
+                .findOne({ where: { clase: clase_id, usuario: user.id, curso: curso.id } });
+              if (clase_finalizada) {
+                clases[i].status = "finalizada";
+              } else {
+                clases[i].status = "no finalizada";
+              }
             }
-          }
 
             // busco las valoraciones del curso que se quiere consultar
 
@@ -516,55 +516,53 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
     delete data.curso.updatedBy;
 
 
-    if( data.curso.subTitles ){
-        
-        data.curso.subTitles = JSON.parse(data.curso.subTitles);
-  
-    }else{
+    if (data.curso.subTitles) {
 
-        data.curso.subTitles = [];
+      data.curso.subTitles = JSON.parse(data.curso.subTitles);
 
-    }
+    } else {
 
-
-    if( data.curso.whatYouWillLearn ){
-
-        data.curso.whatYouWillLearn = JSON.parse(data.curso.whatYouWillLearn);
-
-
-    }else{
-
-        data.curso.whatYouWillLearn = [];
+      data.curso.subTitles = [];
 
     }
 
 
+    if (data.curso.whatYouWillLearn) {
 
-    if( data.curso.requirements ){
-
-        data.curso.requirements = JSON.parse(data.curso.requirements);
-
-    }else{
+      data.curso.whatYouWillLearn = JSON.parse(data.curso.whatYouWillLearn);
 
 
-        data.curso.requirements = [];
+    } else {
 
-    } 
+      data.curso.whatYouWillLearn = [];
 
-
-    if( data.curso.additionalResources ){
+    }
 
 
 
-        data.curso.additionalResources = JSON.parse(data.curso.additionalResources);
+    if (data.curso.requirements) {
 
-    }else   
+      data.curso.requirements = JSON.parse(data.curso.requirements);
 
-    {
+    } else {
 
-        data.curso.additionalResources = [];
 
-    } 
+      data.curso.requirements = [];
+
+    }
+
+
+    if (data.curso.additionalResources) {
+
+
+
+      data.curso.additionalResources = JSON.parse(data.curso.additionalResources);
+
+    } else {
+
+      data.curso.additionalResources = [];
+
+    }
 
 
 
@@ -618,7 +616,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
 
 
-    data.curso.summary = [{ cantidadClases: data.clases.length, duracionTotal: data.curso.duracionTotal, cantidadProjects, projectFinal,additionalResources:data.curso.additionalResources }]
+    data.curso.summary = [{ cantidadClases: data.clases.length, duracionTotal: data.curso.duracionTotal, cantidadProjects, projectFinal, additionalResources: data.curso.additionalResources }]
 
 
     data.projects = projects;
@@ -626,10 +624,10 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
     return { data, meta };
   },
-   
+
   async findBySlug(ctx) {
     const { slug } = ctx.params;
-    
+
     const entity = await strapi.db.query("api::curso.curso").findOne({
       where: { slug: slug },
       populate: true
@@ -709,7 +707,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
             .query("api::clase.clase")
             .findMany({ where: { curso: id } });
 
-            //verfico las clases del curso que estan finalizada y envio un status de finalizada o no finalizada
+          //verfico las clases del curso que estan finalizada y envio un status de finalizada o no finalizada
 
           for (let i = 0; i < clases.length; i++) {
             const clase = clases[i];
@@ -844,20 +842,20 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
               .query("api::clase.clase")
               .findMany({ where: { curso: id } });
 
-              //verfico las clases del curso que estan finalizada y envio un status de finalizada o no finalizada
+            //verfico las clases del curso que estan finalizada y envio un status de finalizada o no finalizada
 
-          for (let i = 0; i < clases.length; i++) {
-            const clase = clases[i];
-            const clase_id = clase.id;
-            const clase_finalizada = await strapi.db
-              .query("api::clases-finalizada.clases-finalizada")
-              .findOne({ where: { clase: clase_id, usuario: user.id, curso: curso.id } });
-            if (clase_finalizada) {
-              clases[i].status = "finalizada";
-            } else {
-              clases[i].status = "no finalizada";
+            for (let i = 0; i < clases.length; i++) {
+              const clase = clases[i];
+              const clase_id = clase.id;
+              const clase_finalizada = await strapi.db
+                .query("api::clases-finalizada.clases-finalizada")
+                .findOne({ where: { clase: clase_id, usuario: user.id, curso: curso.id } });
+              if (clase_finalizada) {
+                clases[i].status = "finalizada";
+              } else {
+                clases[i].status = "no finalizada";
+              }
             }
-          }
 
             // busco las valoraciones del curso que se quiere consultar
 
@@ -934,55 +932,53 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
     delete data.curso.updatedBy;
 
 
-    if( data.curso.subTitles ){
-        
-        data.curso.subTitles = JSON.parse(data.curso.subTitles);
-  
-    }else{
+    if (data.curso.subTitles) {
 
-        data.curso.subTitles = [];
+      data.curso.subTitles = JSON.parse(data.curso.subTitles);
 
-    }
+    } else {
 
-
-    if( data.curso.whatYouWillLearn ){
-
-        data.curso.whatYouWillLearn = JSON.parse(data.curso.whatYouWillLearn);
-
-
-    }else{
-
-        data.curso.whatYouWillLearn = [];
+      data.curso.subTitles = [];
 
     }
 
 
+    if (data.curso.whatYouWillLearn) {
 
-    if( data.curso.requirements ){
-
-        data.curso.requirements = JSON.parse(data.curso.requirements);
-
-    }else{
+      data.curso.whatYouWillLearn = JSON.parse(data.curso.whatYouWillLearn);
 
 
-        data.curso.requirements = [];
+    } else {
 
-    } 
+      data.curso.whatYouWillLearn = [];
 
-
-    if( data.curso.additionalResources ){
+    }
 
 
 
-        data.curso.additionalResources = JSON.parse(data.curso.additionalResources);
+    if (data.curso.requirements) {
 
-    }else   
+      data.curso.requirements = JSON.parse(data.curso.requirements);
 
-    {
+    } else {
 
-        data.curso.additionalResources = [];
 
-    } 
+      data.curso.requirements = [];
+
+    }
+
+
+    if (data.curso.additionalResources) {
+
+
+
+      data.curso.additionalResources = JSON.parse(data.curso.additionalResources);
+
+    } else {
+
+      data.curso.additionalResources = [];
+
+    }
 
 
 
@@ -1036,7 +1032,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
 
 
-    data.curso.summary = [{ cantidadClases: data.clases.length, duracionTotal: data.curso.duracionTotal, cantidadProjects, projectFinal,additionalResources:data.curso.additionalResources }]
+    data.curso.summary = [{ cantidadClases: data.clases.length, duracionTotal: data.curso.duracionTotal, cantidadProjects, projectFinal, additionalResources: data.curso.additionalResources }]
 
 
     data.projects = projects;
@@ -1048,4 +1044,161 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
 
   },
+
+  async miStudent(ctx) {
+
+
+    // recibo el slug
+
+    const { slug } = ctx.params;
+
+
+
+
+    // busco al profesor por el slug
+
+    const instructor = await strapi.db.query('plugin::users-permissions.user').findOne({
+      where: { slug: slug },
+      select: ["id"]
+
+    });
+
+
+    if (!instructor) {
+
+      return ctx.badRequest(null, 'No se encontró el instructor');
+
+    }
+
+
+    // busco los cursos del instructor
+
+
+    const cursos = await strapi.db.query('api::curso.curso').findMany({
+
+      where: { instructor: instructor.id },
+
+      select: ["id"]
+
+    });
+
+
+    if (!cursos) {
+
+      return ctx.badRequest(null, 'No se encontraron cursos');
+
+    }
+
+
+    // busco los estudiantes de los cursos del instructor
+
+
+    const cursosComprados = await strapi.db.query('api::mis-curso.mis-curso').findMany({
+
+      where: {
+        curso: {
+          id:{
+            $in: cursos.map((curso) => curso.id)
+          }
+        
+        }
+      },
+
+      populate: true
+
+    });
+
+
+
+
+
+
+
+    
+
+
+    if (!cursosComprados) {
+
+      return ctx.badRequest(null, 'No se encontraron estudiantes');
+
+    }
+
+        // extraigo los estudiantes de los cursosComprados del instructor  evitando duplicados revisando por el id del usuario. El usuario se encuentra en cursosComprados.usuario
+
+
+    const estudiantesUnicos = cursosComprados.reduce((acc, current) => {
+      console.log(current);
+      // si current.usuario no es null prosigo con el proceso , sino salto el proceso y sigo con el siguiente item del array
+
+      if (!current.usuario) {
+
+        return acc;
+
+      }
+
+      
+      const x = acc.find(item => item.id === current.usuario.id);
+
+      if (!x) {
+
+        return acc.concat([current.usuario]);
+
+      } else {
+
+        return acc;
+
+      }
+
+    }, []);
+
+
+
+
+
+    const entity = await strapi.db.query('plugin::users-permissions.user').findMany({
+
+      where: {
+
+        id: {
+
+          $in: estudiantesUnicos.map((estudiante) => estudiante.id)
+
+        }
+
+      },
+
+      populate: true,
+
+    });
+
+
+    let arrayEliminar = [
+      "password",
+      "provider",
+      "resetPasswordToken",
+      "confirmationToken",
+      "confirmed",
+      "blocked",
+      "username",
+      "createdBy",
+      "updatedBy",
+      "publishedAt",
+    ]
+    
+
+    entity.forEach((estudiante) => {
+
+    arrayEliminar.forEach((element) => {
+      delete estudiante[element];
+    }
+    );
+
+    });
+
+    return {data:entity , meta : {}};
+
+
+  }
+
+
 }));
