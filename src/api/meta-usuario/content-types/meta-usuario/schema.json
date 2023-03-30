@@ -42,6 +42,10 @@
     },
     "address": {
       "type": "text"
+    },
+    "stripe_account_id": {
+      "type": "string",
+      "private": true
     }
   }
 }

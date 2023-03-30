@@ -17,6 +17,11 @@ module.exports = {
 				method: "POST",
 				path: "/meta-usuario/me",
 				handler: "meta-usuario.createMe",
-			},			
+			},
+			{
+				method: "GET",
+				path: "/meta-usuario/stripe-connect",
+				handler: "meta-usuario.stripeConnect",
+			},						
 	],
 };

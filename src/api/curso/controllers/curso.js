@@ -629,7 +629,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
    
   async findBySlug(ctx) {
     const { slug } = ctx.params;
-    console.log(ctx.params)
+    
     const entity = await strapi.db.query("api::curso.curso").findOne({
       where: { slug: slug },
       populate: true
