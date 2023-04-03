@@ -47,6 +47,26 @@ module.exports = createCoreController(
 
 			}
 
+			// verifico que el usuario no tiene el curso comprado
+
+			for (let i = 0; i < cursos.length; i++) {
+
+				let mis_curso = await strapi.db.query("api::mis-curso.mis-curso").findOne({
+
+					where: { usuario: user.id, curso: cursos[i].curso }
+
+				});
+
+				if (mis_curso) {
+
+					return ctx.badRequest({ error: 'Ya tienes el curso comprado' });
+
+				}
+
+			}
+
+			// verifico que el usuario no tiene el curso comprado
+
 
 
 			// recorro los cursos  y calculo el monto total verifico si tienen descuento y si tienen descuento calculo el monto total con el descuento o cupon asociado
