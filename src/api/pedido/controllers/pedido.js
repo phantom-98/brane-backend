@@ -518,6 +518,22 @@ module.exports = createCoreController(
 
 							}
 
+							// verifico si el usuario ya tiene el curso
+
+							let misCurso = await strapi.db.query("api::mis-curso.mis-curso").findOne({
+
+								where: { usuario: pedido.usuario.id, curso: curso.id }
+
+							});
+
+							if (misCurso) {
+
+								continue;
+
+							}
+
+
+
 							await strapi.db.query("api::mis-curso.mis-curso").create({ data: data });
 
 							const curso1 = await strapi.db.query("api::curso.curso").findOne({
@@ -528,7 +544,7 @@ module.exports = createCoreController(
 								data: { cantidadEstudiantes: curso1.cantidadEstudiantes + 1 },
 							});
 						}
-
+					console.log("================PASO!!!!!!!!!!!============================");
 						if (pedido.destinatarios) {
 
 							let destinations = JSON.parse(pedido.destinatarios);
