@@ -30,7 +30,7 @@ module.exports = createCoreController(
 
 			if (!user) {
 
-				return ctx.unauthorized({ error: 'No autorizado' });
+				return ctx.unauthorized("No tienes permiso",{ error: 'No autorizado' });
 			}
 
 
@@ -155,9 +155,17 @@ module.exports = createCoreController(
 
 						// calculo el monto del curso	con el descuento del cupon
 
-						monto_curso = curso.precio;
+						monto_curso = this.formatearMontos(curso.precio);
 
-						monto_curso_descuento_porcentual = monto_curso * cupon.valor / 100;
+						// fixeo a maximo 2 decimales
+
+						cupon.valor = parseFloat(cupon.valor);
+
+						cupon.valor = cupon.valor /	100;
+
+						cupon.valor = this.formatearMontos(cupon.valor);
+
+						monto_curso_descuento_porcentual = monto_curso * cupon.valor;
 
 
 						monto_curso = monto_curso - monto_curso_descuento_porcentual;
@@ -169,9 +177,9 @@ module.exports = createCoreController(
 
 						// calculo el monto del curso	con el descuento del cupon
 
-						monto_curso = curso.precio;
+						monto_curso = this.formatearMontos(curso.precio);
 
-						monto_curso_descuento_fijo = cupon.valor;
+						monto_curso_descuento_fijo = this.formatearMontos(cupon.valor);
 
 						monto_curso = monto_curso - monto_curso_descuento_fijo;
 
@@ -186,9 +194,9 @@ module.exports = createCoreController(
 
 					console.log("DESCUENTO");
 
-					monto_curso = curso.precio;
+					monto_curso = this.formatearMontos(curso.precio);
 
-					monto_curso = curso.precioDescuento;
+					monto_curso = this.formatearMontos(curso.precioDescuento);
 
 					discount = monto_curso_descuento_fijo;
 
@@ -198,16 +206,16 @@ module.exports = createCoreController(
 
 					console.log("SIN DESCUENTO");
 
-					monto_curso = curso.precio;
+					monto_curso = this.formatearMontos(curso.precio);
 
 				}
 
 				// convierto los montos a centimos
 
-
+				console.log("monto_curso_antes",  monto_curso);
 				monto_curso = monto_curso * 100;
 
-
+				console.log("monto_curso_antesx100",  monto_curso);
 				monto_curso_descuento_porcentual = monto_curso_descuento_porcentual * 100;
 
 				monto_curso_descuento_fijo = monto_curso_descuento_fijo * 100;
@@ -230,9 +238,11 @@ module.exports = createCoreController(
 
 				monto_centimos += monto_curso;
 
+				monto_centimos	= this.formatearMontos(monto_centimos) ;
 
 
-
+				console.log("monto_curso",  monto_curso);
+				console.log("monto_centimos",  monto_centimos);
 
 
 				let stripe_account_id = await strapi.db.query("api::meta-usuario.meta-usuario").findOne({
@@ -243,7 +253,6 @@ module.exports = createCoreController(
 
 				});
 
-				console.log(curso);
 
 
 
@@ -263,7 +272,7 @@ module.exports = createCoreController(
 
 						},
 
-						unit_amount: monto_curso,
+						unit_amount : monto_curso,
 
 						//			discount: discountObject
 
@@ -306,31 +315,6 @@ module.exports = createCoreController(
 			}
 
 			);
-
-
-
-
-			/*	for (let i = 0; i < destinations.length; i++) {
-	
-					await stripe.transfers.create({
-	
-						amount: destinations[i].amount,
-	
-						currency: 'usd',
-	
-						destination: destinations[i].account,
-	
-						source_transaction: session_id,
-	
-						
-	
-					});
-	
-				}*/
-
-
-
-			// creo el pedido en la base de datos
 
 
 			// si destinatarios tiene datos los serializo para enviarlos a la base de datos como un string
@@ -632,6 +616,24 @@ module.exports = createCoreController(
 			// Return a response to acknowledge receipt of the event
 
 			return ctx.send('ok');
+
+		},
+
+		formatearMontos(monto){
+
+			// recibo el monto, si es decimal retorno solo dos decimales, si es entero retorno el monto
+
+
+			if(monto % 1 === 0){
+
+				return monto;
+
+			}else{
+
+				return monto.toFixed(0);
+
+			}
+
 
 		}
 
