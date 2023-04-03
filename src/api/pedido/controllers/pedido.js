@@ -488,7 +488,7 @@ module.exports = createCoreController(
 
 
 						if(!session){
-
+							console.log("no se encontro la sesion");
 							return ctx.badRequest(`Pago no procesado aún `, { error: 'El pago aún no es efectivo'  })
 
 
