@@ -486,6 +486,14 @@ module.exports = createCoreController(
 							{ expand: ['customer', 'payment_intent'] }
 						);
 
+
+						if(!session){
+
+							return ctx.badRequest(`Pago no procesado aún `, { error: 'El pago aún no es efectivo'  })
+
+
+						}
+
 						session = session.payment_intent;
 
 						pedido.estado = 'completado';
