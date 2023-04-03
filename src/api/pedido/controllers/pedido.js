@@ -43,7 +43,7 @@ module.exports = createCoreController(
 
 			if (!cursos) {
 
-				return ctx.notFound({ error: 'No hay cursos' });
+				return ctx.notFound("Revisa la información enviada",{ error: 'No hay cursos' });
 
 			}
 
@@ -119,8 +119,7 @@ module.exports = createCoreController(
 
 				if (!curso) {
 
-					return ctx.notFound({ error: 'No existe el curso' });
-
+					return ctx.notFound(`No existe el curso`, { error: 'No existe el curso'  });
 				}
 
 				// verfico si tiene cupon asociado y si tiene cupon asociado verifico si el cupon es valido
@@ -141,13 +140,12 @@ module.exports = createCoreController(
 
 					if (!cupon) {
 
-						return ctx.notFound({ error: 'No existe el cupon' });
-
+						return  	ctx.notFound(`No existe el cupon`, { error: 'No existe el cupon'  });
 					}
 
 					if (cupon.estado !== true) {
 
-						return ctx.badRequest({ error: 'El cupon no esta activo' });
+						return ctx.badRequest("Cupón no disponible",{ error: 'El cupon no esta activo' });
 
 					}
 
@@ -433,7 +431,7 @@ module.exports = createCoreController(
 				event = stripe.webhooks.constructEvent(ctx.request.body[unparsed], sig, STRIPE_WEBHOOK_SECRET);
 			} catch (err) {
 				console.log(err.message);
-
+				ctx.badRequest(`Webhook Error: ${err.message}`, { error: 'Ha ocurrido un error con el Webhook'  });
 
 
 				return ctx.badRequest(`Webhook Error: ${err.message}`);
