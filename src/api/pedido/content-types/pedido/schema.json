@@ -12,9 +12,9 @@
   },
   "pluginOptions": {},
   "attributes": {
-    "curso": {
+    "cursos": {
       "type": "relation",
-      "relation": "oneToOne",
+      "relation": "oneToMany",
       "target": "api::curso.curso"
     },
     "cantidad": {
@@ -31,15 +31,49 @@
     "descuento": {
       "type": "decimal"
     },
-    "uuid": {
-      "type": "uid"
-    },
     "usuario": {
       "type": "relation",
       "relation": "oneToOne",
       "target": "plugin::users-permissions.user"
     },
     "metodo_de_pago": {
+      "type": "string"
+    },
+    "monto_comision": {
+      "type": "string"
+    },
+    "raw": {
+      "type": "text"
+    },
+    "destinatarios": {
+      "type": "text"
+    },
+    "estado": {
+      "type": "enumeration",
+      "enum": [
+        "creado",
+        "cancelado",
+        "rechazado",
+        "completado"
+      ],
+      "default": "creado"
+    },
+    "stripe_sesion_id": {
+      "type": "string"
+    },
+    "fee": {
+      "type": "string"
+    },
+    "fee_comision": {
+      "type": "string"
+    },
+    "paymentInId": {
+      "type": "string"
+    },
+    "cargo_raw": {
+      "type": "text"
+    },
+    "cargo_id": {
       "type": "string"
     }
   }

@@ -51,10 +51,6 @@
       "type": "boolean",
       "default": false
     },
-    "uuid": {
-      "type": "uid",
-      "required": false
-    },
     "slug": {
       "type": "string",
       "unique": true
@@ -91,6 +87,9 @@
     },
     "shortDescription": {
       "type": "richtext"
+    },
+    "precioDescuento": {
+      "type": "decimal"
     }
   }
 }

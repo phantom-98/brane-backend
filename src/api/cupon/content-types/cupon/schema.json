@@ -14,16 +14,17 @@
   "attributes": {
     "nombre": {
       "type": "string",
-      "required": true
+      "required": true,
+      "unique": true
     },
     "users_permissions_user": {
       "type": "relation",
       "relation": "oneToOne",
       "target": "plugin::users-permissions.user"
     },
-    "curso": {
+    "cursos": {
       "type": "relation",
-      "relation": "oneToOne",
+      "relation": "oneToMany",
       "target": "api::curso.curso"
     },
     "descripcion": {
@@ -35,6 +36,21 @@
     "slug": {
       "type": "uid",
       "targetField": "nombre"
+    },
+    "tipo": {
+      "type": "enumeration",
+      "enum": [
+        "porcentaje",
+        "monto"
+      ],
+      "default": "monto"
+    },
+    "valor": {
+      "type": "decimal"
+    },
+    "estado": {
+      "type": "boolean",
+      "default": true
     }
   }
 }

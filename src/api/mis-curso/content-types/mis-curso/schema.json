@@ -26,9 +26,6 @@
       "type": "boolean",
       "default": false
     },
-    "uuid": {
-      "type": "uid"
-    },
     "progress": {
       "type": "decimal"
     }

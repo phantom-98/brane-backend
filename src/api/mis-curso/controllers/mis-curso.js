@@ -68,7 +68,7 @@ module.exports = createCoreController(
       });
 
       //actualizo el numero de usuarios que tiene el curso
-console.log("curso", curso)
+
 
       await strapi.db.query("api::curso.curso").update({
         where: { id: curso.id },
