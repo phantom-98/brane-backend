@@ -414,7 +414,7 @@ module.exports = createCoreController(
 
 
 
-				//return ctx.badRequest(`Webhook Error: ${err.message}`);
+				return ctx.badRequest(`Webhook Error: ${err.message}`);
 			}
 
 
@@ -558,10 +558,18 @@ module.exports = createCoreController(
 					} else {
 
 
+						console.log("cancelado",checkoutSessionCompleted);
+
 						pedido.estado = 'cancelado';
 						pedido.raw = JSON.stringify(checkoutSessionCompleted);
 
+						let data = {
 
+							estado: 'cancelado',
+							raw: JSON.stringify(checkoutSessionCompleted)
+
+
+						}
 
 						await strapi.db.query("api::pedido.pedido").update(
 							{
