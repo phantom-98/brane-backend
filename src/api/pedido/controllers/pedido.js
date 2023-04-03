@@ -486,7 +486,7 @@ module.exports = createCoreController(
 							{ expand: ['customer', 'payment_intent'] }
 						);
 
-
+							console.log("session", session);
 						if(!session){
 							console.log("no se encontro la sesion");
 							return ctx.badRequest(`Pago no procesado aún `, { error: 'El pago aún no es efectivo'  })
@@ -495,13 +495,6 @@ module.exports = createCoreController(
 						}
 
 						session = session.payment_intent;
-
-						pedido.estado = 'completado';
-						pedido.raw = JSON.stringify(checkoutSessionCompleted);
-
-						pedido.cargo_id = session.latest_charge
-
-
 
 
 						let data = {
@@ -606,8 +599,6 @@ module.exports = createCoreController(
 
 						console.log("cancelado",checkoutSessionCompleted);
 
-						pedido.estado = 'cancelado';
-						pedido.raw = JSON.stringify(checkoutSessionCompleted);
 
 						let data = {
 
