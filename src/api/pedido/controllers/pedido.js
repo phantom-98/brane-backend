@@ -59,6 +59,8 @@ module.exports = createCoreController(
 
 				if (mis_curso) {
 
+					return ctx.badRequest(`Curso ya comprado previamente `, { error: 'Uno o más cursos ya se encuentran en tu biblioteca'  })
+
 					return ctx.badRequest({ error: 'Ya tienes el curso comprado' });
 
 				}
