@@ -123,7 +123,7 @@ module.exports = createCoreController(
 				}
 
 				// verfico si tiene cupon asociado y si tiene cupon asociado verifico si el cupon es valido
-
+console.log("cursos[i].cupon", cursos[i].cupon);
 				if (cursos[i].cupon) {
 
 					console.log("CUPON");
@@ -151,21 +151,21 @@ module.exports = createCoreController(
 
 
 
-					if (cupon.tipo === 'porcentaje') {
+					if (cupon.tipo == 'porcentaje') {
 
 						// calculo el monto del curso	con el descuento del cupon
 
 						monto_curso = this.formatearMontos(curso.precio);
 
-						// fixeo a maximo 2 decimales
+						// calculo el descuento del curso con el cupon porcentual
 
-						cupon.valor = parseFloat(cupon.valor);
 
-						cupon.valor = cupon.valor /	100;
+						cupon.valor = monto_curso * (cupon.valor/100);
 
+					
 						cupon.valor = this.formatearMontos(cupon.valor);
 
-						monto_curso_descuento_porcentual = monto_curso * cupon.valor;
+						monto_curso_descuento_porcentual = cupon.valor;
 
 
 						monto_curso = monto_curso - monto_curso_descuento_porcentual;
