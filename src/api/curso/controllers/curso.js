@@ -100,27 +100,29 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
     if (user.id != curso.instructor.id && user.role.type != "administrador") {
       return ctx.unauthorized(`You can't update this entry`);
     }
-    const { subTitles, whatYouWillLearn, requirements,additionalResources ,whoIsThisCourseFor } = ctx.request.body.data;
+    const { subTitles, whatYouWillLearn, requirements,additionalResources } = ctx.request.body.data;
 
-    if(!subTitles ){
+    console.log(subTitles);
+
+    if(subTitles ){
 
       ctx.request.body.data.subTitles = JSON.stringify(subTitles);
 
     }
 
-    if(!whatYouWillLearn ){
+    if(whatYouWillLearn ){
 
       ctx.request.body.data.whatYouWillLearn = JSON.stringify(whatYouWillLearn);
 
     }
 
-    if(!requirements ){
+    if(requirements ){
 
       ctx.request.body.data.requirements = JSON.stringify(requirements);
 
     }
 
-    if(!additionalResources ){
+    if(additionalResources ){
 
       ctx.request.body.data.additionalResources = JSON.stringify(additionalResources);
 
@@ -224,31 +226,96 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
     // extraigo los campos subTitles , whatYouWillLearn y requirements
 
-    const { subTitles, whatYouWillLearn, requirements, additionalResources, whoIsThisCourseFor } = ctx.request.body.data;
+    const { subTitles, whatYouWillLearn, requirements,additionalResources } = ctx.request.body.data;
+
+
+    console.log("SUBTITULOS",whatYouWillLearn);
+
+   
 
     // son de tipo array, los serializo para poder guardarlos en la base de datos
 
-    if(!subTitles ){
+    // si subtittles no está definido, no lo serializo
 
-      ctx.request.body.data.subTitles = JSON.stringify(subTitles);
+    if(subTitles ){
+
+      // verifico sea un array  sino retorno un error
+
+
+      if(!Array.isArray(subTitles)){
+
+        return ctx.badRequest( "Tipo de dato invalido" ,{error:"El campo subtitulos debe ser un array"});
+
+      }
+
+
+
+
+
+      if(subTitles.length){
+
+        ctx.request.body.data.subTitles = JSON.stringify(subTitles);
+
+      }
 
     }
 
-    if(!whatYouWillLearn ){
 
-      ctx.request.body.data.whatYouWillLearn = JSON.stringify(whatYouWillLearn);
+    if(whatYouWillLearn ){
+
+
+      if(!Array.isArray(whatYouWillLearn)){
+
+        return ctx.badRequest( "Tipo de dato invalido" ,{error:"El campo que aprenderas debe ser un array"});
+
+
+      }
+
+      if(whatYouWillLearn.length){
+
+        ctx.request.body.data.whatYouWillLearn = JSON.stringify(whatYouWillLearn);
+
+      }
+
 
     }
 
-    if(!requirements ){
 
-      ctx.request.body.data.requirements = JSON.stringify(requirements);
+
+    if(requirements ){
+
+      if(!Array.isArray(requirements)){
+
+        return ctx.badRequest( "Tipo de dato invalido" ,{error:"El campo requerimientos debe ser un array"});
+
+      }
+
+
+      if(requirements.length){
+
+        ctx.request.body.data.requirements = JSON.stringify(requirements);
+
+      }
+
 
     }
 
-    if(!additionalResources ){
 
-      ctx.request.body.data.additionalResources = JSON.stringify(additionalResources);
+    if(additionalResources ){
+
+      if(!Array.isArray(additionalResources)){
+
+        return ctx.badRequest( "Tipo de dato invalido" ,{error:"El campo recursos adicionales debe ser un array"});
+
+      }
+
+
+      if(additionalResources.length){
+
+        ctx.request.body.data.additionalResources = JSON.stringify(additionalResources);
+
+      }
+
 
     }
 
@@ -257,6 +324,20 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
       ctx.request.body.data.whoIsThisCourseFor = JSON.stringify(whoIsThisCourseFor);
 
     }
+
+    // si el usuario que está haciendo la petición es administrador, puede crear el curso
+
+
+
+
+
+
+
+
+
+
+
+
 
   
 
