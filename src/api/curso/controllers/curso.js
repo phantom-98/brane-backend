@@ -50,6 +50,8 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
     }
 
+
+
     // some more custom logic
     meta.date = Date.now();
 
@@ -98,9 +100,31 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
     if (user.id != curso.instructor.id && user.role.type != "administrador") {
       return ctx.unauthorized(`You can't update this entry`);
     }
+    const { subTitles, whatYouWillLearn, requirements } = ctx.request.body.data;
 
-    // si el usuario que está haciendo la petición es el instructor del curso o es administrador, puede actualizar el curso
+    if(!subTitles ){
 
+      ctx.request.body.data.subTitles = JSON.stringify(subTitles);
+
+    }
+
+    if(!whatYouWillLearn ){
+
+      ctx.request.body.data.whatYouWillLearn = JSON.stringify(whatYouWillLearn);
+
+    }
+
+    if(!requirements ){
+
+      ctx.request.body.data.requirements = JSON.stringify(requirements);
+
+    }
+
+    if(!additionalResources ){
+
+      ctx.request.body.data.additionalResources = JSON.stringify(additionalResources);
+
+    }
     return await super.update(ctx);
   },
 
@@ -193,7 +217,39 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
       ]);
     }
 
-    console.log(ctx.request.body.data);
+    // extraigo los campos subTitles , whatYouWillLearn y requirements
+
+    const { subTitles, whatYouWillLearn, requirements } = ctx.request.body.data;
+
+    // son de tipo array, los serializo para poder guardarlos en la base de datos
+
+    if(!subTitles ){
+
+      ctx.request.body.data.subTitles = JSON.stringify(subTitles);
+
+    }
+
+    if(!whatYouWillLearn ){
+
+      ctx.request.body.data.whatYouWillLearn = JSON.stringify(whatYouWillLearn);
+
+    }
+
+    if(!requirements ){
+
+      ctx.request.body.data.requirements = JSON.stringify(requirements);
+
+    }
+
+    if(!additionalResources ){
+
+      ctx.request.body.data.additionalResources = JSON.stringify(additionalResources);
+
+    }
+
+
+  
+
 
     /* if (!ctx.request.body.instructor) {
       if (user.role.type == 'instructor') {
