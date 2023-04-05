@@ -116,7 +116,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
     }
 
-    if(requirements ){
+    if(requirements ){ 
 
       ctx.request.body.data.requirements = JSON.stringify(requirements);
 
