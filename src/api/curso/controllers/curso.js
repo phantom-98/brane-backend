@@ -100,7 +100,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
     if (user.id != curso.instructor.id && user.role.type != "administrador") {
       return ctx.unauthorized(`You can't update this entry`);
     }
-    const { subTitles, whatYouWillLearn, requirements,additionalResources } = ctx.request.body.data;
+    const { subTitles, whatYouWillLearn, requirements,additionalResources, whoIsThisCourseFor } = ctx.request.body.data;
 
     console.log(subTitles);
 
@@ -226,7 +226,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
     // extraigo los campos subTitles , whatYouWillLearn y requirements
 
-    const { subTitles, whatYouWillLearn, requirements,additionalResources } = ctx.request.body.data;
+    const { subTitles, whatYouWillLearn, requirements,additionalResources, whoIsThisCourseFor } = ctx.request.body.data;
 
 
     console.log("SUBTITULOS",whatYouWillLearn);
