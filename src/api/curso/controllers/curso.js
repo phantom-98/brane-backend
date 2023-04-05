@@ -100,7 +100,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
     if (user.id != curso.instructor.id && user.role.type != "administrador") {
       return ctx.unauthorized(`You can't update this entry`);
     }
-    const { subTitles, whatYouWillLearn, requirements } = ctx.request.body.data;
+    const { subTitles, whatYouWillLearn, requirements,additionalResources ,whoIsThisCourseFor } = ctx.request.body.data;
 
     if(!subTitles ){
 
@@ -123,6 +123,11 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
     if(!additionalResources ){
 
       ctx.request.body.data.additionalResources = JSON.stringify(additionalResources);
+
+    }
+    if(!whoIsThisCourseFor ){
+
+      ctx.request.body.data.whoIsThisCourseFor = JSON.stringify(whoIsThisCourseFor);
 
     }
     return await super.update(ctx);
@@ -219,7 +224,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
     // extraigo los campos subTitles , whatYouWillLearn y requirements
 
-    const { subTitles, whatYouWillLearn, requirements } = ctx.request.body.data;
+    const { subTitles, whatYouWillLearn, requirements, additionalResources, whoIsThisCourseFor } = ctx.request.body.data;
 
     // son de tipo array, los serializo para poder guardarlos en la base de datos
 
@@ -247,6 +252,11 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
     }
 
+    if(!whoIsThisCourseFor ){
+
+      ctx.request.body.data.whoIsThisCourseFor = JSON.stringify(whoIsThisCourseFor);
+
+    }
 
   
 

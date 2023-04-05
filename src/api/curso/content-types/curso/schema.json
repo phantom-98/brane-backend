@@ -90,6 +90,9 @@
     },
     "precioDescuento": {
       "type": "decimal"
+    },
+    "whoIsThisCourseFor": {
+      "type": "text"
     }
   }
 }
