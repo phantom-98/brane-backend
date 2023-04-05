@@ -226,10 +226,10 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
     // extraigo los campos subTitles , whatYouWillLearn y requirements
 
-    const { subTitles, whatYouWillLearn, requirements,additionalResources } = ctx.request.body.data;
+    const { subTitles, whatYouWillLearn, requirements,additionalResources ,whoIsThisCourseFor } = ctx.request.body.data;
 
 
-    console.log("SUBTITULOS",whatYouWillLearn);
+  
 
    
 
@@ -319,23 +319,17 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
     }
 
-    if(!whoIsThisCourseFor ){
+    if(whoIsThisCourseFor ){
+      if(!Array.isArray(whoIsThisCourseFor)){
 
+        return ctx.badRequest( "Tipo de dato invalido" ,{error:"El campo whoIsThisCourseFor debe ser un array"});
+
+      }
       ctx.request.body.data.whoIsThisCourseFor = JSON.stringify(whoIsThisCourseFor);
 
     }
 
     // si el usuario que está haciendo la petición es administrador, puede crear el curso
-
-
-
-
-
-
-
-
-
-
 
 
 
