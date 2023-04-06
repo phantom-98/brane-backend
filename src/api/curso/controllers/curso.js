@@ -127,7 +127,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
       ctx.request.body.data.additionalResources = JSON.stringify(additionalResources);
 
     }
-    if(!whoIsThisCourseFor ){
+    if(whoIsThisCourseFor ){
 
       ctx.request.body.data.whoIsThisCourseFor = JSON.stringify(whoIsThisCourseFor);
 
@@ -319,7 +319,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
     }
 
-    if(!whoIsThisCourseFor ){
+    if(whoIsThisCourseFor ){
 
       ctx.request.body.data.whoIsThisCourseFor = JSON.stringify(whoIsThisCourseFor);
 
