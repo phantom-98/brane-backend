@@ -8,16 +8,16 @@
     "description": ""
   },
   "options": {
-    "draftAndPublish": true
+    "draftAndPublish": false
   },
   "pluginOptions": {},
   "attributes": {
     "nombre": {
       "type": "string",
       "required": true,
-      "unique": true
+      "unique": false
     },
-    "users_permissions_user": {
+    "user": {
       "type": "relation",
       "relation": "oneToOne",
       "target": "plugin::users-permissions.user"
