@@ -93,6 +93,14 @@
     },
     "whoIsThisCourseFor": {
       "type": "text"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "published",
+        "draft"
+      ],
+      "default": "draft"
     }
   }
 }
