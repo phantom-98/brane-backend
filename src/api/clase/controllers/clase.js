@@ -97,8 +97,15 @@ module.exports = createCoreController("api::clase.clase", ({ strapi }) => ({
 
       populate: { instructor: true },
     });
+
+    //si el curso no existe, no puede crear la clase
+
+    if (!curso) {
+      return ctx.unauthorized(`El curso no existe`);
+    }
     //si el usuario que está haciendo la petición no es el instructor del curso ni es administrador, no puede crear la clase
     console.log("usuario", user.id);
+    console.log("curso", curso);
     console.log("instructor", curso.instructor);
     if (user.id != curso.instructor.id && user.role.type != "administrador") {
       return ctx.unauthorized(`No tienes permisos para crear clases`);
