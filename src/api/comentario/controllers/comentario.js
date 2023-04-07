@@ -149,6 +149,7 @@ module.exports = createCoreController('api::comentario.comentario', ({ strapi })
         const curso = await strapi.db.query('api::curso.curso').findOne({
             // uid syntax: 'api::api-name.content-type-name'
             where: { id: clase.curso.id },
+            populate: { instructor: true },
         });
         //verifico si el curso al que pertenece la clase existe en la tabla mis cursos
         
@@ -158,25 +159,31 @@ module.exports = createCoreController('api::comentario.comentario', ({ strapi })
             where: { curso: curso.id, usuario: user.id },
         });
         
-        console.log("esto es mis cursos", misCursos);
+        
         //si el usuario que esta haciendo la peticion no tiene el curso en mis cursos, no puede comentar la clase
-        if (!misCursos) {
+        if (!misCursos && user.role.type == "authenticated") {
             // verifico si el usuario es un instructor del curso
 
-             misCursos = await strapi.db.query('api::mis-curso.mis-curso').findOne({
-                // uid syntax: 'api::api-name.content-type-name'
-                where: { curso: curso.id, instructor: user.id },
+            if (!misCursos) {
+                return ctx.unauthorized(`No tienes permisos para comentar la clase`);
+            }
 
-            });
+        }if (user.role.type == "instructor") {
+
+            
+            // verifico si el usuario es un instructor del curso
+
+            if (curso.instructor.id != user.id) {
+                return ctx.unauthorized(`No tienes permisos para comentar la clase`);
+            }
+
 
         }
 
 
 
 
-        if (!misCursos) {
-            return ctx.unauthorized(`No tienes permisos para comentar la clase`);
-        }
+
 
 
         //si el usuario que está haciendo la petición no está logueado, no puede comentar la clase
