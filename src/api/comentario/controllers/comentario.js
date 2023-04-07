@@ -588,18 +588,22 @@ module.exports = createCoreController('api::comentario.comentario', ({ strapi })
         });
 
 
-        
+
+        // ubico los avatares de los usuarios donde avatarActual es el avatar del usuario que está haciendo la petición y avatarRequest es el avatar del usuario que quiero ver sus mensajes
 
 
-        return mensajes;
+        let avatarActualP = strapi.db.query('plugin::users-permissions.user').findOne({
+
+            // uid syntax: 'api::api-name.content-type-name'
+
+            where: { id: user.id },
+
+            populate: { avatar: true },
+
+        });
 
 
-
-
-
-        //busco el usuario que quiero ver sus mensajes para tener el avatar
-
-        let destinatario = await strapi.db.query('plugin::users-permissions.user').findOne({
+        let avatarRequestP = strapi.db.query('plugin::users-permissions.user').findOne({
 
             // uid syntax: 'api::api-name.content-type-name'
 
@@ -609,48 +613,56 @@ module.exports = createCoreController('api::comentario.comentario', ({ strapi })
 
         });
 
-
-    /*    agrupo la información para que se vea de la siguiente forma
-        
-        mensajes: [
-
-            {
-
-                id: 1,
-
-                comentario: "hola",
-
-                fecha_de_publicacion: "2021-05-05T00:00:00.000Z"
-
-            },
-
-        ]
-
-        avatar: "htt ...."
-
-        nombre: "juan"
+        // ejecuto un Promise.all para que se ejecuten las dos consultas al mismo tiempo
 
 
-    
-    
-    */
-
-        // recorro los mensajes y elimino mensajes.destinatario
-
-        let mensajesFormateados = {
-
-            mensajes: mensajes,
-
-            avatar: destinatario.avatar ? destinatario.avatar.url : false,
-
-            nombre: destinatario.nombre + " " + destinatario.apellidos,
-
-            id: destinatario.id
-
-        };
+        let [avatarActual, avatarRequest] = await Promise.all([avatarActualP, avatarRequestP]);
 
 
-        return mensajesFormateados;
+        // recorro los mensajes para adicionar el avatar del usuario que está haciendo la petición y el avatar del usuario que quiero ver sus mensajes y el nombre del usuario que está haciendo la petición y el nombre del usuario que quiero ver sus mensajes
+
+
+        for (let i = 0; i < mensajes.length; i++) {
+
+            let mensaje = mensajes[i];
+
+            delete mensaje.autor.avatar;
+
+            mensaje.remitente = {
+                avatar: false,
+                nombre: "",
+                id: mensaje.autor.id
+            };
+
+
+            if (mensaje.autor.id == user.id) {
+
+                mensaje.remitente.avatar = avatarActual.avatar ? avatarActual.avatar.url : false;
+
+                mensaje.remitente.nombre = avatarActual.nombre + " " + avatarActual.apellidos;
+
+            } else {
+
+                mensaje.remitente.avatar = avatarRequest.avatar ? avatarRequest.avatar.url : false;
+
+                mensaje.remitente.nombre = avatarRequest.nombre + " " + avatarRequest.apellidos;
+
+            }
+
+            // elimino le campo destinatario ya que no lo necesito
+
+            delete mensaje.destinatario;
+
+            delete mensaje.autor;
+
+
+        }
+
+
+
+
+
+        return mensajes;
 
 
 
