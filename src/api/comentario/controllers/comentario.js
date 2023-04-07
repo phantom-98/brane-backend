@@ -151,14 +151,28 @@ module.exports = createCoreController('api::comentario.comentario', ({ strapi })
             where: { id: clase.curso.id },
         });
         //verifico si el curso al que pertenece la clase existe en la tabla mis cursos
+        
 
-        const misCursos = await strapi.db.query('api::mis-curso.mis-curso').findOne({
+        let misCursos = await strapi.db.query('api::mis-curso.mis-curso').findOne({
             // uid syntax: 'api::api-name.content-type-name'
             where: { curso: curso.id, usuario: user.id },
         });
         
         console.log("esto es mis cursos", misCursos);
         //si el usuario que esta haciendo la peticion no tiene el curso en mis cursos, no puede comentar la clase
+        if (!misCursos) {
+            // verifico si el usuario es un instructor del curso
+
+             misCursos = await strapi.db.query('api::mis-curso.mis-curso').findOne({
+                // uid syntax: 'api::api-name.content-type-name'
+                where: { curso: curso.id, instructor: user.id },
+
+            });
+
+        }
+
+
+
 
         if (!misCursos) {
             return ctx.unauthorized(`No tienes permisos para comentar la clase`);
