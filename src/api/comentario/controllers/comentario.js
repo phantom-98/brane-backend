@@ -54,7 +54,7 @@ module.exports = createCoreController('api::comentario.comentario', ({ strapi })
                 if (!misCursos) {
 
 
-                    return ctx.unauthorized(`No puedes contactar a este usuario porque no es tu alumno.`);
+                    return ctx.badRequest("El destinatario no es un estudiante de sus cursos");
 
                 }
 
@@ -654,6 +654,14 @@ module.exports = createCoreController('api::comentario.comentario', ({ strapi })
             delete mensaje.destinatario;
 
             delete mensaje.autor;
+
+            delete mensaje.tipo;
+
+            delete mensaje.createdAt;
+
+            delete mensaje.updatedAt;
+
+            delete mensaje.uuid;
 
 
         }
