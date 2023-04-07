@@ -24,10 +24,6 @@ module.exports = createCoreController(
 
 
 
-
-
-
-
 			if (!user) {
 
 				return ctx.unauthorized("No tienes permiso",{ error: 'No autorizado' });
@@ -523,7 +519,9 @@ console.log("cursos[i].cupon", cursos[i].cupon);
 
 							}
 
-							// verifico si el usuario ya tiene el curso
+							// busco el isntructor del curso 
+
+							
 
 							let misCurso = await strapi.db.query("api::mis-curso.mis-curso").findOne({
 
@@ -537,13 +535,18 @@ console.log("cursos[i].cupon", cursos[i].cupon);
 
 							}
 
+							const curso1 = await strapi.db.query("api::curso.curso").findOne({
+								where: { id: curso.id },
+								populate: ['instructor']
+							});
 
+							// añado el id del instructor al curso
+
+							data.instructor = curso1.instructor.id;
 
 							await strapi.db.query("api::mis-curso.mis-curso").create({ data: data });
 
-							const curso1 = await strapi.db.query("api::curso.curso").findOne({
-								where: { id: curso.id },
-							});
+
 							await strapi.db.query("api::curso.curso").update({
 								where: { id: curso1.id },
 								data: { cantidadEstudiantes: curso1.cantidadEstudiantes + 1 },

@@ -1,5 +1,7 @@
 'use strict';
+// import lodash from 'lodash';
 
+const _ = require('lodash');
 /**
  * comentario controller
  */
@@ -14,7 +16,125 @@ module.exports = createCoreController('api::comentario.comentario', ({ strapi })
         //obtengo el usuario que está haciendo la petición
         const user = ctx.state.user;
         console.log(user.id)
-        //obtengo el id de la  clase que se quiere comentar
+        // leo el tipo de comentario si es "comentario" o "mensaje"
+
+        const tipo = ctx.request.body.data.tipo;
+
+        if(tipo == "mensaje"){
+
+
+            //si el usuario que está haciendo la petición no está logueado, no puede comentar la clase
+            if (!user) {
+                return ctx.unauthorized(`No has iniciado sesión`);
+            }
+
+            // veo el tipo de rol quien manda el mensaje
+
+
+            if(user.role.type == "instructor"){
+
+
+                // quien manda es un instructor, verifico que el destinatario sea un estudiante de sus cursos
+
+                const  destinatario  = ctx.request.body.data.destinatario;
+
+                //verifico los "mis cursos" del destinatario donde el instructor sea el que manda el mensaje
+
+
+                const misCursos = await strapi.db.query('api::mis-curso.mis-curso').findOne({
+
+                    where: { usuario: destinatario, instructor: user.id },
+
+                });
+
+
+                // si si se encuentra el curso, se puede enviar el mensaje
+
+
+                if (!misCursos) {
+
+
+                    return ctx.unauthorized(`No puedes contactar a este usuario porque no es tu alumno.`);
+
+                }
+
+                ctx.request.body.data.autor = user.id;
+                ctx.request.body.data.fecha_de_publicacion = new Date();
+                //si el usuario que está haciendo la petición está inscrito en el curso, puede comentar la clase
+                const entity = await strapi.services['api::comentario.comentario'].create(
+                    
+                    ctx.request.body
+                    
+                );
+        
+                return entity;
+
+
+
+            }else if (user.role.type == "authenticated") {
+
+
+                // verifico si el profesor a quien le mando el mensaje es instructor de alguno de mis cursos
+                const  destinatario  = ctx.request.body.data.destinatario;
+
+                console.log("este es el emisor", user)
+
+                console.log("este es el destinatario", destinatario)
+
+                //verifico los "mis cursos" del destinatario donde el instructor sea el que manda el mensaje
+
+
+                const misCursos = await strapi.db.query('api::mis-curso.mis-curso').findOne({
+
+                    where: { instructor: destinatario, usuario: user.id },
+
+                });
+
+
+
+
+                console.log("esto es mis cursos", misCursos);
+
+
+                // si si se encuentra el curso, se puede enviar el mensaje
+
+
+                if (!misCursos) {
+
+
+                    return ctx.unauthorized(`No puedes contactar a este usuario porque no es tu instructor.`);
+
+                }
+
+                ctx.request.body.data.autor = user.id;
+                ctx.request.body.data.fecha_de_publicacion = new Date();
+                //si el usuario que está haciendo la petición está inscrito en el curso, puede comentar la clase
+                const entity = await strapi.services['api::comentario.comentario'].create(
+                    
+                    ctx.request.body
+                    
+                );
+        
+                return entity;
+
+
+
+                
+            }else{
+                    
+                    return ctx.unauthorized(`No tienes permisos para enviar mensajes`);
+            }
+
+        
+
+
+
+    
+
+
+        }else{
+
+        
 
         const  id  = ctx.request.body.data.clase;
        
@@ -61,6 +181,8 @@ module.exports = createCoreController('api::comentario.comentario', ({ strapi })
         );
 
         return entity;
+
+        }
     },
 
     //modifico el update para que solo el ususario autor del comentario pueda modificar el comentario
@@ -231,5 +353,276 @@ module.exports = createCoreController('api::comentario.comentario', ({ strapi })
         return await super.findOne(ctx);
 
     },
+
+    async messageMe(ctx) {
+
+
+        //obtengo el usuario que está haciendo la petición
+
+        const user = ctx.state.user;
+
+        //si el usuario que está haciendo la petición no está logueado, no puede enviar mensajes
+
+        if (!user) {
+
+            return ctx.unauthorized(`No has iniciado sesión`);
+
+        }
+
+        
+        //busco todos los comentarios de tipo mensaje que tiene como author el usuario que está haciendo la petición, lo agrupo por remite y los ordeno por fecha de creación, y los ordeno de forma descendente para que los más recientes aparezcan primero y muestra el ultimo mensaje que se envió
+
+
+        let mensajes = await strapi.db.query('api::comentario.comentario').findMany({
+
+            // uid syntax: 'api::api-name.content-type-name'
+
+            where: { autor: user.id, tipo: "mensaje" },
+
+            populate: { destinatario: true },
+
+
+
+        });
+
+
+        /*
+            Los recorro par obtener la forma
+
+
+                destinatario: [
+
+                    id: 1,
+                    nombre: "juan",
+                    messages: [
+
+                        {
+
+                            id: 1,
+
+                            mensaje: "hola"
+
+                        },
+
+                    ]
+
+                    lastMessage: {
+
+                        id: 1,
+
+                        mensaje: "hola"
+
+                    }
+
+                ]
+
+
+
+
+
+        */
+
+
+        let mensajesFormateados = [];
+
+        for (let i = 0; i < mensajes.length; i++) {
+
+            let destinatario = mensajes[i].destinatario;
+
+            let mensaje = mensajes[i];
+
+
+
+            //busco el destinatario para tener el avatar
+
+            
+
+            let destinatarioIndex = mensajesFormateados.findIndex((destinatario) => destinatario.id == mensaje.destinatario.id);
+
+            if (destinatarioIndex == -1) {
+
+                mensajesFormateados.push({
+
+                    id: destinatario.id,
+
+                    nombre: destinatario.nombre + " " + destinatario.apellidos,
+                    // mando los mensjaes con los campos que necesito "id, comentario, fecha_de_publicacion"
+
+                  /*  mensajes: [{
+                        id: mensaje.id,
+                        comentario: mensaje.comentario,
+                        fecha_de_publicacion: mensaje.fecha_de_publicacion
+                    }],*/
+                    
+                    
+
+                    ultimoMensaje: {
+                        id: mensaje.id,
+                        comentario: mensaje.comentario,
+                        fecha_de_publicacion: mensaje.fecha_de_publicacion
+                    },
+
+                   
+
+                });
+
+            } else {
+
+             /*   mensajesFormateados[destinatarioIndex].mensajes.push({
+                    id: mensaje.id,
+                    comentario: mensaje.comentario,
+                    fecha_de_publicacion: mensaje.fecha_de_publicacion
+                });*/
+
+                mensajesFormateados[destinatarioIndex].ultimoMensaje = {
+                    id: mensaje.id,
+                    comentario: mensaje.comentario,
+                    fecha_de_publicacion: mensaje.fecha_de_publicacion
+                };
+
+            }
+
+        }
+
+        //ordeno los mensajes por fecha de creación de forma descendente para que los más recientes aparezcan primero
+
+        mensajesFormateados.sort((a, b) => {
+
+            return new Date(b.ultimoMensaje.fecha_de_publicacion) - new Date(a.ultimoMensaje.fecha_de_publicacion);
+
+        });
+
+        // recorro para adicionar el avatar
+
+        for (let i = 0; i < mensajesFormateados.length; i++) {
+
+            let destinatario = mensajesFormateados[i];
+
+            let avatar = await strapi.db.query('plugin::users-permissions.user').findOne({
+
+                // uid syntax: 'api::api-name.content-type-name'
+
+                where: { id: destinatario.id },
+                populate: { avatar: true },
+
+            });
+
+            if(avatar.avatar){
+                destinatario.avatar = avatar.avatar.url;
+
+            }else{
+
+                destinatario.avatar = false;
+
+            }
+
+        }
+
+
+
+
+        return mensajesFormateados;
+
+
+
+        
+
+    },
+
+    async messageMeForId(ctx) {
+
+
+        //obtengo el usuario que está haciendo la petición
+
+        const user = ctx.state.user;
+
+        //si el usuario que está haciendo la petición no está logueado, no puede enviar mensajes
+
+        if (!user) {
+
+            return ctx.unauthorized(`No has iniciado sesión`);
+
+        }
+
+        //obtengo el id del usuario que quiero ver sus mensajes
+
+        const { id } = ctx.params;
+
+        //busco todos los comentarios de tipo mensaje que tiene como author el usuario que está haciendo la petición y como destinatario el usuario que quiero ver sus mensajes, los ordeno por fecha de creación, y los ordeno de forma descendente para que los más recientes aparezcan primero y muestra el ultimo mensaje que se envió
+
+
+        let mensajes = await strapi.db.query('api::comentario.comentario').findMany({
+
+            // uid syntax: 'api::api-name.content-type-name'
+
+            where: { autor: user.id, destinatario: id, tipo: "mensaje" },
+
+            populate: { destinatario: true },
+
+            sort: 'fecha_de_publicacion:desc'
+
+        });
+
+
+        //busco el usuario que quiero ver sus mensajes para tener el avatar
+
+        let destinatario = await strapi.db.query('plugin::users-permissions.user').findOne({
+
+            // uid syntax: 'api::api-name.content-type-name'
+
+            where: { id: id },
+
+            populate: { avatar: true },
+
+        });
+
+
+    /*    agrupo la información para que se vea de la siguiente forma
+        
+        mensajes: [
+
+            {
+
+                id: 1,
+
+                comentario: "hola",
+
+                fecha_de_publicacion: "2021-05-05T00:00:00.000Z"
+
+            },
+
+        ]
+
+        avatar: "htt ...."
+
+        nombre: "juan"
+
+
+    
+    
+    */
+
+        let mensajesFormateados = {
+
+            mensajes: mensajes,
+
+            avatar: destinatario.avatar ? destinatario.avatar.url : false,
+
+            nombre: destinatario.nombre + " " + destinatario.apellidos,
+
+            id: destinatario.id
+
+        };
+
+
+        return mensajesFormateados;
+
+
+
+
+
+    }
+
+    
 
 }));

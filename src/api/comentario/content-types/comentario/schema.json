@@ -48,6 +48,11 @@
         "mensaje"
       ],
       "default": "comentario"
+    },
+    "destinatario": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
     }
   }
 }
