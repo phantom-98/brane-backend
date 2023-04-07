@@ -111,6 +111,24 @@ module.exports = createCoreController("api::clase.clase", ({ strapi }) => ({
       return ctx.unauthorized(`No tienes permisos para crear clases`);
     }
 
+    const { additionalResources } = ctx.request.body.data;
+
+    if(additionalResources ){
+
+      if(!Array.isArray(additionalResources)){
+
+        return ctx.badRequest( "Tipo de dato invalido" ,{error:"El campo recursos adicionales debe ser un array"});
+
+      }
+
+      if(additionalResources.length){
+
+        ctx.request.body.data.additionalResources = JSON.stringify(additionalResources);
+
+      }
+
+    }
+
     //si el usuario que está haciendo la petición es instructor o es administrador, puede crear la clase
 
     return await super.create(ctx);
@@ -257,6 +275,7 @@ module.exports = createCoreController("api::clase.clase", ({ strapi }) => ({
 
     console.log("clase", clase.status)
 
+  
     let data = await super.findOne(ctx);
     //si el usuario que está haciendo la petición es el instructor de la clase o es administrador, puede ver la clase y si la clase esta finalizada le asigno el status de finalizada a la clase
     //retorno data mas la clase 

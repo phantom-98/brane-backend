@@ -43,6 +43,9 @@
     },
     "duracion": {
       "type": "string"
+    },
+    "additionalResources": {
+      "type": "text"
     }
   }
 }

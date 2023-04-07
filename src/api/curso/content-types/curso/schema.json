@@ -82,9 +82,6 @@
     "descripcion": {
       "type": "richtext"
     },
-    "additionalResources": {
-      "type": "text"
-    },
     "shortDescription": {
       "type": "richtext"
     },
@@ -101,6 +98,10 @@
         "draft"
       ],
       "default": "draft"
+    },
+    "additionalResources": {
+      "type": "integer",
+      "default": 0
     }
   }
 }
