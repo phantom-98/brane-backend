@@ -548,20 +548,53 @@ module.exports = createCoreController('api::comentario.comentario', ({ strapi })
 
         const { id } = ctx.params;
 
-        //busco todos los comentarios de tipo mensaje que tiene como author el usuario que está haciendo la petición y como destinatario el usuario que quiero ver sus mensajes, los ordeno por fecha de creación, y los ordeno de forma descendente para que los más recientes aparezcan primero y muestra el ultimo mensaje que se envió
+        //busco todos los comentarios de tipo mensaje que tiene como author o destinatario el usuario que está haciendo la petición, y los ordeno por fecha de creación, y los ordeno de forma descendente para que los más recientes aparezcan primero
 
 
-        let mensajes = await strapi.db.query('api::comentario.comentario').findMany({
+        let mensajesMios = await strapi.db.query('api::comentario.comentario').findMany({
 
             // uid syntax: 'api::api-name.content-type-name'
 
-            where: { autor: user.id, destinatario: id, tipo: "mensaje" },
+            where: { autor: user.id, tipo: "mensaje", destinatario: id },
 
-            populate: { destinatario: true },
+
+
+            populate: { destinatario: true, autor: true },
 
             sort: 'fecha_de_publicacion:desc'
 
         });
+
+
+        let mensajesDelDestinatario = await strapi.db.query('api::comentario.comentario').findMany({
+
+            // uid syntax: 'api::api-name.content-type-name'
+
+            where: { autor: id, tipo: "mensaje", destinatario: user.id },
+
+            populate: { destinatario: true, autor: true },
+
+            sort: 'fecha_de_publicacion:desc'
+
+        });
+
+
+        let mensajes = mensajesMios.concat(mensajesDelDestinatario);
+
+        mensajes.sort((a, b) => {
+
+            return new Date(b.fecha_de_publicacion) - new Date(a.fecha_de_publicacion);
+
+        });
+
+
+        
+
+
+        return mensajes;
+
+
+
 
 
         //busco el usuario que quiero ver sus mensajes para tener el avatar
@@ -601,6 +634,8 @@ module.exports = createCoreController('api::comentario.comentario', ({ strapi })
     
     
     */
+
+        // recorro los mensajes y elimino mensajes.destinatario
 
         let mensajesFormateados = {
 
