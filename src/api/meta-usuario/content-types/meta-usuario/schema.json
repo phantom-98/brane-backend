@@ -46,6 +46,15 @@
     "stripe_account_id": {
       "type": "string",
       "private": true
+    },
+    "facebook": {
+      "type": "string"
+    },
+    "instagram": {
+      "type": "string"
+    },
+    "linkedin": {
+      "type": "string"
     }
   }
 }
