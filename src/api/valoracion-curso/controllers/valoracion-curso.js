@@ -19,7 +19,7 @@ module.exports = createCoreController(
       const user = ctx.state.user;
 
       if (!user) {
-        return ctx.unauthorized(`You can't create this entry`);
+        return ctx.unauthorized(`No tienes permiso, debes estar logueado`);
       }
 
       const id = ctx.request.body.data.curso;
@@ -41,7 +41,7 @@ module.exports = createCoreController(
         });
         if (user.id == curso.instructor.id) {
           return ctx.unauthorized(
-            `No tienes permisos para crear una valoración`
+            `No tienes permisos para crear una valoración en tu propio curso`
           );
         }
       }
@@ -49,9 +49,20 @@ module.exports = createCoreController(
       // si el usuario que está haciendo la petición no está inscrito en el curso y no es administrador, no puede crear la valoración
 
       if (!misCursos && user.role.type != "administrador") {
-        return ctx.unauthorized(`You can't create this entry`);
+        return ctx.unauthorized(`No tienes permiso, debes estar inscrito`);
       }
+      //si el usuario ya valoró el curso no puede volver a valorarlo
 
+      const valoracion = await strapi.db
+        .query("api::valoracion-curso.valoracion-curso")
+        .findOne({
+          where: { usuario: user.id, curso: id },
+        });
+
+      if (valoracion) {
+        return ctx.unauthorized(`Ya valoraste este curso`);
+      }
+      
       // inyecto el usuario que está haciendo la petición en el body de la petición
 
       ctx.request.body.data.usuario = user.id;
