@@ -208,14 +208,14 @@ module.exports = createCoreController(
 
 			//	si no tiene cuenta creada, creo la cuenta
 
-	/*		const account = await stripe.accounts.create({
+			const account = await stripe.accounts.create({
 				type: 'express',
-				country: 'DO',
+				country: 'US',
 				email: user.email,
 				capabilities: {
 						transfers: {requested: true},
 				},
-				tos_acceptance: {service_agreement: 'recipient'},
+				//tos_acceptance: {service_agreement: 'recipient'},
 				business_type: 'individual',
 				individual: {
 					first_name: user.nombre,
@@ -224,10 +224,10 @@ module.exports = createCoreController(
 		});
 
 
-			console.log(account);*/
+			console.log(account);
 
 			const link  = await stripe.accountLinks.create({
-				account: "acct_1Mr5YBPxP1XEYy1R",
+				account: account.id,
 				refresh_url: 'https://example.com/reauth',
 				return_url: 'https://example.com/return',
 				type: 'account_onboarding',
