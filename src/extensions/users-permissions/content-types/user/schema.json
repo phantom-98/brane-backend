@@ -90,6 +90,9 @@
       "type": "decimal",
       "default": 0,
       "max": 5
+    },
+    "headline": {
+      "type": "string"
     }
   }
 }
