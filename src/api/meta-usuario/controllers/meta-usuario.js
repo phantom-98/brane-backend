@@ -203,23 +203,7 @@ module.exports = createCoreController(
 
 			if (meta.stripe_account_id) {
 
-				return ctx.badRequest(500, [
-
-					{
-
-						messages: [
-
-							{
-
-								id: "Ya tienes una cuenta creada",
-
-								message: "Ya tienes una cuenta creada",
-
-							},
-
-						],
-
-					}]);
+				return ctx.badRequest("Ya tienes una cuenta creada", {message: "Ya tienes una cuenta creada"});
 			}
 
 			//	si no tiene cuenta creada, creo la cuenta
