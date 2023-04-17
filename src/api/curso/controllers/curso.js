@@ -101,7 +101,6 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
     const { subTitles, whatYouWillLearn, requirements, whoIsThisCourseFor } =
       ctx.request.body.data;
 
-    console.log(subTitles);
 
     if (subTitles) {
       ctx.request.body.data.subTitles = JSON.stringify(subTitles);
@@ -119,7 +118,65 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
       ctx.request.body.data.whoIsThisCourseFor =
         JSON.stringify(whoIsThisCourseFor);
     }
-    return await super.update(ctx);
+
+
+
+
+
+
+    
+
+
+
+    let data = [];
+
+    const { cupon_descuento } = ctx.request.body.data;
+
+    if(cupon_descuento){
+
+
+      const cupon = await strapi.db
+      .query("api::cupon.cupon")
+      .findOne({ where: { slug: cupon_descuento }, populate: true });
+
+    
+    // si el cupom_descuento no existe en la tabla cupon no se puede asignar el cupom_descuento al curso
+
+    if (!cupon) {
+      return ctx.badRequest("El cupom no existe",         {
+        messages: [
+          {
+            id: "Curso.validation.cupom_descuento.required",
+            message: "El cupom no existe",
+          },
+        ],
+      },);
+    }
+
+    data = await super.update(ctx);
+
+    let cursos_cupon = [  id , ...cupon.cursos.map((curso) => curso.id)]
+
+
+
+    await strapi.db
+      .query("api::cupon.cupon")
+      .update(
+        { where: { slug: cupon_descuento },
+        data: { cursos:  cursos_cupon } }
+      );
+
+      
+    }else{
+
+
+      data = await super.update(ctx);
+
+    }
+
+        
+    return data;
+
   },
 
   // modifico el delete para que solo los cursos puedan ser eliminados por el usuario que lo creó y por el adminisrador
