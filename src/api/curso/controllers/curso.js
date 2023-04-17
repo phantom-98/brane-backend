@@ -208,31 +208,6 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
       ]);
     }
 
-    //extraigo el campo cupom_descuento
-
-    const { cupon_descuento } = ctx.request.body.data;
-
-    //veifico que el cupom_descuento exista en la tabla cupon y populo
-
-    const cupon = await strapi.db
-      .query("api::cupon.cupon")
-      .findOne({ where: { slug: cupon_descuento }, populate: true });
-
-    console.log("cupon", cupon);
-    // si el cupom_descuento no existe en la tabla cupon no se puede asignar el cupom_descuento al curso
-
-    if (!cupon) {
-      return ctx.badRequest(null, [
-        {
-          messages: [
-            {
-              id: "Curso.validation.cupom_descuento.required",
-              message: "El cupom no existe",
-            },
-          ],
-        },
-      ]);
-    }
 
     // si el cupom_descuento existe en la tabla cupon verifico el instructor del cupon
 
@@ -253,7 +228,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
     // si el cupom_descuento existe en la tabla cupon y el instructor del cupon es igual al instructor del curso se puede asignar el cupom_descuento al curso y en la tabla cupon se actualiza el campo curso con el id del curso creado
 
-    ctx.request.body.data.cupon_descuento = cupon.slug;
+    
 
     // extraigo los campos subTitles , whatYouWillLearn y requirements
 
@@ -320,18 +295,57 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
       }
     }*/
 
-    // si el usuario que está haciendo la petición es instructor o es administrador, puede crear el curso
 
-    let data = await super.create(ctx);
 
-    //asigno el curso a la tabla cupon
+    
+
+    
+    let data = [];
+
+    const { cupon_descuento } = ctx.request.body.data;
+
+    if(cupon_descuento){
+
+
+      const cupon = await strapi.db
+      .query("api::cupon.cupon")
+      .findOne({ where: { slug: cupon_descuento }, populate: true });
+
+    
+    // si el cupom_descuento no existe en la tabla cupon no se puede asignar el cupom_descuento al curso
+
+    if (!cupon) {
+      return ctx.badRequest("El cupom no existe",         {
+        messages: [
+          {
+            id: "Curso.validation.cupom_descuento.required",
+            message: "El cupom no existe",
+          },
+        ],
+      },);
+    }
+
+    data = await super.create(ctx);
+
+    let cursos_cupon = [  data.data.id , ...cupon.cursos.map((curso) => curso.id)]
+
+
 
     await strapi.db
       .query("api::cupon.cupon")
       .update(
         { where: { slug: cupon_descuento },
-        data: { cursos: data.id } }
+        data: { cursos:  cursos_cupon } }
       );
+
+      
+    }else{
+
+
+      data = await super.create(ctx);
+
+    }
+
         
     return data;
   },

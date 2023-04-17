@@ -3,7 +3,7 @@
 /**
 	* meta-usuario controller
 	*/
-const { STRIPE_PUBLIC_KEY, STRIPE_SECRET_KEY, STRIPE_URL, STRIPE_ID_CLIENT } =
+const { STRIPE_PUBLIC_KEY, STRIPE_SECRET_KEY, STRIPE_URL, STRIPE_ID_CLIENT,PAYPAL_ID_CLIENT,PAYPAL_URL,PAYPAL_SECRET_KEY } =
 	process.env;
 const stripe = require("stripe")(STRIPE_SECRET_KEY);
 
@@ -239,5 +239,40 @@ module.exports = createCoreController(
 
 
 		},
+
+		async paypalConnect(ctx) {
+
+			const user = ctx.state.user;
+
+			// verifico que sea usuario y tenga role instructor
+
+			if (!user || user.role.id != 3) {
+				//ctx.response.status	= 401;
+				return ctx.response.unauthorized([
+					
+							{
+								id: "No autorizado",
+
+								message: "No autorizado",
+							},
+						
+				]);
+			}
+
+			// verifico que el usuario no tenga ya una cuenta creada
+
+			const meta = await strapi.db.query("api::meta-usuario.meta-usuario").findOne({ where: { usuario: user.id } });
+
+			if (!meta) {
+
+				// le creamos	una meta
+
+				const meta = await strapi.db.query("api::meta-usuario.meta-usuario").create({ data: { usuario: user.id } });
+			}
+			
+
+
+
+		}
 	})
 );
