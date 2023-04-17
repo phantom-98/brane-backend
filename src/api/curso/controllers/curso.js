@@ -266,25 +266,6 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
     }
 
 
-    // si el cupom_descuento existe en la tabla cupon verifico el instructor del cupon
-
-    // si el instructor del cupon es diferente al instructor del curso no se puede asignar el cupom_descuento al curso
-
-    if (cupon.user.id != ctx.request.body.data.instructor) {
-      return ctx.badRequest(null, [
-        {
-          messages: [
-            {
-              id: "Curso.validation.cupom_descuento.required",
-              message: "El cupom no pertenece al instructor",
-            },
-          ],
-        },
-      ]);
-    }
-
-    // si el cupom_descuento existe en la tabla cupon y el instructor del cupon es igual al instructor del curso se puede asignar el cupom_descuento al curso y en la tabla cupon se actualiza el campo curso con el id del curso creado
-
     
 
     // extraigo los campos subTitles , whatYouWillLearn y requirements
@@ -381,6 +362,27 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
         ],
       },);
     }
+
+    
+    // si el cupom_descuento existe en la tabla cupon verifico el instructor del cupon
+
+    // si el instructor del cupon es diferente al instructor del curso no se puede asignar el cupom_descuento al curso
+
+    if (cupon.user.id != ctx.request.body.data.instructor) {
+      return ctx.badRequest(null, [
+        {
+          messages: [
+            {
+              id: "Curso.validation.cupom_descuento.required",
+              message: "El cupom no pertenece al instructor",
+            },
+          ],
+        },
+      ]);
+    }
+
+    // si el cupom_descuento existe en la tabla cupon y el instructor del cupon es igual al instructor del curso se puede asignar el cupom_descuento al curso y en la tabla cupon se actualiza el campo curso con el id del curso creado
+
 
     data = await super.create(ctx);
 
