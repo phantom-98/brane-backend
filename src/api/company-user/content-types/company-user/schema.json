@@ -1,0 +1,28 @@
+{
+  "kind": "collectionType",
+  "collectionName": "company_users",
+  "info": {
+    "singularName": "company-user",
+    "pluralName": "company-users",
+    "displayName": "company-user"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "company": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "role": {
+      "type": "integer"
+    }
+  }
+}
