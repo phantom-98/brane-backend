@@ -194,5 +194,64 @@ module.exports = createCoreController('api::cupon.cupon', ({ strapi }) => ({
         // si el usuario que está haciendo la petición es instructor o es administrador, puede eliminar el cupon
 
         return await super.delete(ctx);
+    },
+
+
+    async findMe(ctx) {
+
+        // obtengo el usuario que está haciendo la petición
+
+        const user = ctx.state.user;
+
+
+        //	si el usuario que está haciendo la petición no está logueado, no puede ver sus cupones
+
+        if (!user) {
+
+            return ctx.unauthorized(`You can't find this entry`);
+
+        }
+
+        // si el usuario que está haciendo la petición no es instructor ni es administrador, no puede ver sus cupones
+
+        if (user.role.type != "instructor" && user.role.type != "administrador") {
+
+            return ctx.unauthorized(`No tienes permisos para ver tus cupones`);
+
+        }
+
+
+        //obtengo los cupones del usuario que hace la peticion insertando un filtro para que solo traiga los del usuario actual y buscar con el suepor.find(ctx)
+
+        
+        
+		ctx.query = {
+
+			...ctx.query,
+			filters: {
+
+				...ctx.query.filters,
+
+				user: {
+
+					id: {
+
+						"$eq": user.id
+
+					}
+
+				}
+
+			}
+
+		}
+
+
+        return await super.find(ctx);
+
+
+        
+
     }
+
 })); 
