@@ -462,6 +462,59 @@ module.exports = (plugin) => {
 
   };
 
+  //controlador para registro  de usuario de tipo empresa
+
+  plugin.controllers.user.companyRegister = async (ctx) => {
+
+    //obtengo los datos del body
+
+    let { email, password, nombre} = ctx.request.body.data;
+
+    //valido que el email no este registrado
+
+
+    const user = await strapi.db
+      .query("plugin::users-permissions.user")
+      .findOne({
+        where: { email: email },
+        // populo todos los	campos de la tabla
+        populate: true,
+      });
+
+    //si el usuario existe retorno un error 400
+
+    if (user) {
+      return ctx.badRequest("El email ya esta registrado");
+    }
+
+    //encripto la contraseña
+
+    const hashPassword = (password) => bcrypt.hash(password, 10);
+    password = await hashPassword(password);
+
+    //creo el usuario
+
+    const entity = await strapi.db
+      .query("plugin::users-permissions.user")
+      .create({
+        data: {
+        email: email,
+        username: email,
+        password: password,
+        nombre: nombre,
+        role: 4,
+        demo: true,
+        demoStartDate: new Date(),
+        },
+      });
+
+    //retorno el usuario
+
+    return entity;
+
+    }
+    
+
   plugin.routes["content-api"].routes.push(
     {
       method: "GET",
@@ -504,6 +557,11 @@ module.exports = (plugin) => {
       method: "GET",
       path: "/users/companyUsers/",
       handler: "user.companyUsers",
+    },
+    {
+      method: "POST",
+      path: "/users/companyRegister/",
+      handler: "user.companyRegister",
     },
 
   );

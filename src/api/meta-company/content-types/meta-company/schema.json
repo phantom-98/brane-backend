@@ -1,0 +1,57 @@
+{
+  "kind": "collectionType",
+  "collectionName": "meta_companies",
+  "info": {
+    "singularName": "meta-company",
+    "pluralName": "meta-companies",
+    "displayName": "Meta-company",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "description": {
+      "type": "text"
+    },
+    "user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "numberOfWorkers": {
+      "type": "integer"
+    },
+    "foundationDate": {
+      "type": "date"
+    },
+    "address": {
+      "type": "string"
+    },
+    "facebook": {
+      "type": "string"
+    },
+    "instagram": {
+      "type": "string"
+    },
+    "linkedin": {
+      "type": "string"
+    },
+    "notificacion_mensajes": {
+      "type": "boolean",
+      "default": false
+    },
+    "notificacion_promocion": {
+      "type": "boolean",
+      "default": false
+    },
+    "notificacion_anuncios_instructores": {
+      "type": "boolean",
+      "default": false
+    },
+    "stripe_account_id": {
+      "type": "string"
+    }
+  }
+}
