@@ -3,7 +3,7 @@ module.exports = {
 	routes: [
 			{
 					method: "GET",
-					path: "/cupons/findme",
+					path: "/cupon/findme",
 					handler: "cupon.findMe",
 			},
 
