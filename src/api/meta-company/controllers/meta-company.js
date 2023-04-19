@@ -30,7 +30,7 @@ module.exports = createCoreController('api::meta-company.meta-company',
 
         const meta = await strapi.db
             .query("api::meta-company.meta-company")
-            .findOne({ where: { usuario: user.id } });
+            .findOne({ where: { user: user.id } });
 
         console.log(meta);
 
@@ -77,7 +77,7 @@ module.exports = createCoreController('api::meta-company.meta-company',
 
         const meta = await strapi.db
             .query("api::meta-company.meta-company")
-            .findOne({ where: { usuario: user.id } });
+            .findOne({ where: { user: user.id } });
 
         console.log(meta);
 
