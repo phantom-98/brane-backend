@@ -502,6 +502,7 @@ module.exports = (plugin) => {
         username: email,
         password: password,
         nombre: nombre,
+        provider: "local",
         role: 4,
         demo: true,
         demoStartDate: new Date(),
