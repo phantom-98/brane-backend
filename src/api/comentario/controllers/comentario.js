@@ -38,19 +38,28 @@ module.exports = createCoreController('api::comentario.comentario', ({ strapi })
 
                 const  destinatario  = ctx.request.body.data.destinatario;
 
-                //verifico los "mis cursos" del destinatario donde el instructor sea el que manda el mensaje
+                //verifico los "mis cursos" del destinatario donde el instructor sea el que manda el mensaje o los mis cursos del usuario que manda el mensaje donde el instructor sea el destinatario
 
 
                 const misCursos = await strapi.db.query('api::mis-curso.mis-curso').findOne({
+                    where: {
+                      $or: [
+                        { usuario: user.id, instructor: destinatario },
+                        { usuario: destinatario, instructor: user.id }
+                      ]
+                    }
+                  });
 
-                    where: { usuario: destinatario, instructor: user.id },
 
-                });
+
+
+
+
 
                 console.log("esto es mis cursos", misCursos);
 
 
-                // si si se encuentra el curso, se puede enviar el mensaje
+                
 
 
                 if (!misCursos) {
