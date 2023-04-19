@@ -195,5 +195,58 @@ module.exports = createCoreController(
       return { data, meta };
 
     },
+    async findMyProfesores(ctx) {
+
+
+			// recibo el usuario logueado
+
+			const user = ctx.state.user;
+
+			// verifico que sea usuario y tenga role instructor
+
+			if (!user) {
+				//ctx.response.status	= 401;
+				return ctx.response.unauthorized([
+					
+							{
+								id: "No autorizado",
+
+								message: "No autorizado",
+							},
+						
+				]);
+			}
+
+
+
+			// busco mis cursos populando el campo instructor
+
+			const cursos = await strapi.db.query("api::mis-curso.mis-curso").findMany({ where: { usuario: user.id }, populate: ['instructor'] });
+
+
+      // recorro cursos y creo un array  que tenga profesores unicos con los sigueintes campos id, nombre, apellido, slug, avatar
+
+      let profesores = [];
+
+      cursos.forEach((curso) => {
+
+        let profesor = curso.instructor;
+
+        let existe = profesores.find((profesor) => profesor.id === curso.instructor.id);
+
+        if (!existe) {
+
+          profesores.push({ id: profesor.id, nombre: profesor.nombre + " "+ profesor.apellidos , slug: profesor.slug });
+
+        }
+
+      });
+
+			return ctx.send({data: profesores});
+
+
+
+
+		}
   })
 );
