@@ -419,7 +419,7 @@ module.exports = createCoreController('api::comentario.comentario', ({ strapi })
 
 
 
-        console.log("esto es mensajes", mensajes)
+        
 
 
         /*
@@ -464,7 +464,20 @@ module.exports = createCoreController('api::comentario.comentario', ({ strapi })
         for (let i = 0; i < mensajes.length; i++) {
             
 
-            let destinatario = mensajes[i].destinatario;
+            let destinatario = {};
+
+            if(mensajes[i].autor.id == user.id) {
+
+          
+                destinatario = mensajes[i].autor;
+
+            }
+
+
+            if (mensajes[i].destinatario.id == user.id){
+
+                destinatario = mensajes[i].destinatario;
+            }
 
             let mensaje = mensajes[i];
 
