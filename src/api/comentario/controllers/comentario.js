@@ -47,6 +47,8 @@ module.exports = createCoreController('api::comentario.comentario', ({ strapi })
 
                 });
 
+                console.log("esto es mis cursos", misCursos);
+
 
                 // si si se encuentra el curso, se puede enviar el mensaje
 
@@ -529,7 +531,23 @@ module.exports = createCoreController('api::comentario.comentario', ({ strapi })
             });
 
             if(avatar.avatar){
+
+                console.log(avatar.avatar)
                 destinatario.avatar = avatar.avatar.url;
+
+                // coloco un condicional que si avatar.avatar.formats y  que avatar.avatar.formats.thumbnail existe, entonces se lo asigno a destinatario.avatar, sino se lo asigno a destinatario.avatar
+
+                if(avatar.avatar.formats ){
+                    
+                    if( avatar.avatar.formats.thumbnail){
+
+                        destinatario.avatar = avatar.avatar.formats.thumbnail.url;
+                    }
+                    
+
+                }
+
+
 
             }else{
 
@@ -657,14 +675,47 @@ module.exports = createCoreController('api::comentario.comentario', ({ strapi })
 
 
             if (mensaje.autor.id == user.id) {
+                
 
                 mensaje.remitente.avatar = avatarActual.avatar ? avatarActual.avatar.url : false;
+
+                if(mensaje.remitente.avatar  ){
+
+                    if (avatarRequest.avatar.formats ){
+
+                        if( avatarRequest.avatar.formats.thumbnail){
+
+                            mensaje.remitente.avatar = avatarRequest.avatar.formats.thumbnail.url;
+
+                        }
+
+                    }
+
+                }
+
+
 
                 mensaje.remitente.nombre = avatarActual.nombre + " " + avatarActual.apellidos;
 
             } else {
 
                 mensaje.remitente.avatar = avatarRequest.avatar ? avatarRequest.avatar.url : false;
+
+                if( mensaje.remitente.avatar){
+
+                    if (avatarRequest.avatar.formats ){
+
+                        if( avatarRequest.avatar.formats.thumbnail){
+
+                            mensaje.remitente.avatar = avatarRequest.avatar.formats.thumbnail.url;
+
+                        }
+
+                    }
+
+
+
+                }
 
                 mensaje.remitente.nombre = avatarRequest.nombre + " " + avatarRequest.apellidos;
 
