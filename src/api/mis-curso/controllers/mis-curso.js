@@ -221,26 +221,48 @@ module.exports = createCoreController(
 
 			// busco mis cursos populando el campo instructor
 
-			const cursos = await strapi.db.query("api::mis-curso.mis-curso").findMany({ where: { usuario: user.id }, populate: ['instructor'] });
+			const cursos = await strapi.db.query("api::mis-curso.mis-curso").findMany({ where: { usuario: user.id }, populate: ['instructor' , 'instructor.avatar'] });
 
 
       // recorro cursos y creo un array  que tenga profesores unicos con los sigueintes campos id, nombre, apellido, slug, avatar
 
       let profesores = [];
 
-      cursos.forEach((curso) => {
+      // uso for para poder usar async await
 
-        let profesor = curso.instructor;
+      for (let i = 0; i < cursos.length; i++) {
 
-        let existe = profesores.find((profesor) => profesor.id === curso.instructor.id);
+        let profesor = cursos[i].instructor;
+
+        //let profesor = curso.instructor;
+
+        let existe = profesores.find((profe) => profe.id === profesor.id);
 
         if (!existe) {
 
-          profesores.push({ id: profesor.id, nombre: profesor.nombre + " "+ profesor.apellidos , slug: profesor.slug });
+          
+
+          if(profesor.avatar  ){
+
+              if (profesor.avatar.formats ){
+
+                  if( profesor.avatar.formats.thumbnail){
+
+                    profesor.avatar = profesor.avatar.formats.thumbnail.url;
+
+                  }
+
+              }
+
+          }else{
+            profesor.avatar = false;
+          }
+
+
+          profesores.push({ id: profesor.id, nombre: profesor.nombre + " "+ profesor.apellidos , slug: profesor.slug , avatar: profesor.avatar });
 
         }
-
-      });
+      }
 
 			return ctx.send({data: profesores});
 
