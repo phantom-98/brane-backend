@@ -409,14 +409,15 @@ module.exports = createCoreController('api::comentario.comentario', ({ strapi })
 
             // uid syntax: 'api::api-name.content-type-name'
 
-            where: { autor: user.id, tipo: "mensaje" },
+            where: {$or: [{ autor: user.id, tipo: "mensaje" }, { destinatario: user.id, tipo: "mensaje" }]}   ,
 
-            populate: { destinatario: true },
+            populate: { destinatario: true , autor: true},
 
 
 
         });
-        
+
+
 
         console.log("esto es mensajes", mensajes)
 
@@ -461,6 +462,7 @@ module.exports = createCoreController('api::comentario.comentario', ({ strapi })
         let mensajesFormateados = [];
 
         for (let i = 0; i < mensajes.length; i++) {
+            
 
             let destinatario = mensajes[i].destinatario;
 
