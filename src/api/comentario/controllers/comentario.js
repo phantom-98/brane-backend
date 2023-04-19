@@ -690,11 +690,11 @@ module.exports = createCoreController('api::comentario.comentario', ({ strapi })
 
                 if(mensaje.remitente.avatar  ){
 
-                    if (avatarRequest.avatar.formats ){
+                    if (mensaje.remitente.avatar.formats ){
 
-                        if( avatarRequest.avatar.formats.thumbnail){
+                        if( mensaje.remitente.avatar.formats.thumbnail){
 
-                            mensaje.remitente.avatar = avatarRequest.avatar.formats.thumbnail.url;
+                            mensaje.remitente.avatar = mensaje.remitente.avatar.formats.thumbnail.url;
 
                         }
 
@@ -712,11 +712,11 @@ module.exports = createCoreController('api::comentario.comentario', ({ strapi })
 
                 if( mensaje.remitente.avatar){
 
-                    if (avatarRequest.avatar.formats ){
+                    if (mensaje.remitente.avatar.formats ){
 
-                        if( avatarRequest.avatar.formats.thumbnail){
+                        if( mensaje.remitente.avatar.formats.thumbnail){
 
-                            mensaje.remitente.avatar = avatarRequest.avatar.formats.thumbnail.url;
+                            mensaje.remitente.avatar = mensaje.remitente.avatar.formats.thumbnail.url;
 
                         }
 
