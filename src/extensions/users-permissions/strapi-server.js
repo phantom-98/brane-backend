@@ -194,6 +194,8 @@ module.exports = (plugin) => {
           role: role,
           company: entity.id,
           provider: "local",
+          confirmed: true,
+          demo : entity ? entity.demo : false
         },
       });
 
