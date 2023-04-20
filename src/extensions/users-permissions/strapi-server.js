@@ -150,7 +150,7 @@ module.exports = (plugin) => {
 
     //los campos username , email, password  name,  apellidos y role son obligatorios
 
-    if (!email || !password || !nombre || !apellidos || !role) {
+    if (!email || !password || !role) {
       return ctx.badRequest("Faltan campos obligatorios");
     }
 
@@ -189,8 +189,8 @@ module.exports = (plugin) => {
           username: email,
           email: email,
           password: password,
-          nombre: nombre,
-          apellidos: apellidos,
+         /* nombre: nombre,
+          apellidos: apellidos,*/
           role: role,
           company: entity.id,
           provider: "local",
