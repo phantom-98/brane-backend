@@ -419,7 +419,7 @@ module.exports = createCoreController(
 
       // recibo los datos del body
 
-      const { curso, usuario } = ctx.request.body;
+      const { curso, usuario } = ctx.request.body.data;
 
 
       
