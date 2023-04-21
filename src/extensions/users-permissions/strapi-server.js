@@ -383,6 +383,12 @@ module.exports = (plugin) => {
     //console.log(id);
     //busco el usuario
 
+    //saco los filtros que me vengan por query 
+
+    let {curso, name, fecha} = ctx.request.query
+
+    console.log("CURSO", curso)
+
     const entity = await strapi.db
       .query("plugin::users-permissions.user")
       .findOne({
@@ -477,11 +483,31 @@ module.exports = (plugin) => {
 
           //elimilo los campos que no necesito
 
-          delete users[i].curso[j].curso;
-          delete users[i].curso[j].createdAt;
+          delete users[i].curso[j].curso.createdAt;
+          delete users[i].curso[j].curso.updatedAt;
+          delete users[i].curso[j].curso.publishedAt;
+          delete users[i].curso[j].curso.descripcion;
+          delete users[i].curso[j].curso.precio;
+          delete users[i].curso[j].curso.tipo;
+          delete users[i].curso[j].curso.certificado;
+          delete users[i].curso[j].curso.cupon_descuento;
+          delete users[i].curso[j].curso.slug;
+          delete users[i].curso[j].curso.averageScore;
+          delete users[i].curso[j].curso.idioma;
+          delete users[i].curso[j].curso.cantidadEstudiantes;
+          delete users[i].curso[j].curso.subTitles;
+          delete users[i].curso[j].curso.whatYouWillLearn;
+          delete users[i].curso[j].curso.requirements;
+          delete users[i].curso[j].curso.additionalResources;
+          delete users[i].curso[j].curso.status;
+          delete users[i].curso[j].curso.shortDescription;
+          delete users[i].curso[j].curso.whoIsThisCourseFor;
+          delete users[i].curso[j].curso.precioDescuento;
+          //delete users[i].curso[j].createdAt;
           delete users[i].curso[j].updatedAt;
           delete users[i].curso[j].id;
           delete users[i].curso[j].completado;
+          delete users[i].curso[j].course_company;
         }
 
       }
