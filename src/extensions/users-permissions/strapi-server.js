@@ -189,13 +189,13 @@ module.exports = (plugin) => {
           username: email,
           email: email,
           password: password,
-         /* nombre: nombre,
+          /* nombre: nombre,
           apellidos: apellidos,*/
           role: role,
           company: entity.id,
           provider: "local",
           confirmed: true,
-          demo : entity ? entity.demo : false
+          demo: entity ? entity.demo : false,
         },
       });
 
@@ -377,11 +377,10 @@ module.exports = (plugin) => {
 
   //controlador para obtener los usuarios de una empresa y que tengan un curso en mis cursos
   plugin.controllers.user.companyUsers = async (ctx) => {
-
     console.log("entro al controlador");
     //obtengo el id del usuario del token
     const id = ctx.state.user.id;
-    console.log(id);
+    //console.log(id);
     //busco el usuario
 
     const entity = await strapi.db
@@ -415,65 +414,99 @@ module.exports = (plugin) => {
         where: {
           company: id,
         },
+        select: ["id", "nombre", "apellidos"],
         // populo todos los	campos de la tabla
-        populate: true,
-      });
-      //busco si los usuario tiene un curso en mis cursos
-      console.log("users",users.length);
-      for (let i = 0; i < users.length; i++) {
-        const user = users[i].id;
-        //console.log("user",users[i].id)
-        //console.log("user dentro del for",user);
-        const curso = await strapi.db
-          .query("api::mis-curso.mis-curso")
-          .findMany({
-            where: {
-              usuario: users[i].id,
-            },
-            // populo todos los	campos de la tabla
-            populate: true,
-          });
-          console.log("curso",curso);
-          //si el usuario tiene un curso en mis cursos lo agrego al objeto
-          if(curso.length > 0){
-            users[i].curso = curso;
-            //console.log("users",users[i]);
-          }
         
-      }
+      });
+    //busco si los usuario tiene un curso en mis cursos
+    //console.log("users",users.length);
+    for (let i = 0; i < users.length; i++) {
+      const user = users[i].id;
+      //console.log("user",users[i].id)
+      //console.log("user dentro del for",user);
+      const curso = await strapi.db.query("api::mis-curso.mis-curso").findMany({
+        where: {
+          usuario: users[i].id,
+        },
+        // populo todos los	campos de la tabla
+        populate: {curso:true},
+      });
+      //console.log("curso",curso);
+      //si el usuario tiene un curso en mis cursos recorro los cursos y traigo las clases completadas que tiene del curso y el progreso del curso y lo guardo en el usuario
 
-      //si no hay usuarios retorno un error 400
+      if (curso.length > 0) {
+        //console.log("entro al if");
 
-      if(users.length == 0){
-        return ctx.badRequest("No hay usuarios para esta empresa");
+        for (let j = 0; j < curso.length; j++) {
+
+          //calculo el porcentaje de progreso del curso;
+
+          //busco en la tabla de clases completadas las clases completadas del curso
+          const clasesFinalizadas = await strapi.db
+            .query("api::clases-finalizada.clases-finalizada")
+            .findMany({
+              where: {
+                curso: curso[j].curso.id,
+              },
+              // populo todos los	campos de la tabla
+              populate: true,
+            });
+
+          //console.log("clasesFinalizadas",clasesFinalizadas);
+          //sumo la duracion de las clases completadas del curso y lo guardo en la variable activityRatio
+
+          //clases finalizadas.length es cero activityRatio es cero
+
+
+          let activityRatio = 0;
+          for (let k = 0; k < clasesFinalizadas.length; k++) {
+
+            //si duracion es null le asigno 0
+            if (clasesFinalizadas[k].clase.duracion == null) {
+              clasesFinalizadas[k].clase.duracion = 0;
+            }
+
+            activityRatio =
+              activityRatio + parseFloat(clasesFinalizadas[k].clase.duracion);
+            
+            
+            //console.log("activityRatio", activityRatio + " " + users[i].id);
+          }
+          users[i].curso = curso;
+          users[i].curso[j].activityRatio = activityRatio;
+
+        }
+
       }
+    }
+
+    //si no hay usuarios retorno un error 400
+
+    if (users.length == 0) {
+      return ctx.badRequest("No hay usuarios para esta empresa");
+    }
 
     //elimino los usuarios que no tienen un curso en mis cursos
 
     for (let i = 0; i < users.length; i++) {
-      if(!users[i].curso){
-        users.splice(i,1);
+      if (!users[i].curso) {
+        users.splice(i, 1);
       }
     }
 
     //retorno los usuarios
 
     return users;
-
-
-
   };
 
   //controlador para registro  de usuario de tipo empresa
 
   plugin.controllers.user.companyRegister = async (ctx) => {
-
     //obtengo los datos del body
 
-    let { email, password, nombre} = ctx.request.body.data;
+    let { email, password, nombre } = ctx.request.body.data;
 
     //valido que el email no este registrado
-
 
     const user = await strapi.db
       .query("plugin::users-permissions.user")
@@ -500,23 +533,21 @@ module.exports = (plugin) => {
       .query("plugin::users-permissions.user")
       .create({
         data: {
-        email: email,
-        username: email,
-        password: password,
-        nombre: nombre,
-        provider: "local",
-        role: 4,
-        demo: true,
-        demoStartDate: new Date(),
+          email: email,
+          username: email,
+          password: password,
+          nombre: nombre,
+          provider: "local",
+          role: 4,
+          demo: true,
+          demoStartDate: new Date(),
         },
       });
 
     //retorno el usuario
 
     return entity;
-
-    }
-    
+  };
 
   plugin.routes["content-api"].routes.push(
     {
@@ -565,8 +596,7 @@ module.exports = (plugin) => {
       method: "POST",
       path: "/users/companyRegister/",
       handler: "user.companyRegister",
-    },
-
+    }
   );
 
   return plugin;
