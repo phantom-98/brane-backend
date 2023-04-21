@@ -389,7 +389,9 @@ module.exports = (plugin) => {
 
    let  cursoFiltro = ctx.request.query.curso
 
-    console.log("CURSO", cursoFiltro)
+   console.log(cuecha)
+
+    
 
     const entity = await strapi.db
       .query("plugin::users-permissions.user")
@@ -429,7 +431,7 @@ module.exports = (plugin) => {
     //busco si los usuario tiene un curso en mis cursos
     //console.log("users",users.length);
     for (let i = 0; i < users.length; i++) {
-      const user = users[i].id;
+     // const user = users[i].id;
       //console.log("user",users[i].id)
       //console.log("user dentro del for",user);
       const curso = await strapi.db.query("api::mis-curso.mis-curso").findMany({
@@ -438,6 +440,7 @@ module.exports = (plugin) => {
           // si viene el curso por query filtro por el curso
 
           curso: cursoFiltro ? cursoFiltro : null,
+          
         },
         // populo todos los	campos de la tabla
         populate: {curso:true},
