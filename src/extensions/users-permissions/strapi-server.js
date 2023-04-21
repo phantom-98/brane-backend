@@ -383,13 +383,14 @@ module.exports = (plugin) => {
     //console.log(id);
     //busco el usuario
 
-    //saco los filtros que me vengan por query 
+    //saco los filtros que me vengan por query
 
-    let { name, fecha} = ctx.request.query
+    let nombre = ctx.request.query.nombre;
 
-   let  cursoFiltro = ctx.request.query.curso
+    let cursoFiltro = ctx.request.query.curso;
 
-    console.log("CURSO", cursoFiltro)
+    //console.log("CURSO", cursoFiltro)
+    console.log("NOMBRE", nombre);
 
     const entity = await strapi.db
       .query("plugin::users-permissions.user")
@@ -424,7 +425,6 @@ module.exports = (plugin) => {
         },
         select: ["id", "nombre", "apellidos"],
         // populo todos los	campos de la tabla
-        
       });
     //busco si los usuario tiene un curso en mis cursos
     //console.log("users",users.length);
@@ -440,7 +440,7 @@ module.exports = (plugin) => {
           curso: cursoFiltro ? cursoFiltro : null,
         },
         // populo todos los	campos de la tabla
-        populate: {curso:true},
+        populate: { curso: true },
       });
       //console.log("curso",curso);
       //si el usuario tiene un curso en mis cursos recorro los cursos y traigo las clases completadas que tiene del curso y el progreso del curso y lo guardo en el usuario
@@ -449,7 +449,6 @@ module.exports = (plugin) => {
         //console.log("entro al if");
 
         for (let j = 0; j < curso.length; j++) {
-
           //calculo el porcentaje de progreso del curso;
 
           //busco en la tabla de clases completadas las clases completadas del curso
@@ -468,10 +467,8 @@ module.exports = (plugin) => {
 
           //clases finalizadas.length es cero activityRatio es cero
 
-
           let activityRatio = 0;
           for (let k = 0; k < clasesFinalizadas.length; k++) {
-
             //si duracion es null le asigno 0
             if (clasesFinalizadas[k].clase.duracion == null) {
               clasesFinalizadas[k].clase.duracion = 0;
@@ -479,8 +476,7 @@ module.exports = (plugin) => {
 
             activityRatio =
               activityRatio + parseFloat(clasesFinalizadas[k].clase.duracion);
-            
-            
+
             //console.log("activityRatio", activityRatio + " " + users[i].id);
           }
           users[i].curso = curso;
@@ -514,12 +510,8 @@ module.exports = (plugin) => {
           delete users[i].curso[j].completado;
           delete users[i].curso[j].course_company;
         }
-
       }
     }
-
-    
-
 
     //si no hay usuarios retorno un error 400
 
