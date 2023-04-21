@@ -385,12 +385,12 @@ module.exports = (plugin) => {
 
     //saco los filtros que me vengan por query 
 
-    let nombre = ctx.request.query.nombre ;
+    let nombre = ctx.request.query.nombre;
 
-   let  cursoFiltro = ctx.request.query.curso
+    let cursoFiltro = ctx.request.query.curso
 
 
-  console.log("NOMBRE", nombre)   
+    console.log("NOMBRE", nombre)
 
     const entity = await strapi.db
       .query("plugin::users-permissions.user")
@@ -425,26 +425,31 @@ module.exports = (plugin) => {
         },
         select: ["id", "nombre", "apellidos"],
         // populo todos los	campos de la tabla
-        
+
       });
 
-      
+    console.log("users", users.length);
+
+
     //busco si los usuario tiene un curso en mis cursos
     //console.log("users",users.length);
     for (let i = 0; i < users.length; i++) {
-     // const user = users[i].id;
-      //console.log("user",users[i].id)
-      //console.log("user dentro del for",user);
-      const curso = await strapi.db.query("api::mis-curso.mis-curso").findMany({
-        where: {
+      let where = {}
+      if (cursoFiltro) {
+        where = {
           usuario: users[i].id,
-          // si viene el curso por query filtro por el curso
+          curso: cursoFiltro,
+        }
+      } else {
+        where = {
+          usuario: users[i].id,
+        }
+      }
 
-          curso: cursoFiltro ? cursoFiltro : null,
-          
-        },
+      const curso = await strapi.db.query("api::mis-curso.mis-curso").findMany({
+        where: where,
         // populo todos los	campos de la tabla
-        populate: {curso:true},
+        populate: { curso: true },
       });
       //console.log("curso",curso);
       //si el usuario tiene un curso en mis cursos recorro los cursos y traigo las clases completadas que tiene del curso y el progreso del curso y lo guardo en el usuario
@@ -483,8 +488,8 @@ module.exports = (plugin) => {
 
             activityRatio =
               activityRatio + parseFloat(clasesFinalizadas[k].clase.duracion);
-            
-            
+
+
             //console.log("activityRatio", activityRatio + " " + users[i].id);
           }
           users[i].curso = curso;
@@ -522,7 +527,7 @@ module.exports = (plugin) => {
       }
     }
 
-    
+
 
 
     //si no hay usuarios retorno un error 400
