@@ -427,6 +427,8 @@ module.exports = (plugin) => {
         // populo todos los	campos de la tabla
         
       });
+
+      
     //busco si los usuario tiene un curso en mis cursos
     //console.log("users",users.length);
     for (let i = 0; i < users.length; i++) {
