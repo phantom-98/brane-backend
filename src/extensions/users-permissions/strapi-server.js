@@ -385,12 +385,13 @@ module.exports = (plugin) => {
 
     //saco los filtros que me vengan por query 
 
+<<<<<<< HEAD
     let nombre = ctx.request.query.nombre ;
 =======
     let { name, fecha} = ctx.request.query
 >>>>>>> ef0963c93d9c2ebe9f1ac9581f98fdf3f3a9411c
 
-    let cursoFiltro = ctx.request.query.curso;
+   let  cursoFiltro = ctx.request.query.curso
 
    console.log(cuecha)
 
