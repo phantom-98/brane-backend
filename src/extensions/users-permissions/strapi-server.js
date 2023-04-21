@@ -611,6 +611,136 @@ module.exports = (plugin) => {
     return entity;
   };
 
+  //controlador para ver los cursos de la empresa con un reporte 
+  plugin.controllers.user.companyReport = async (ctx) => {
+
+   //obtengo el id de la empresa
+
+    const id  = ctx.state.user.id;
+
+    //console.log("id", id);
+
+    //busco si el usuario es de tipo empresa
+
+    const company = await strapi.db
+      .query("plugin::users-permissions.user")
+      .findOne({
+        where: { id: id, role: 4 },
+        // populo todos los	campos de la tabla
+        populate: true,
+
+      });
+
+      console.log("company", company);
+
+      //si no es de tipo empresa retorno un error 400
+
+
+    if (!company) {
+      return ctx.badRequest("El usuario no es de tipo empresa");
+    }
+
+
+    //busco los cursos de la empresa que estan en mis cursos
+
+    const cursos = await strapi.db
+      .query("api::mis-curso.mis-curso")
+      .findMany({
+        where: { usuario: id },
+        // populo todos los	campos de la tabla
+
+        populate: true,
+      });
+
+      console.log("cursos", cursos);
+      //si no hay cursos retorno un error 400
+
+    if (cursos.length == 0) {
+      return ctx.badRequest("No hay cursos para esta empresa");
+    }
+
+    //recorro los cursos para ver las clases finalizadas
+
+    for (let i = 0; i < cursos.length; i++) {
+
+    
+      //busco las clases finalizadas del curso
+
+      const clasesFinalizadas = await strapi.db
+        .query("api::clases-finalizada.clases-finalizada")
+        .findMany({
+          where: { curso: cursos[i].curso.id },
+          // populo todos los	campos de la tabla
+          populate: true,
+        });
+
+        //si hay clases finalizadas las recorro
+
+      
+
+        //recorro las clases finalizadas
+        let activityRatio=0
+        for (let k = 0; k < clasesFinalizadas.length; k++) {
+
+          //si duracion es null le asigno 0
+
+          if (clasesFinalizadas[k].clase.duracion == null) {
+            clasesFinalizadas[k].clase.duracion = 0;
+          }
+
+          activityRatio = activityRatio + parseFloat(clasesFinalizadas[k].clase.duracion);
+          
+        }
+
+        //asigno el activityRatio al curso
+
+        cursos[i].curso.activityRatio = activityRatio;
+
+        delete cursos[i].curso.createdAt;
+        delete cursos[i].curso.updatedAt;
+        delete cursos[i].curso.publishedAt;
+        delete cursos[i].curso.descripcion;
+        delete cursos[i].curso.precio;
+        delete cursos[i].curso.tipo;
+        delete cursos[i].curso.certificado;
+        delete cursos[i].curso.cupon_descuento;
+        delete cursos[i].curso.slug;
+        delete cursos[i].curso.averageScore;
+        delete cursos[i].curso.idioma;
+        delete cursos[i].curso.cantidadEstudiantes;
+        delete cursos[i].curso.subTitles;
+        delete cursos[i].curso.whatYouWillLearn;
+        delete cursos[i].curso.requirements;
+        delete cursos[i].curso.additionalResources;
+        delete cursos[i].curso.status;
+        delete cursos[i].curso.shortDescription;
+        delete cursos[i].curso.whoIsThisCourseFor;
+        delete cursos[i].curso.precioDescuento;
+        delete cursos[i].id;
+        delete cursos[i].updatedAt;
+        delete cursos[i].completado;
+        delete cursos[i].course_company;
+        delete cursos[i].usuario;
+        delete cursos[i].instructor;
+        delete cursos[i].createdBy;
+        delete cursos[i].updatedBy;
+        delete cursos[i].buying_company;
+        delete cursos[i].progress;
+        
+      
+    }
+  
+    //elimino los campos que no quiero mostrar
+
+     
+
+        //retorno los cursos
+
+      return cursos; 
+
+  }
+
+
   plugin.routes["content-api"].routes.push(
     {
       method: "GET",
@@ -658,7 +788,12 @@ module.exports = (plugin) => {
       method: "POST",
       path: "/users/companyRegister/",
       handler: "user.companyRegister",
-    }
+    },
+    {
+      method: "GET",
+      path: "/users/companyReport/",
+      handler: "user.companyReport",
+    },
   );
 
   return plugin;
