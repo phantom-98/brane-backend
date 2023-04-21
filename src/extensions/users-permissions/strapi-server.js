@@ -417,12 +417,24 @@ module.exports = (plugin) => {
 
     //busco los usuarios que pertenecen a la empresa y que tengan un curso en mis cursos
 
+    let whereNombre ={}
+    if(nombre){
+
+      whereNombre ={
+        company: id,
+        nombre:nombre, 
+      } 
+
+    }else{
+      whereNombre={
+        company:id
+      }
+    }
+
     const users = await strapi.db
       .query("plugin::users-permissions.user")
       .findMany({
-        where: {
-          company: id,
-        },
+        where: whereNombre,
         select: ["id", "nombre", "apellidos"],
         // populo todos los	campos de la tabla
 
