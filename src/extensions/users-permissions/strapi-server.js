@@ -389,7 +389,6 @@ module.exports = (plugin) => {
 
    let  cursoFiltro = ctx.request.query.curso
 
-   console.log(cuecha)
 
     
 
