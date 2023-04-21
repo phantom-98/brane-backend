@@ -479,7 +479,7 @@ module.exports = createCoreController(
       // busco todas las clases finalizadas del usuario en el curso 
 
 
-      const clasesFinalizadas = await strapi.db.query("api::clases-finalizada.clases-finalizada").find({ where: { curso: curso, usuario: usuario } });
+      const clasesFinalizadas = await strapi.db.query("api::clases-finalizada.clases-finalizada").findMany({ where: { curso: curso, usuario: usuario } });
 
 
       // elimino todas las clases finalizadas del usuario en el curso
