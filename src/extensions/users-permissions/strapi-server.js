@@ -618,6 +618,9 @@ module.exports = (plugin) => {
 
     const id  = ctx.state.user.id;
 
+    let cursoFiltro = ctx.request.query.curso
+
+    console.log("CURSO", cursoFiltro);
     //console.log("id", id);
 
     //busco si el usuario es de tipo empresa
@@ -631,7 +634,7 @@ module.exports = (plugin) => {
 
       });
 
-      console.log("company", company);
+      //console.log("company", company);
 
       //si no es de tipo empresa retorno un error 400
 
@@ -642,11 +645,16 @@ module.exports = (plugin) => {
 
 
     //busco los cursos de la empresa que estan en mis cursos
-
+    let where = {}
+    if(cursoFiltro){
+      where = { usuario: id, curso: cursoFiltro }
+    }else{
+      where = { usuario: id }
+    }
     const cursos = await strapi.db
       .query("api::mis-curso.mis-curso")
       .findMany({
-        where: { usuario: id },
+        where: where,
         // populo todos los	campos de la tabla
 
         populate: true,
