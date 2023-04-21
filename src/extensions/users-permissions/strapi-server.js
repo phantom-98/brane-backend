@@ -385,7 +385,7 @@ module.exports = (plugin) => {
 
     //saco los filtros que me vengan por query
 
-    let nombre = ctx.request.query.nombre;
+    let nombre = ctx.request.query.nombre ;
 
     let cursoFiltro = ctx.request.query.curso;
 
