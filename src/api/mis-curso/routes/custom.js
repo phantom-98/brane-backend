@@ -17,6 +17,11 @@ module.exports = {
 			path: "/company/course/addUser",
 			handler: "mis-curso.addUserToCourse",
 	},
+	{
 
+		method: "POST",
+		path: "/company/course/deleteUser",
+		handler: "mis-curso.deleteUserToCourse",
+},
 	],
 };
