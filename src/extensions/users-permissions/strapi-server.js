@@ -475,10 +475,20 @@ module.exports = (plugin) => {
           users[i].curso = curso;
           users[i].curso[j].activityRatio = activityRatio;
 
+          //elimilo los campos que no necesito
+
+          delete users[i].curso[j].curso;
+          delete users[i].curso[j].createdAt;
+          delete users[i].curso[j].updatedAt;
+          delete users[i].curso[j].id;
+          delete users[i].curso[j].completado;
         }
 
       }
     }
+
+    
+
 
     //si no hay usuarios retorno un error 400
 
