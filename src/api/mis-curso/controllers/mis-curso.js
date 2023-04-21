@@ -511,6 +511,110 @@ module.exports = createCoreController(
 
 
 
+    },
+    async getCourseUsers(ctx) {
+
+      // esta fucion devuleve los usuarios de la empresa, y de acuerdo al curso mandado verifica si los usaurias estan en el curso o no
+
+      // verifico que el usuario este logueado
+
+      const empresa = ctx.state.user;
+
+      if (!empresa) {
+
+        return ctx.response.unauthorized("No autorizado",
+
+          {
+            id: "No autorizado",
+
+            message: "No autorizado - No esta logueado",
+          },
+
+        );
+      }
+
+
+      //verifico sea tipo empresa
+
+
+      if (empresa.role.type !== "empresa") {
+
+        return ctx.response.unauthorized("No autorizado",
+
+          {
+            id: "No autorizado",
+
+            message: "No autorizado - No es una empresa",
+          },
+
+        );
+      }
+
+
+
+      // SACO EL ID DEL CURSO del params
+
+
+      const { id } = ctx.params;
+
+      if (!id) {
+
+        return ctx.response.badRequest("Faltan datos", {"message": "No se ha recibido el id del curso"});
+      }
+
+
+      // verifico que el curso haya sido comprado por la empresa, es decir esté en la tabla mis-cursos
+
+
+      const cursoEmpresa = await strapi.db.query("api::mis-curso.mis-curso").findOne({ where: { curso: id, usuario: empresa.id }});
+
+
+
+      if (!cursoEmpresa) {
+
+        return ctx.response.unauthorized("No autorizado", {"message": "El curso no ha sido comprado por la empresa"});
+      }
+
+
+      // busco todos los usuarios de la empresa
+
+
+      const usuariosEmpresa = await strapi.db.query("plugin::users-permissions.user").findMany({ where: { company: empresa.id }, select: ['id', 'nombre', 'apellidos'] });
+
+
+      // busco todos los usuarios del curso
+
+
+      //RECORRO LOS USUARIOS DE LA EMPRESA Y VERIFICO SI ESTAN EN EL CURSO
+
+
+  
+
+      for (let i = 0; i < usuariosEmpresa.length; i++) {
+
+        const usuario = usuariosEmpresa[i];
+
+        const usuarioCurso = await strapi.db.query("api::mis-curso.mis-curso").findOne({ where: { curso: id, usuario: usuario.id } });
+
+
+        if (usuarioCurso) {
+
+          usuario.inCourse = true;
+
+        } else {
+
+          usuario.inCourse = false;
+        }
+      }
+
+
+      return usuariosEmpresa;
+
+
+
+
+
+
     }
 
   })
