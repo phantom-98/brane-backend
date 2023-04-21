@@ -411,7 +411,8 @@ module.exports = createCoreController('api::comentario.comentario', ({ strapi })
 
             where: {$or: [{ autor: user.id, tipo: "mensaje" }, { destinatario: user.id, tipo: "mensaje" }]}   ,
 
-            populate: { destinatario: true , autor: true},
+            populate: ['destinatario' , 'destinatario.avatar' , 'autor' , 'autor.avatar'],
+
 
 
 
@@ -419,7 +420,7 @@ module.exports = createCoreController('api::comentario.comentario', ({ strapi })
 
 
 
-        
+        return mensajes;
 
 
         /*

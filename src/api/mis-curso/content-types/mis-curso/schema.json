@@ -34,6 +34,15 @@
       "relation": "oneToOne",
       "target": "plugin::users-permissions.user",
       "private": true
+    },
+    "buying_company": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user",
+      "private": true
+    },
+    "course_company": {
+      "type": "boolean"
     }
   }
 }

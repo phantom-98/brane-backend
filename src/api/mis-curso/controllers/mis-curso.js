@@ -37,17 +37,17 @@ module.exports = createCoreController(
 
       //recorro las valoraciones que tiene el usuario y si tiene valoraciones las agrego en la respuesta
 
-      let  data  = await super.find(ctx);
+      let data = await super.find(ctx);
 
-      
+
 
       for (let i = 0; i < data.data.length; i++) {
-        
+
         console.log("usuario", user.id)
         let valoracion = await strapi.db
           .query("api::valoracion-curso.valoracion-curso")
           .findOne({
-            where: { usuario: user.id, curso: data.data[i].attributes.curso.data.id},
+            where: { usuario: user.id, curso: data.data[i].attributes.curso.data.id },
           });
 
         if (valoracion) {
@@ -55,7 +55,7 @@ module.exports = createCoreController(
         }
       }
 
-          
+
       return data;
     },
 
@@ -198,30 +198,30 @@ module.exports = createCoreController(
     async findMyProfesores(ctx) {
 
 
-			// recibo el usuario logueado
+      // recibo el usuario logueado
 
-			const user = ctx.state.user;
+      const user = ctx.state.user;
 
-			// verifico que sea usuario y tenga role instructor
+      // verifico que sea usuario y tenga role instructor
 
-			if (!user) {
-				//ctx.response.status	= 401;
-				return ctx.response.unauthorized([
-					
-							{
-								id: "No autorizado",
+      if (!user) {
+        //ctx.response.status	= 401;
+        return ctx.response.unauthorized([
 
-								message: "No autorizado",
-							},
-						
-				]);
-			}
+          {
+            id: "No autorizado",
+
+            message: "No autorizado",
+          },
+
+        ]);
+      }
 
 
 
-			// busco mis cursos populando el campo instructor
+      // busco mis cursos populando el campo instructor
 
-			const cursos = await strapi.db.query("api::mis-curso.mis-curso").findMany({ where: { usuario: user.id }, populate: ['instructor' , 'instructor.avatar'] });
+      const cursos = await strapi.db.query("api::mis-curso.mis-curso").findMany({ where: { usuario: user.id }, populate: ['instructor', 'instructor.avatar'] });
 
 
       // recorro cursos y creo un array  que tenga profesores unicos con los sigueintes campos id, nombre, apellido, slug, avatar
@@ -240,35 +240,278 @@ module.exports = createCoreController(
 
         if (!existe) {
 
-          
 
-          if(profesor.avatar  ){
 
-              if (profesor.avatar.formats ){
+          if (profesor.avatar) {
 
-                  if( profesor.avatar.formats.thumbnail){
+            if (profesor.avatar.formats) {
 
-                    profesor.avatar = profesor.avatar.formats.thumbnail.url;
+              if (profesor.avatar.formats.thumbnail) {
 
-                  }
+                profesor.avatar = profesor.avatar.formats.thumbnail.url;
 
               }
 
-          }else{
+            }
+
+          } else {
             profesor.avatar = false;
           }
 
 
-          profesores.push({ id: profesor.id, nombre: profesor.nombre + " "+ profesor.apellidos , slug: profesor.slug , avatar: profesor.avatar });
+          profesores.push({ id: profesor.id, nombre: profesor.nombre + " " + profesor.apellidos, slug: profesor.slug, avatar: profesor.avatar });
 
         }
       }
 
-			return ctx.send({data: profesores});
+      return ctx.send({ data: profesores });
 
 
 
 
-		}
+    },
+
+    async addUserToCourse(ctx) {
+
+
+      // verifico que el usuario este logueado
+
+      const empresa = ctx.state.user;
+
+      if (!empresa) {
+
+        return ctx.response.unauthorized("No autorizado",
+
+          {
+            id: "No autorizado",
+
+            message: "No autorizado - No esta logueado",
+          },
+
+        );
+      }
+
+      
+      //verifico sea tipo empresa
+
+      if (empresa.role.type !== "empresa") {
+
+        return ctx.response.unauthorized("No autorizado",
+
+          {
+            id: "No autorizado",
+
+            message: "No autorizado - No es una empresa",
+          },
+
+        );
+      }
+
+
+
+      // recibo los datos del body
+
+      const { curso, usuario } = ctx.request.body;
+
+
+      
+      if (!curso || !usuario) {
+
+        return ctx.response.badRequest("Faltan datos", {"message": "Alguno de los datos no se ha recibido"});
+      }
+
+
+      const userEmpresa = await strapi.db.query("plugin::users-permissions.user").findOne({ where: { id: usuario, company: empresa.id } });
+
+
+      if (!userEmpresa) {
+
+        return ctx.response.badRequest("No autorizado", {"message": "No autorizado, el usuario no pertenece a la empresa"});
+      }
+
+
+      // verifico que el curso haya sido comprado por la empresa, es decir esté en la tabla mis-cursos
+
+
+      const cursoEmpresa = await strapi.db.query("api::mis-curso.mis-curso").findOne({ where: { curso: curso, usuario: empresa.id }, populate: ['instructor'] });
+
+
+      if (!cursoEmpresa) {
+
+        return ctx.response.unauthorized("No autorizado", {"message": "El curso no ha sido comprado por la empresa"});
+      }
+
+
+      // verifico que el usuario no este ya en el curso
+
+
+      const usuarioCurso = await strapi.db.query("api::mis-curso.mis-curso").findOne({ where: { curso: curso, usuario: usuario } });
+
+
+      if (usuarioCurso) {
+
+        return ctx.response.badRequest("Ya esta en el curso", {"message": "El usuario ya esta en el curso"});
+
+
+
+        
+      }
+
+
+      // creo el registro en la tabla mis-cursos
+
+
+      const registro = await strapi.db.query("api::mis-curso.mis-curso").create(
+        {data:{
+           curso: curso, usuario: usuario, buying_company: empresa.id, course_company:true, instructor : cursoEmpresa.instructor.id 
+        }}
+      );
+
+
+
+
+      return registro;
+
+
+
+
+
+
+
+    },
+    async deleteUserToCourse(ctx) {
+
+
+      // verifico que el usuario este logueado
+
+      const empresa = ctx.state.user;
+
+      if (!empresa) {
+
+        return ctx.response.unauthorized("No autorizado",
+
+          {
+            id: "No autorizado",
+
+            message: "No autorizado - No esta logueado",
+          },
+
+        );
+      }
+
+      
+      //verifico sea tipo empresa
+
+      if (empresa.role.type !== "empresa") {
+
+        return ctx.response.unauthorized("No autorizado",
+
+          {
+            id: "No autorizado",
+
+            message: "No autorizado - No es una empresa",
+          },
+
+        );
+      }
+
+
+
+      // recibo los datos del body
+
+      const { curso, usuario } = ctx.request.body;
+
+
+      
+      if (!curso || !usuario) {
+
+        return ctx.response.badRequest("Faltan datos", {"message": "Alguno de los datos no se ha recibido"});
+      }
+
+
+      const userEmpresa = await strapi.db.query("plugin::users-permissions.user").findOne({ where: { id: usuario, company: empresa.id } });
+
+
+      if (!userEmpresa) {
+
+        return ctx.response.badRequest("No autorizado", {"message": "No autorizado, el usuario no pertenece a la empresa"});
+      }
+
+
+      // verifico que el curso haya sido comprado por la empresa, es decir esté en la tabla mis-cursos
+
+
+      const cursoEmpresa = await strapi.db.query("api::mis-curso.mis-curso").findOne({ where: { curso: curso, usuario: empresa.id }, populate: ['instructor'] });
+
+
+      if (!cursoEmpresa) {
+
+        return ctx.response.unauthorized("No autorizado", {"message": "El curso no ha sido comprado por la empresa"});
+      }
+
+
+      // verifico que el usuario no este ya en el curso
+
+
+      const usuarioCurso = await strapi.db.query("api::mis-curso.mis-curso").findOne({ where: { curso: curso, usuario: usuario } });
+
+
+      if (!usuarioCurso) {
+
+        return ctx.response.badRequest("El usuario no está en el curso", {"message": "El usuario no está en el curso"});
+
+
+
+        
+      }
+
+
+      // elimino el registro en la tabla mis-cursos
+
+
+      const registro = await strapi.db.query("api::mis-curso.mis-curso").delete(
+
+        {where: {curso: curso, usuario: usuario}}
+
+      );
+
+
+      // busco todas las clases finalizadas del usuario en el curso 
+
+
+      const clasesFinalizadas = await strapi.db.query("api::clases-finalizada.clases-finalizada").find({ where: { curso: curso, usuario: usuario } });
+
+
+      // elimino todas las clases finalizadas del usuario en el curso
+
+      if (clasesFinalizadas.length > 0) {
+
+        // recorro con for  porque no me funciona con forEach y las elimino
+
+        for (let i = 0; i < clasesFinalizadas.length; i++) {
+
+          const clase = clasesFinalizadas[i];
+
+          await strapi.db.query("api::clases-finalizada.clases-finalizada").delete(
+
+            {where: {id: clase.id}}
+
+          );
+
+        }
+      }
+
+
+
+      return registro;
+
+
+
+
+
+
+
+    }
+
   })
 );
