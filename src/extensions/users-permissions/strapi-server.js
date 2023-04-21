@@ -385,9 +385,11 @@ module.exports = (plugin) => {
 
     //saco los filtros que me vengan por query 
 
-    let {curso, name, fecha} = ctx.request.query
+    let { name, fecha} = ctx.request.query
 
-    console.log("CURSO", curso)
+   let  cursoFiltro = ctx.request.query.curso
+
+    console.log("CURSO", cursoFiltro)
 
     const entity = await strapi.db
       .query("plugin::users-permissions.user")
@@ -433,6 +435,9 @@ module.exports = (plugin) => {
       const curso = await strapi.db.query("api::mis-curso.mis-curso").findMany({
         where: {
           usuario: users[i].id,
+          // si viene el curso por query filtro por el curso
+
+          curso: cursoFiltro ? cursoFiltro : null,
         },
         // populo todos los	campos de la tabla
         populate: {curso:true},
