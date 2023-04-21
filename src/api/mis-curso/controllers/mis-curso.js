@@ -274,7 +274,7 @@ module.exports = createCoreController(
     async addUserToCourse(ctx) {
 
 
-      // verifico que el usuario este logueado
+      console.log("addUserToCourse");
 
       const empresa = ctx.state.user;
 
@@ -311,7 +311,7 @@ module.exports = createCoreController(
 
       // recibo los datos del body
 
-      const { curso, usuario } = ctx.request.body;
+      const { curso, usuario } = ctx.request.body.data;
 
 
       
