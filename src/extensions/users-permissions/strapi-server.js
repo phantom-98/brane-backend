@@ -390,7 +390,7 @@ module.exports = (plugin) => {
    let  cursoFiltro = ctx.request.query.curso
 
 
-    
+  console.log("NOMBRE", nombre)   
 
     const entity = await strapi.db
       .query("plugin::users-permissions.user")
