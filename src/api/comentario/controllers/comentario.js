@@ -169,25 +169,19 @@ module.exports = createCoreController('api::comentario.comentario', ({ strapi })
             // uid syntax: 'api::api-name.content-type-name'
             where: { curso: curso.id, usuario: user.id },
         });
+
+        console.log("mis cursos", misCursos)
+
+        console.log("curso", curso)
         
         
         //si el usuario que esta haciendo la peticion no tiene el curso en mis cursos, no puede comentar la clase
-        if (!misCursos && user.role.type == "authenticated") {
+        if (!misCursos && curso.instructor.id != user.id ) {
             // verifico si el usuario es un instructor del curso
 
-            if (!misCursos) {
+           
                 return ctx.unauthorized(`No tienes permisos para comentar la clase`);
-            }
-
-        }if (user.role.type == "instructor") {
-
-            
-            // verifico si el usuario es un instructor del curso
-
-            if (curso.instructor.id != user.id) {
-                return ctx.unauthorized(`No tienes permisos para comentar la clase`);
-            }
-
+      
 
         }
 
