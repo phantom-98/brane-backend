@@ -160,6 +160,8 @@ module.exports = (plugin) => {
       return ctx.badRequest("No puedes crear un usuario con ese rol");
     }
 
+    let passwordNoCo = password;
+
     //valido que el usuario no exista
 
     const user = await strapi.db
@@ -199,7 +201,41 @@ module.exports = (plugin) => {
         },
       });
 
-    //retorno el usuario actualizado
+
+    
+      // variable html con el contenido del email mostrando al suusrio su contraseña y su nombre de usuario
+
+      let html = `
+
+      <h1>¡Bienvenido a Brane!</h1>
+      
+      <p>Has sido registrado en la plataforma de Brane por tu empresa.</p>
+
+      <p>Para acceder a tu cuenta, utiliza los siguientes datos:</p>
+
+      <p>Usuario: ${email}</p>
+
+      <p>Contraseña: ${passwordNoCo}</p>
+
+
+
+      <a href="https://brane-app.netlify.app/auth/login" style="background-color: #2d9cdb; border: none; color: white; padding: 15px 32px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px; margin: 4px 2px; cursor: pointer;">Iniciar sesión</a>
+
+      `;
+
+
+
+      await strapi.plugins['email'].services.email.send({
+        to: email,
+       // from: 'your verified email address', //e.g. single sender verification in SendGrid
+        //cc: 'valid email address',
+       // bcc: 'valid email address',
+        subject: 'Tu cuenta en Brane ha sido creada con éxito',
+        text: 'Hello world!',
+        html: html,
+      });
+
+
 
     return entityActualizada;
   };
