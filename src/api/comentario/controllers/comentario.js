@@ -85,7 +85,7 @@ module.exports = createCoreController('api::comentario.comentario', ({ strapi })
                         fecha: new Date(),
                         tipo: "mensaje",
                         estado: false,
-                        url: "/mensajes"
+                        url: "/chat"
                     }
                 });
         
@@ -146,7 +146,7 @@ module.exports = createCoreController('api::comentario.comentario', ({ strapi })
                         fecha: new Date(),
                         tipo: "mensaje",
                         estado: false,
-                        url: "/mensajes"
+                        url: "/chat"
                     }
                 });
 
@@ -240,7 +240,7 @@ module.exports = createCoreController('api::comentario.comentario', ({ strapi })
                 fecha: new Date(),
                 tipo: "mensaje",
                 estado: false,
-                url: "/cursos/" + curso.id
+                url: `/messages/${curso.slug}`
             }
         });
 
