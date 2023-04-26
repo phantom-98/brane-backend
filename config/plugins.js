@@ -46,5 +46,5 @@ module.exports = ({ env }) => ({
     config: {
       defaultDepth: 5, // Default is 5
     }
-  },
+  }
 });

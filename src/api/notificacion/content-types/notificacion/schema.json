@@ -4,10 +4,11 @@
   "info": {
     "singularName": "notificacion",
     "pluralName": "notificacions",
-    "displayName": "Notificacion"
+    "displayName": "Notificacion",
+    "description": ""
   },
   "options": {
-    "draftAndPublish": true
+    "draftAndPublish": false
   },
   "pluginOptions": {},
   "attributes": {
@@ -35,6 +36,9 @@
     "descripcion": {
       "type": "text",
       "maxLength": 200
+    },
+    "url": {
+      "type": "string"
     }
   }
 }
