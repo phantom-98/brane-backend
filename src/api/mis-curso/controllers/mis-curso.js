@@ -88,13 +88,44 @@ module.exports = createCoreController(
 
       const curso = await strapi.db.query("api::curso.curso").findOne({
         where: { id: ctx.request.body.data.curso },
+        //populo el instructor
+        populate: {instructor: true},
       });
 
-      //actualizo el numero de usuarios que tiene el curso
+      //si no hay curso
 
+      if (!curso) {
+        return ctx.badRequest(null, [
+          {
+            messages: [
+              {
+                id: "No se encontró el curso",
+                message: "No se encontró el curso",
+              },
+            ],
+          },
+        ]);
+      }
+
+     // console.log("curso", ctx.request.body.data.curso);
+      //actualizo el numero de usuarios que tiene el curso
+      console.log("curso", curso.instructor)
       await strapi.db.query("api::curso.curso").update({
         where: { id: curso.id },
         data: { cantidadEstudiantes: curso.cantidadEstudiantes + 1 },
+      });
+
+      //creo una notificacion para el instructor
+      
+      await strapi.db.query("api::notificacion.notificacion").create({
+        data: {
+          user: curso.instructor.id,
+          tipo: "curso",
+          descripcion: `El usuario ${user.nombre} ${user.apellidos} se ha inscrito en tu curso ${curso.nombre}`,
+          estado: false,
+          fecha: Date.now(),
+          url: `/curso/${curso.slug}`,
+        },
       });
 
       return super.create(ctx);

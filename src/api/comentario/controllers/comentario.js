@@ -77,6 +77,17 @@ module.exports = createCoreController('api::comentario.comentario', ({ strapi })
                     ctx.request.body
                     
                 );
+
+                await strapi.db.query('api::notificacion.notificacion').create({
+                    data: {
+                        user: destinatario,
+                        descripcion: "Tienes un nuevo mensaje",
+                        fecha: new Date(),
+                        tipo: "mensaje",
+                        estado: false,
+                        url: "/mensajes"
+                    }
+                });
         
                 return entity;
 
@@ -125,6 +136,20 @@ module.exports = createCoreController('api::comentario.comentario', ({ strapi })
                     ctx.request.body
                     
                 );
+
+                //creo la notificacion para el instructor 
+
+                await strapi.db.query('api::notificacion.notificacion').create({
+                    data: {
+                        user: destinatario,
+                        descripcion: "Tienes un nuevo mensaje",
+                        fecha: new Date(),
+                        tipo: "mensaje",
+                        estado: false,
+                        url: "/mensajes"
+                    }
+                });
+
         
                 return entity;
 
@@ -211,6 +236,19 @@ module.exports = createCoreController('api::comentario.comentario', ({ strapi })
             ctx.request.body
             
         );
+
+        //creo la notificacion para el instructor
+
+        const notificacion = await strapi.db.query('api::notificacion.notificacion').create({
+            data: {
+                user: curso.instructor.id,
+                descripcion: "Tienes un nuevo comentario en tu curso",
+                fecha: new Date(),
+                tipo: "mensaje",
+                estado: false,
+                url: "/cursos/" + curso.id
+            }
+        });
 
         return entity;
 
