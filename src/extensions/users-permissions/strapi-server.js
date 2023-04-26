@@ -227,9 +227,6 @@ module.exports = (plugin) => {
 
       await strapi.plugins['email'].services.email.send({
         to: email,
-       // from: 'your verified email address', //e.g. single sender verification in SendGrid
-        //cc: 'valid email address',
-       // bcc: 'valid email address',
         subject: 'Tu cuenta en Brane ha sido creada con éxito',
         text: 'Hello world!',
         html: html,
@@ -475,8 +472,6 @@ module.exports = (plugin) => {
         // populo todos los	campos de la tabla
 
       });
-
-    console.log("users", users.length);
 
 
     //busco si los usuario tiene un curso en mis cursos
