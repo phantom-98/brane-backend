@@ -75,6 +75,9 @@
     },
     "cargo_id": {
       "type": "string"
+    },
+    "paypal_sesion_id": {
+      "type": "string"
     }
   }
 }

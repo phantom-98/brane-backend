@@ -102,6 +102,10 @@
     "additionalResources": {
       "type": "integer",
       "default": 0
+    },
+    "urlConferencia": {
+      "type": "string",
+      "private": true
     }
   }
 }

@@ -3,11 +3,10 @@
 /**
 	* meta-usuario controller
 	*/
-const { STRIPE_PUBLIC_KEY, STRIPE_SECRET_KEY, STRIPE_URL, STRIPE_ID_CLIENT,PAYPAL_ID_CLIENT,PAYPAL_URL,PAYPAL_SECRET_KEY } =
-	process.env;
+	const { STRIPE_PUBLIC_KEY, STRIPE_SECRET_KEY, STRIPE_URL, STRIPE_ID_CLIENT, STRIPE_WEBHOOK_SECRET, REMOTE_URL, PAYPAL_ID_CLIENT, PAYPAL_SECRET_KEY, PAYPAL_URL } = process.env;
 const stripe = require("stripe")(STRIPE_SECRET_KEY);
 
-const axios	= require("axios");
+const axios = require("axios");
 
 const oauth = stripe.oauth;
 const { createCoreController } = require("@strapi/strapi").factories;
@@ -175,25 +174,25 @@ module.exports = createCoreController(
 			if (!user || user.role.id != 3) {
 				//ctx.response.status	= 401;
 				return ctx.response.unauthorized([
-					
-							{
-								id: "No autorizado",
 
-								message: "No autorizado",
-							},
-						
+					{
+						id: "No autorizado",
+
+						message: "No autorizado",
+					},
+
 				]);
 			}
 
 			// verifico que el usuario no tenga ya una cuenta creada
 
-			const meta = await strapi.db.query("api::meta-usuario.meta-usuario").findOne({ where: { usuario: user.id } });
+			let meta = await strapi.db.query("api::meta-usuario.meta-usuario").findOne({ where: { usuario: user.id } });
 
 			if (!meta) {
 
 				// le creamos	una meta
 
-				const meta = await strapi.db.query("api::meta-usuario.meta-usuario").create({ data: { usuario: user.id } });
+				meta = await strapi.db.query("api::meta-usuario.meta-usuario").create({ data: { usuario: user.id } });
 
 
 
@@ -203,7 +202,7 @@ module.exports = createCoreController(
 
 			if (meta.stripe_account_id) {
 
-				return ctx.badRequest("Ya tienes una cuenta creada", {message: "Ya tienes una cuenta creada"});
+				return ctx.badRequest("Ya tienes una cuenta creada", { message: "Ya tienes una cuenta creada" });
 			}
 
 			//	si no tiene cuenta creada, creo la cuenta
@@ -213,7 +212,7 @@ module.exports = createCoreController(
 				country: 'US',
 				email: user.email,
 				capabilities: {
-						transfers: {requested: true},
+					transfers: { requested: true },
 				},
 				//tos_acceptance: {service_agreement: 'recipient'},
 				business_type: 'individual',
@@ -221,19 +220,19 @@ module.exports = createCoreController(
 					first_name: user.nombre,
 					last_name: user.apellidos
 				}
-		});
+			});
 
 
 			console.log(account);
 
-			const link  = await stripe.accountLinks.create({
+			const link = await stripe.accountLinks.create({
 				account: account.id,
 				refresh_url: 'https://example.com/reauth',
 				return_url: 'https://example.com/return',
 				type: 'account_onboarding',
-		});
+			});
 
-			return ctx.send({link});
+			return ctx.send({ link });
 
 
 
@@ -242,33 +241,71 @@ module.exports = createCoreController(
 
 		async paypalConnect(ctx) {
 
-			const user = ctx.state.user;
+			try {
+				const user = ctx.state.user;
 
-			// verifico que sea usuario y tenga role instructor
+				// verifico que sea usuario y tenga role instructor
+	
+				if (!user || user.role.id != 3) {
+					//ctx.response.status	= 401;
+					return ctx.response.unauthorized([
+	
+						{
+							id: "No autorizado",
+	
+							message: "No autorizado",
+						},
+	
+					]);
+				}
+	
+				// verifico que el usuario no tenga ya una cuenta creada
+	
+				let meta = await strapi.db.query("api::meta-usuario.meta-usuario").findOne({ where: { usuario: user.id } });
+	
+				if (!meta) {
+	
+					// le creamos	una meta
+	
+					meta = await strapi.db.query("api::meta-usuario.meta-usuario").create({ data: { usuario: user.id } });
+				}
+	
+	
+				if (meta.paypal_account_id) {
+	
+					return ctx.badRequest("Ya tienes una cuenta creada", { message: "Ya tienes una cuenta creada" });
+				}
 
-			if (!user || user.role.id != 3) {
-				//ctx.response.status	= 401;
-				return ctx.response.unauthorized([
-					
-							{
-								id: "No autorizado",
+				if (user.email != ctx.request.body.data.paypal_account_id) {
 
-								message: "No autorizado",
-							},
-						
-				]);
+					return ctx.badRequest("El email debe ser el mismo con el que se registró en la plataforma", { message: "El email no coincide" });
+
+				}
+
+
+				// la guardo en la base de datos
+
+
+			// borro todo del body menos el el paypal_account_id
+
+			ctx.request.body.data = { paypal_account_id: ctx.request.body.data.paypal_account_id };
+
+			ctx.params.id = meta.id;
+
+				return super.update(ctx);
+	
+			} catch (error) {
+			//	console.log(error);
+				console.log(error.response);
 			}
 
-			// verifico que el usuario no tenga ya una cuenta creada
 
-			const meta = await strapi.db.query("api::meta-usuario.meta-usuario").findOne({ where: { usuario: user.id } });
 
-			if (!meta) {
 
-				// le creamos	una meta
 
-				const meta = await strapi.db.query("api::meta-usuario.meta-usuario").create({ data: { usuario: user.id } });
-			}
+
+
+
 			
 
 

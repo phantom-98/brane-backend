@@ -55,6 +55,9 @@
     },
     "linkedin": {
       "type": "string"
+    },
+    "paypal_account_id": {
+      "type": "string"
     }
   }
 }
