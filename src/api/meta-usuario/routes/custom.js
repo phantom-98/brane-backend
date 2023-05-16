@@ -22,6 +22,11 @@ module.exports = {
 				method: "GET",
 				path: "/meta-usuario/stripe-connect",
 				handler: "meta-usuario.stripeConnect",
+			},
+			{
+				method: "POST",
+				path: "/meta-usuario/paypal-connect",
+				handler: "meta-usuario.paypalConnect",
 			},						
 	],
 };

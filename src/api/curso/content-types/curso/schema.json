@@ -108,6 +108,10 @@
     },
     "logo_institucion": {
       "type": "string"
+    },
+    "urlConferencia": {
+      "type": "string",
+      "private": true
     }
   }
 }
