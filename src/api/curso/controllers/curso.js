@@ -354,9 +354,35 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
       }
     }*/
 
+    //populo el campo company del usuario que está haciendo la petición
+
+    const userPopulate = await strapi.db
+      .query("plugin::users-permissions.user")
+      .findOne({ where: { id: user.id }, populate: true });
+
+    
+    //si el instructor tiene company asignado reviso si la company es un usuario de tipo institucion
+
+    if (userPopulate.company) {
+      const company = await strapi.db 
+        .query("plugin::users-permissions.user")
+        .findOne({ where: { id: userPopulate.company.id }, populate: true });
+        console.log("COMPANY", company);
+
+      // si la company es de tipo institucion creo campos nuevo al curso: logo de la institucion y nombre de la institucion
+
+      if (company.role.id == 6) {
+        //console.log("hola")
+        ctx.request.body.data.logo_institucion = company.avatar.url;
+        ctx.request.body.data.nombre_institucion = company.nombre;
+      }
+
+    }
 
 
     
+    
+
 
     
     let data = [];

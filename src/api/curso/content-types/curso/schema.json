@@ -102,6 +102,12 @@
     "additionalResources": {
       "type": "integer",
       "default": 0
+    },
+    "nombre_institucion": {
+      "type": "string"
+    },
+    "logo_institucion": {
+      "type": "string"
     }
   }
 }

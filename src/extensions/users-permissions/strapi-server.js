@@ -236,6 +236,134 @@ module.exports = (plugin) => {
 
     return entityActualizada;
   };
+
+  //controlador para crear un usuario desde la institucion
+
+  plugin.controllers.user.institutionCreateUser = async (ctx) => {
+
+        //obtengo el id del usuario del token
+        const id = ctx.state.user.id;
+
+        //busco el usuario
+    
+        const entity = await strapi.db
+          .query("plugin::users-permissions.user")
+          .findOne({
+            where: { id: id },
+            // populo todos los	campos de la tabla
+            populate: true,
+          });
+    
+        // si no hay usuario retorno un error 404
+    
+        if (!entity) {
+          return ctx.notFound("No se encontró el usuario");
+        }
+    
+        //obtengo el rol del usuario
+        const rol = entity.role.id;
+    
+        //si el usuario no es institucion retorno un error 400
+    
+        if (rol != 6) {
+          return ctx.badRequest("El usuario no es empresa");
+        }
+    
+        //obtengo los datos del body
+    
+        let {  email, password, nombre, apellidos, role } =
+          ctx.request.body.data;
+    
+        //los campos username , email, password  name,  apellidos y role son obligatorios
+    
+        if (!email || !password || !role) {
+          return ctx.badRequest("Faltan campos obligatorios");
+        }
+    
+        //valido que el rol sea de instructor
+    
+        if (role != 3) {
+          return ctx.badRequest("No puedes crear un usuario con ese rol");
+        }
+    
+        let passwordNoCo = password;
+    
+        //valido que el usuario no exista
+    
+        const user = await strapi.db
+          .query("plugin::users-permissions.user")
+          .findOne({
+            where: { email: email },
+            // populo todos los	campos de la tabla
+            populate: true,
+          });
+    
+        if (user) {
+          return ctx.badRequest("El usuario ya existe");
+        }
+    
+        //encripto la contraseña
+    
+        const hashPassword = (password) => bcrypt.hash(password, 10);
+        password = await hashPassword(password);
+        //password = await auth.hashPassword(password);
+    
+        //creo el usuario asignandole el campo company con el id de la empresa
+    
+        const entityActualizada = await strapi.db
+          .query("plugin::users-permissions.user")
+          .create({
+            data: {
+              username: email,
+              email: email,
+              password: password,
+              nombre: nombre,
+              apellidos: apellidos,
+              role: role,
+              company: entity.id,
+              provider: "local",
+              confirmed: true,
+              demo: entity ? entity.demo : false,
+            },
+          });
+    
+    
+        
+          // variable html con el contenido del email mostrando al suusrio su contraseña y su nombre de usuario
+    
+          let html = `
+    
+          <h1>¡Bienvenido a Brane!</h1>
+          
+          <p>Has sido registrado en la plataforma de Brane por tu empresa.</p>
+    
+          <p>Para acceder a tu cuenta, utiliza los siguientes datos:</p>
+    
+          <p>Usuario: ${email}</p>
+    
+          <p>Contraseña: ${passwordNoCo}</p>
+    
+    
+    
+          <a href="https://brane-app.netlify.app/auth/login" style="background-color: #2d9cdb; border: none; color: white; padding: 15px 32px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px; margin: 4px 2px; cursor: pointer;">Iniciar sesión</a>
+    
+          `;
+    
+    
+    
+          await strapi.plugins['email'].services.email.send({
+            to: email,
+            subject: 'Tu cuenta en Brane ha sido creada con éxito',
+            text: 'Hello world!',
+            html: html,
+          });
+    
+    
+    
+        return entityActualizada;
+
+  }
+
   //controlador para eliminar un usuario desde la empresa
   plugin.controllers.user.companyDeleteUser = async (ctx) => {
     console.log("entro al controlador");
@@ -307,6 +435,105 @@ module.exports = (plugin) => {
 
     return entityActualizada;
   };
+
+  //controlador para eliminar un usuario desde la institucion
+  plugin.controllers.user.institutionDeleteUser = async (ctx) => {
+    console.log("entro al controlador");
+
+    //obtengo el id del usuario del token
+    const id = ctx.state.user.id;
+
+    //busco el usuario
+
+    const entity = await strapi.db
+      .query("plugin::users-permissions.user")
+      .findOne({
+        where: { id: id },
+        // populo todos los	campos de la tabla
+        populate: true,
+      });
+
+    // si no hay usuario retorno un error 404
+
+    if (!entity) {
+      return ctx.notFound("No se encontró el usuario");
+    }
+
+    //obtengo el rol del usuario
+    const rol = entity.role.id;
+
+    //si el usuario no es institucion retorno un error 400
+
+    if (rol != 6) {
+      return ctx.badRequest("El usuario no es institucion");
+    }
+
+    //obtengo el id del que quiero eliminar
+
+    const idUser = ctx.params.id;
+
+    //busco el usuario a eliminar
+
+    const user = await strapi.db
+      .query("plugin::users-permissions.user")
+      .findOne({
+        where: { id: idUser },
+        // populo todos los	campos de la tabla
+        populate: true,
+      });
+      console.log("user", user);
+
+
+    //si no existe el usuario retorno un error 404
+
+    if (!user) {
+      return ctx.notFound("No se encontró el usuario");
+    }
+
+    //si el usuario no pertenece a la institucion retorno un error 400
+
+    if (user.company.id != entity.id) {
+      return ctx.badRequest("El usuario no pertenece a la institucion");
+    }
+
+    //verifico si el usuario que quiero eliminar tiene cursos asociados
+     
+    const cursos = await strapi.db
+      .query("api::curso.curso").findMany({
+        where: { instructor: idUser },
+        // populo todos los	campos de la tabla
+        populate: true,
+      });
+
+
+    //si el usuario tiene cursos asociados elimino los cursos
+
+    if (cursos.length > 0) {
+      for (let i = 0; i < cursos.length; i++) {
+        const curso = cursos[i];
+        const idCurso = curso.id;
+        const entityCurso = await strapi.db
+          .query("api::curso.curso")
+          .delete({
+            where: { id: idCurso },
+          });
+      }
+    }
+    
+    //elimino el usuario
+
+    const entityActualizada = await strapi.db
+
+      .query("plugin::users-permissions.user")
+      .delete({
+        where: { id: idUser },
+      });
+
+    //retorno el usuario actualizado
+
+    return entityActualizada;
+  };
+   
 
   //controlador para actualizar un usuario desde la empresa
   plugin.controllers.user.companyUpdateUser = async (ctx) => {
@@ -406,6 +633,107 @@ module.exports = (plugin) => {
     //retorno el usuario actualizado
 
     return entityActualizada;
+  };
+
+  //controlador para actualizar un usuario desde la institucion
+  plugin.controllers.user.institutionUpdateUser = async (ctx) => {
+     //obtengo el id del usuario del token
+    const id = ctx.state.user.id;
+
+    //busco el usuario
+
+    const entity = await strapi.db
+      .query("plugin::users-permissions.user")
+      .findOne({
+        where: { id: id },
+        // populo todos los	campos de la tabla
+        populate: true,
+      });
+
+    // si no hay usuario retorno un error 404
+
+    if (!entity) {
+      return ctx.notFound("No se encontró el usuario");
+    }
+
+    //obtengo el rol del usuario
+    const rol = entity.role.id;
+
+    //si el usuario no es empresa retorno un error 400
+
+    if (rol != 6) {
+      return ctx.badRequest("El usuario no es institucion");
+    }
+
+    //obtengo el id del que quiero actualizar
+
+    const idUser = ctx.params.id;
+
+    //busco el usuario a actualizar
+
+    const user = await strapi.db
+      .query("plugin::users-permissions.user")
+      .findOne({
+        where: { id: idUser },
+        // populo todos los	campos de la tabla
+        populate: true,
+      });
+
+    //si no existe el usuario retorno un error 404
+
+    if (!user) {
+      return ctx.notFound("No se encontró el usuario");
+    }
+
+    //si el usuario no pertenece a la empresa retorno un error 400
+
+    if (user.company.id != entity.id) {
+      return ctx.badRequest("El usuario no pertenece a la institucion");
+    }
+
+    //obtengo los datos del body
+
+    let { email, password, nombre, apellidos, role } = ctx.request.body.data;
+
+    //valido que el rol sea estudiante o instructor
+
+    //verifico si se actialuzo el rol
+
+    if (role) {
+      //valido que el rol sea  instructor
+      if (role != 3) {
+        return ctx.badRequest("No puedes crear un usuario con ese rol");
+      }
+    }
+
+    //verifico si se actualizo la contraseña y la encripto
+
+    if (password) {
+      const hashPassword = (password) => bcrypt.hash(password, 10);
+      password = await hashPassword(password);
+    }
+
+    //actualizo el usuario
+
+    const entityActualizada = await strapi.db
+      .query("plugin::users-permissions.user")
+      .update({
+        where: { id: idUser },
+
+        data: {
+          email: email,
+          username: email,
+          password: password,
+          nombre: nombre,
+          apellidos: apellidos,
+          role: role,
+        },
+      });
+
+    //retorno el usuario actualizado
+
+    return entityActualizada;
+  
   };
 
   //controlador para obtener los usuarios de una empresa y que tengan un curso en mis cursos
@@ -642,6 +970,58 @@ module.exports = (plugin) => {
     return entity;
   };
 
+  //controlador para registro de usuario de tipo institucion
+
+  plugin.controllers.user.institutionRegister = async (ctx) => {
+    //obtengo los datos del body
+
+    let { email, password, nombre } = ctx.request.body.data;
+
+    //valido que el email no este registrado
+
+    const user = await strapi.db
+      .query("plugin::users-permissions.user")
+      .findOne({
+        where: { email: email },
+        // populo todos los	campos de la tabla
+        populate: true,
+      });
+
+    //si el usuario existe retorno un error 400
+      
+    if (user) {
+      return ctx.badRequest("El email ya esta registrado");
+    }
+
+    //encripto la contraseña
+
+    const hashPassword = (password) => bcrypt.hash(password, 10);
+    password = await hashPassword(password);
+
+    //creo el usuario
+
+    const entity = await strapi.db
+      .query("plugin::users-permissions.user")
+      .create({
+        data: {
+          email: email,
+          username: email,
+          password: password,
+          nombre: nombre,
+          provider: "local",
+          role: 6,
+          demo: false,
+          demoStartDate: new Date(),
+          blocked: true,
+        },
+      });
+
+    //retorno el usuario
+
+    return entity;
+
+  };
+
   //controlador para ver los cursos de la empresa con un reporte 
   plugin.controllers.user.companyReport = async (ctx) => {
 
@@ -803,9 +1183,25 @@ module.exports = (plugin) => {
       },
     },
     {
+      method: "POST",
+      path: "/users/institutionCreateUser/",
+      handler: "user.institutionCreateUser",
+      config: {
+        prefix: "",
+      },
+    },
+    {
       method: "DELETE",
       path: "/users/companyDeleteUser/:id",
       handler: "user.companyDeleteUser",
+      config: {
+        prefix: "",
+      },
+    },
+    {
+      method: "DELETE",
+      path: "/users/institutionDeleteUser/:id",
+      handler: "user.institutionDeleteUser",
       config: {
         prefix: "",
       },
@@ -819,6 +1215,14 @@ module.exports = (plugin) => {
       },
     },
     {
+      method: "PUT",
+      path: "/users/institutionUpdateUser/:id",
+      handler: "user.institutionUpdateUser",
+      config: {
+        prefix: "",
+      },
+    },
+    {
       method: "GET",
       path: "/users/companyUsers/",
       handler: "user.companyUsers",
@@ -827,6 +1231,11 @@ module.exports = (plugin) => {
       method: "POST",
       path: "/users/companyRegister/",
       handler: "user.companyRegister",
+    },
+    {
+      method: "POST",
+      path: "/users/institutionRegister/",
+      handler: "user.institutionRegister",
     },
     {
       method: "GET",

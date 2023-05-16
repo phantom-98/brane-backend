@@ -1,0 +1,48 @@
+{
+  "kind": "collectionType",
+  "collectionName": "meta_institutions",
+  "info": {
+    "singularName": "meta-institution",
+    "pluralName": "meta-institutions",
+    "displayName": "meta-institution",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "description": {
+      "type": "text"
+    },
+    "user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "foundationDate": {
+      "type": "date"
+    },
+    "address": {
+      "type": "string"
+    },
+    "facebook": {
+      "type": "string"
+    },
+    "linkedin": {
+      "type": "string"
+    },
+    "instagram": {
+      "type": "string"
+    },
+    "stripe_account_id": {
+      "type": "string"
+    },
+    "encargado": {
+      "type": "string"
+    },
+    "posicion": {
+      "type": "string"
+    }
+  }
+}
