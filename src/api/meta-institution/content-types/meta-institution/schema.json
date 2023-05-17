@@ -43,6 +43,9 @@
     },
     "posicion": {
       "type": "string"
+    },
+    "telefono": {
+      "type": "string"
     }
   }
 }

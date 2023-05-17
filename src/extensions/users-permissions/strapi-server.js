@@ -1157,7 +1157,225 @@ module.exports = (plugin) => {
 
       return cursos; 
 
+  };
+
+  //controlador para ver los usuarios de la institucion
+
+  plugin.controllers.user.institutionUsers = async (ctx) => {
+
+    //obtengo el id de la institucion
+
+    const id  = ctx.state.user.id;
+
+    //busco si el usuario es de tipo institucion
+
+    const institution = await strapi.db
+      .query("plugin::users-permissions.user")
+      .findOne({
+        where: { id: id, role: 6 },
+        // populo todos los	campos de la tabla
+        populate: true,
+
+      });
+
+      //si no es de tipo institucion retorno un error 400
+
+    if (!institution) {
+      return ctx.badRequest("El usuario no es de tipo institucion");
+    }
+
+    //busco los usuarios de la institucion
+
+    const users = await strapi.db
+      .query("plugin::users-permissions.user")
+      .findMany({
+        where: { company: id },
+        // populo todos los	campos de la tabla
+        populate: true,
+      });
+
+      //si no hay usuarios retorno un error 400
+
+    if (users.length == 0) {
+      return ctx.badRequest("No hay usuarios para esta institucion");
+    }
+
+    //recorro los usuarios par ver los cursos que tiene como instructor
+
+    for (let i = 0; i < users.length; i++) {
+
+      //busco los cursos que tiene como instructor
+
+      const cursos = await strapi.db
+        .query("api::curso.curso")
+        .findMany({
+          where: { instructor: users[i].id },
+          // populo todos los	campos de la tabla
+          populate: {cantidadEstudiantes: true},
+        });
+
+        //muestro los cursos en el usuario solo el campo id, nombre y cantidad de estudiantes
+
+        users[i].cursos = cursos.map((curso) => {
+          return {
+            id: curso.id,
+            nombre: curso.name,
+            cantidadEstudiantes: curso.cantidadEstudiantes
+          };
+        })
+
+        //hago un promedio de la cantidad de estudiantes por instructor
+
+        let ventasProfesor = 0;
+        for (let k = 0; k < cursos.length; k++) {
+          ventasProfesor = ventasProfesor + cursos[k].cantidadEstudiantes;
+        }
+
+        users[i].ventasProfesor = ventasProfesor ;
+
+        
+
+
+        
+
+    }
+
+
+
+    //elimino los campos que no quiero mostrar
+
+    for (let i = 0; i < users.length; i++) {
+
+    delete users[i].createdAt;
+    delete users[i].updatedAt;
+    delete users[i].provider;
+    delete users[i].confirmed;
+    delete users[i].blocked;
+    delete users[i].confirmationToken;
+    delete users[i].password;
+    delete users[i].resetPasswordToken;
+    delete users[i].role.createdAt;
+    delete users[i].role.updatedAt;
+    delete users[i].company.createdAt;
+    delete users[i].company.updatedAt;
+    delete users[i].company.password;
+    delete users[i].company.resetPasswordToken;
+    delete users[i].company.confirmationToken;
+    delete users[i].company.confirmed;
+    delete users[i].company.blocked;
+    delete users[i].company.provider;
+    delete users[i].company.demo;
+    delete users[i].company.demoStartDate;
+    delete users[i].createdBy;
+    delete users[i].updatedBy;
+    delete users[i].demoStartDate;
+    delete users[i].demo;
+    
+    }
+
+
+    //retorno los usuarios
+
+    return users;
+
   }
+  //controlador para ver los cursos que pertenecen a la institucion
+
+  plugin.controllers.user.institutionCurso = async (ctx) => {
+
+    //obtengo el id de la institucion
+
+    const id  = ctx.state.user.id;
+
+    //busco si el usuario es de tipo institucion
+
+    const institution = await strapi.db
+      .query("plugin::users-permissions.user")
+      .findOne({
+        where: { id: id, role: 6 },
+        // populo todos los	campos de la tabla
+        populate: true,
+
+      });
+
+      //si no es de tipo institucion retorno un error 400
+
+    if (!institution) {
+      return ctx.badRequest("El usuario no es de tipo institucion");
+    }
+
+    //busco los usuarios de la institucion para ver los cursos que tiene como instructor
+
+    const users = await strapi.db
+      .query("plugin::users-permissions.user")
+      .findMany({
+        where: { company: id },
+        // populo todos los	campos de la tabla
+        populate: true,
+      });
+
+
+      //si no hay usuarios retorno un error 400
+
+    if (users.length == 0) {
+      return ctx.badRequest("No hay usuarios para esta institucion");
+    }
+
+    //recorro los usuarios par ver los cursos que tiene como instructor
+let cursos = [];
+    for (let i = 0; i < users.length; i++) {
+
+      //busco los cursos que tiene como instructor
+
+      let cursoAux = await strapi.db
+        .query("api::curso.curso")
+        .findMany({
+          where: { instructor: users[i].id },
+          populate:{instructor: true},
+        });
+        //elimino los campos que no quiero mostrar
+
+        for (let j = 0; j < cursoAux.length; j++) {
+
+          delete cursoAux[j].createdAt;
+          delete cursoAux[j].updatedAt;
+          delete cursoAux[j].publishedAt;
+          delete cursoAux[j].cupon_descuento;
+          delete cursoAux[j].instructor.demo;
+          delete cursoAux[j].instructor.demoStartDate;
+          delete cursoAux[j].instructor.createdAt;
+          delete cursoAux[j].instructor.updatedAt;
+          delete cursoAux[j].instructor.provider;
+          delete cursoAux[j].instructor.confirmed;
+          delete cursoAux[j].instructor.blocked;
+          delete cursoAux[j].instructor.confirmationToken;
+          delete cursoAux[j].instructor.password;
+          delete cursoAux[j].instructor.resetPasswordToken;
+          delete cursoAux[j].instructor.role;
+          delete cursoAux[j].instructor.company;
+          delete cursoAux[j].instructor.createdBy;
+          delete cursoAux[j].instructor.updatedBy;
+          delete cursoAux[j].instructor.averageScore;
+          delete cursoAux[j].instructor.headline;
+          delete cursoAux[j].certificado;
+          delete cursoAux[j].urlConferencia;
+          delete cursoAux[j].precio;
+          delete cursoAux[j].precioDescuento;
+          delete cursoAux[j].additionalResources;
+          delete cursoAux[j].requirements;
+
+        }
+       
+      cursos.push(cursoAux);
+
+    }
+
+    //retorno los cursos
+
+    return cursos;
+    
+  }
+
 
 
   plugin.routes["content-api"].routes.push(
@@ -1227,6 +1445,16 @@ module.exports = (plugin) => {
       path: "/users/companyUsers/",
       handler: "user.companyUsers",
     },
+   { 
+    method: "GET",
+    path: "/users/institutionUsers/",
+    handler: "user.institutionUsers",
+  },
+  { 
+    method: "GET",
+    path: "/users/institutionCurso/",
+    handler: "user.institutionCurso",
+  },
     {
       method: "POST",
       path: "/users/companyRegister/",
