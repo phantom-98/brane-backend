@@ -6,7 +6,11 @@
 
 const { createCoreController } = require("@strapi/strapi").factories;
 
-//module.exports = createCoreController('api::curso.curso');
+// SACO DEL .ENV ZOOM_ACCOUNT_ID , ZOOM_CLIENT_ID , ZOOM_CLIENT_SECRET ,ZOOM_SECRET_TOKEN ,ZOOM_VERIFICATION_TOKEN
+//LLAMO AXIOS
+
+const axios = require("axios");
+const { ZOOM_ACCOUNT_ID, ZOOM_CLIENT_ID, ZOOM_CLIENT_SECRET, ZOOM_SECRET_TOKEN, ZOOM_VERIFICATION_TOKEN } = process.env;
 
 module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
   // Method 2: Wrapping a core action (leaves core logic in place)
@@ -448,9 +452,25 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
     }else{
 
 
+
+      // SI tipo = conferencia, creo la conferencia en zoom
+
+      if (ctx.request.body.data.tipo == "conferencia") {}
+
+
       data = await super.create(ctx);
 
     }
+
+
+
+
+
+
+
+
+
+    //
 
         
     return data;
