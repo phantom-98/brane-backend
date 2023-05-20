@@ -42,6 +42,9 @@ module.exports = ({ env }) => ({
       }
     },
   },
+  'email-designer': {
+    enabled: true
+  },
   'strapi-plugin-populate-deep': {
     config: {
       defaultDepth: 5, // Default is 5
