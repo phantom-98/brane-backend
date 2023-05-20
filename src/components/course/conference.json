@@ -1,0 +1,32 @@
+{
+  "collectionName": "components_course_conferences",
+  "info": {
+    "displayName": "conference",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "ZoomMeetingID": {
+      "type": "string"
+    },
+    "ZoomURL": {
+      "type": "string"
+    },
+    "datetime": {
+      "type": "datetime"
+    },
+    "duration": {
+      "type": "string"
+    },
+    "state": {
+      "type": "enumeration",
+      "enum": [
+        "scheduled",
+        "in_progress",
+        "completed",
+        "canceled"
+      ],
+      "default": "scheduled"
+    }
+  }
+}
