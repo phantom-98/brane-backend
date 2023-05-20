@@ -975,7 +975,7 @@ module.exports = (plugin) => {
   plugin.controllers.user.institutionRegister = async (ctx) => {
     //obtengo los datos del body
 
-    let { email, password, nombre } = ctx.request.body.data;
+    let { email, password, nombre, telefono, encargado, posicion } = ctx.request.body.data;
 
     //valido que el email no este registrado
 
@@ -1000,7 +1000,7 @@ module.exports = (plugin) => {
 
     //creo el usuario
 
-    const entity = await strapi.db
+    /*const entity = await strapi.db
       .query("plugin::users-permissions.user")
       .create({
         data: {
@@ -1011,10 +1011,49 @@ module.exports = (plugin) => {
           provider: "local",
           role: 6,
           demo: false,
-          demoStartDate: new Date(),
           blocked: true,
+          telefono: telefono,
+          encargado: encargado,
+          posicion: posicion,
         },
-      });
+      });*/
+
+        console.log("email", nombre);
+          await strapi
+            .plugin('email-designer')
+            .service('email')
+            .sendTemplatedEmail(
+              {
+                // required
+                to: 'pitterglendys@gmail.com',
+      
+                // optional if /config/plugins.js -> email.settings.defaultFrom is set
+              //  from: email,
+      
+                // optional if /config/plugins.js -> email.settings.defaultReplyTo is set
+               // replyTo: 'reply@example.com',
+      
+                // optional array of files
+              },
+              {
+                // required - Ref ID defined in the template designer (won't change on import)
+                templateReferenceId: 1,
+      
+                // If provided here will override the template's subject.
+                // Can include variables like `Thank you for your order {{= USER.firstName }}!`
+                subject: `Cuenta creada satisfactoriamente`,
+              },
+              {
+                // this object must include all variables you're using in your email template
+                
+                  nombre: nombre,
+              
+              
+              }
+            );
+        
+      
+        
 
     //retorno el usuario
 

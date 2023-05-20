@@ -105,6 +105,15 @@
     },
     "demoStartDate": {
       "type": "datetime"
+    },
+    "encargado": {
+      "type": "string"
+    },
+    "posicion": {
+      "type": "string"
+    },
+    "telefono": {
+      "type": "string"
     }
   }
 }

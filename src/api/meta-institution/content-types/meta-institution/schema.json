@@ -37,15 +37,6 @@
     },
     "stripe_account_id": {
       "type": "string"
-    },
-    "encargado": {
-      "type": "string"
-    },
-    "posicion": {
-      "type": "string"
-    },
-    "telefono": {
-      "type": "string"
     }
   }
 }
