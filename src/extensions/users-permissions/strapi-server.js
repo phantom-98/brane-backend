@@ -1000,7 +1000,7 @@ module.exports = (plugin) => {
 
     //creo el usuario
 
-    /*const entity = await strapi.db
+    const entity = await strapi.db
       .query("plugin::users-permissions.user")
       .create({
         data: {
@@ -1016,9 +1016,8 @@ module.exports = (plugin) => {
           encargado: encargado,
           posicion: posicion,
         },
-      });*/
+      });
 
-        //console.log("email", nombre);
           await strapi
             .plugin('email-designer')
             .service('email')
