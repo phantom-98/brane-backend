@@ -1018,14 +1018,14 @@ module.exports = (plugin) => {
         },
       });*/
 
-        console.log("email", nombre);
+        //console.log("email", nombre);
           await strapi
             .plugin('email-designer')
             .service('email')
             .sendTemplatedEmail(
               {
                 // required
-                to: 'pitterglendys@gmail.com',
+                to: "pitterglendys@gmail.com",
       
                 // optional if /config/plugins.js -> email.settings.defaultFrom is set
               //  from: email,
@@ -1048,6 +1048,43 @@ module.exports = (plugin) => {
                 
                   nombre: nombre,
               
+              
+              }
+            );
+
+            await strapi
+            .plugin('email-designer')
+            .service('email')
+            .sendTemplatedEmail(
+              {
+                // required
+                to: 'pitterglendys@gmail.com',
+      
+                // optional if /config/plugins.js -> email.settings.defaultFrom is set
+              //  from: email,
+      
+                // optional if /config/plugins.js -> email.settings.defaultReplyTo is set
+               // replyTo: 'reply@example.com',
+      
+                // optional array of files
+              },
+              {
+                // required - Ref ID defined in the template designer (won't change on import)
+                templateReferenceId: 2,
+      
+                // If provided here will override the template's subject.
+                // Can include variables like `Thank you for your order {{= USER.firstName }}!`
+                subject: `Nueva cuenta de institucion creada`,
+              },
+              {
+                // this object must include all variables you're using in your email template
+                institution:{
+                  nombre: nombre,
+                  email: email,
+                  telefono: telefono,
+                  encargado: encargado,
+                  posicion: posicion,
+                }
               
               }
             );
