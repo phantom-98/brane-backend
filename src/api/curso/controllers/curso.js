@@ -5,12 +5,10 @@
  */
 
 const { createCoreController } = require("@strapi/strapi").factories;
-
-// SACO DEL .ENV ZOOM_ACCOUNT_ID , ZOOM_CLIENT_ID , ZOOM_CLIENT_SECRET ,ZOOM_SECRET_TOKEN ,ZOOM_VERIFICATION_TOKEN
-//LLAMO AXIOS
-
+const jwt = require('jsonwebtoken');
+const qs = require('qs');
 const axios = require("axios");
-const { ZOOM_ACCOUNT_ID, ZOOM_CLIENT_ID, ZOOM_CLIENT_SECRET, ZOOM_SECRET_TOKEN, ZOOM_VERIFICATION_TOKEN } = process.env;
+const { ZOOM_ACCOUNT_ID, ZOOM_CLIENT_ID, ZOOM_CLIENT_SECRET, ZOOM_SECRET_TOKEN, ZOOM_VERIFICATION_TOKEN, ZOOM_URL } = process.env;
 
 module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
   // Method 2: Wrapping a core action (leaves core logic in place)
@@ -128,7 +126,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
 
 
-    
+
 
 
 
@@ -136,70 +134,72 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
     const { cupon_descuento } = ctx.request.body.data;
 
-    if(cupon_descuento){
+    if (cupon_descuento) {
 
 
       const cupon = await strapi.db
-      .query("api::cupon.cupon")
-      .findOne({ where: { slug: cupon_descuento }, populate: true });
+        .query("api::cupon.cupon")
+        .findOne({ where: { slug: cupon_descuento }, populate: true });
 
-    
-    // si el cupom_descuento no existe en la tabla cupon no se puede asignar el cupom_descuento al curso
 
-    if (!cupon) {
-      return ctx.badRequest("El cupom no existe",         {
-        messages: [
-          {
-            id: "Curso.validation.cupom_descuento.required",
-            message: "El cupom no existe",
-          },
-        ],
-      },);
-    }
+      // si el cupom_descuento no existe en la tabla cupon no se puede asignar el cupom_descuento al curso
 
-        
-    // si el cupom_descuento existe en la tabla cupon verifico el instructor del cupon
-
-    // si el instructor del cupon es diferente al instructor del curso no se puede asignar el cupom_descuento al curso
-
-    if (cupon.user.id != curso.instructor.id) {
-      return ctx.badRequest(null, [
-        {
+      if (!cupon) {
+        return ctx.badRequest("El cupom no existe", {
           messages: [
             {
               id: "Curso.validation.cupom_descuento.required",
-              message: "El cupom no pertenece al instructor",
+              message: "El cupom no existe",
             },
           ],
-        },
-      ]);
-    }
-
-    // si el cupom_descuento existe en la tabla cupon y el instructor del cupon es igual al instructor del curso se puede asignar el cupom_descuento al curso y en la tabla cupon se actualiza el campo curso con el id del curso creado
+        },);
+      }
 
 
-    data = await super.update(ctx);
+      // si el cupom_descuento existe en la tabla cupon verifico el instructor del cupon
 
-    let cursos_cupon = [  id , ...cupon.cursos.map((curso) => curso.id)]
+      // si el instructor del cupon es diferente al instructor del curso no se puede asignar el cupom_descuento al curso
+
+      if (cupon.user.id != curso.instructor.id) {
+        return ctx.badRequest(null, [
+          {
+            messages: [
+              {
+                id: "Curso.validation.cupom_descuento.required",
+                message: "El cupom no pertenece al instructor",
+              },
+            ],
+          },
+        ]);
+      }
+
+      // si el cupom_descuento existe en la tabla cupon y el instructor del cupon es igual al instructor del curso se puede asignar el cupom_descuento al curso y en la tabla cupon se actualiza el campo curso con el id del curso creado
+
+
+      data = await super.update(ctx);
+
+      let cursos_cupon = [id, ...cupon.cursos.map((curso) => curso.id)]
 
 
 
-    await strapi.db
-      .query("api::cupon.cupon")
-      .update(
-        { where: { slug: cupon_descuento },
-        data: { cursos:  cursos_cupon } }
-      );
+      await strapi.db
+        .query("api::cupon.cupon")
+        .update(
+          {
+            where: { slug: cupon_descuento },
+            data: { cursos: cursos_cupon }
+          }
+        );
 
-      
-    }else{
+
+    } else {
 
 
       data = await super.update(ctx);
 
     }
 
-        
+
     return data;
 
   },
@@ -253,229 +253,468 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
   //	modifico el create para que solo los cursos puedan ser creados por usuariostipo instructor y por el adminisrador
 
   async create(ctx) {
-    // obtengo el usuario que está haciendo la petición
-
-    const user = ctx.state.user;
-
-    //	si el usuario que está haciendo la petición no está logueado, no puede crear el curso
-
-    if (!user) {
-      return ctx.unauthorized(`You can't create this entry`);
-    }
-
-    // si el usuario que está haciendo la petición no es instructor ni es administrador, no puede crear el curso
-
-    if (user.role.type != "instructor" && user.role.type != "administrador") {
-      return ctx.unauthorized(`You can't create this entry`);
-    }
-
-    // si el usuario que esta haciendo la peticion es de tipo instructor le asigno el instructor al curso
-
-    if (user.role.type == "instructor") {
-      ctx.request.body.data.instructor = user.id;
-    }
-    console.log(ctx.request.body.data.instructor);
-    // si el usuario que esta haciendo la peticion es de tipo administrador y no envia el instructor, no puede crear el curso
-
-    if (!ctx.request.body.data.instructor && user.role.type != "instructor") {
-      return ctx.badRequest(null, [
-        {
-          messages: [
-            {
-              id: "Curso.validation.instructor.required",
-              message: "El campo instructor es requerido",
-            },
-          ],
-        },
-      ]);
-    }
 
 
-    
+    try {
 
-    // extraigo los campos subTitles , whatYouWillLearn y requirements
+      const user = ctx.state.user;
 
-    const { subTitles, whatYouWillLearn, requirements, whoIsThisCourseFor } =
-      ctx.request.body.data;
+      //	si el usuario que está haciendo la petición no está logueado, no puede crear el curso
 
-    console.log("SUBTITULOS", whatYouWillLearn);
-
-    // son de tipo array, los serializo para poder guardarlos en la base de datos
-
-    // si subtittles no está definido, no lo serializo
-
-    if (subTitles) {
-      // verifico sea un array  sino retorno un error
-
-      if (!Array.isArray(subTitles)) {
-        return ctx.badRequest("Tipo de dato invalido", {
-          error: "El campo subtitulos debe ser un array",
-        });
-      }
-
-      if (subTitles.length) {
-        ctx.request.body.data.subTitles = JSON.stringify(subTitles);
-      }
-    }
-
-    if (whatYouWillLearn) {
-      if (!Array.isArray(whatYouWillLearn)) {
-        return ctx.badRequest("Tipo de dato invalido", {
-          error: "El campo que aprenderas debe ser un array",
-        });
-      }
-
-      if (whatYouWillLearn.length) {
-        ctx.request.body.data.whatYouWillLearn =
-          JSON.stringify(whatYouWillLearn);
-      }
-    }
-
-    if (requirements) {
-      if (!Array.isArray(requirements)) {
-        return ctx.badRequest("Tipo de dato invalido", {
-          error: "El campo requerimientos debe ser un array",
-        });
-      }
-
-      if (requirements.length) {
-        ctx.request.body.data.requirements = JSON.stringify(requirements);
-      }
-    }
-
-    if (whoIsThisCourseFor) {
-      ctx.request.body.data.whoIsThisCourseFor =
-        JSON.stringify(whoIsThisCourseFor);
-    }
-
-    // si el usuario que está haciendo la petición es administrador, puede crear el curso
-
-    /* if (!ctx.request.body.instructor) {
-      if (user.role.type == 'instructor') {
-        ctx.request.body.instructor = user.id;
-      } else {
+      if (!user) {
         return ctx.unauthorized(`You can't create this entry`);
       }
-    }*/
 
-    //populo el campo company del usuario que está haciendo la petición
+      // si el usuario que está haciendo la petición no es instructor ni es administrador, no puede crear el curso
 
-    const userPopulate = await strapi.db
-      .query("plugin::users-permissions.user")
-      .findOne({ where: { id: user.id }, populate: true });
-
-    
-    //si el instructor tiene company asignado reviso si la company es un usuario de tipo institucion
-
-    if (userPopulate.company) {
-      const company = await strapi.db 
-        .query("plugin::users-permissions.user")
-        .findOne({ where: { id: userPopulate.company.id }, populate: true });
-        console.log("COMPANY", company);
-
-      // si la company es de tipo institucion creo campos nuevo al curso: logo de la institucion y nombre de la institucion
-
-      if (company.role.id == 6) {
-        //console.log("hola")
-        ctx.request.body.data.logo_institucion = company.avatar.url;
-        ctx.request.body.data.nombre_institucion = company.nombre;
+      if (user.role.type != "instructor" && user.role.type != "administrador") {
+        return ctx.unauthorized(`You can't create this entry`);
       }
 
-    }
+      // si el usuario que esta haciendo la peticion es de tipo instructor le asigno el instructor al curso
 
+      if (user.role.type == "instructor") {
+        ctx.request.body.data.instructor = user.id;
+      }
+      console.log(ctx.request.body.data.instructor);
+      // si el usuario que esta haciendo la peticion es de tipo administrador y no envia el instructor, no puede crear el curso
 
-    
-    
-
-
-    
-    let data = [];
-
-    const { cupon_descuento } = ctx.request.body.data;
-
-    if(cupon_descuento){
-
-
-      const cupon = await strapi.db
-      .query("api::cupon.cupon")
-      .findOne({ where: { slug: cupon_descuento }, populate: true });
-
-    
-    // si el cupom_descuento no existe en la tabla cupon no se puede asignar el cupom_descuento al curso
-
-    if (!cupon) {
-      return ctx.badRequest("El cupom no existe",         {
-        messages: [
+      if (!ctx.request.body.data.instructor && user.role.type != "instructor") {
+        return ctx.badRequest(null, [
           {
-            id: "Curso.validation.cupom_descuento.required",
-            message: "El cupom no existe",
+            messages: [
+              {
+                id: "Curso.validation.instructor.required",
+                message: "El campo instructor es requerido",
+              },
+            ],
           },
-        ],
-      },);
-    }
+        ]);
+      }
 
-    
-    // si el cupom_descuento existe en la tabla cupon verifico el instructor del cupon
 
-    // si el instructor del cupon es diferente al instructor del curso no se puede asignar el cupom_descuento al curso
 
-    if (cupon.user.id != ctx.request.body.data.instructor) {
-      return ctx.badRequest(null, [
-        {
-          messages: [
+
+      // extraigo los campos subTitles , whatYouWillLearn y requirements
+
+      const { subTitles, whatYouWillLearn, requirements, whoIsThisCourseFor } = ctx.request.body.data;
+
+
+
+      // son de tipo array, los serializo para poder guardarlos en la base de datos
+
+      // si subtittles no está definido, no lo serializo
+
+      if (subTitles) {
+        // verifico sea un array  sino retorno un error
+
+        if (!Array.isArray(subTitles)) {
+          return ctx.badRequest("Tipo de dato invalido", {
+            error: "El campo subtitulos debe ser un array",
+          });
+        }
+
+        if (subTitles.length) {
+          ctx.request.body.data.subTitles = JSON.stringify(subTitles);
+        }
+      }
+
+      if (whatYouWillLearn) {
+        if (!Array.isArray(whatYouWillLearn)) {
+          return ctx.badRequest("Tipo de dato invalido", {
+            error: "El campo que aprenderas debe ser un array",
+          });
+        }
+
+        if (whatYouWillLearn.length) {
+          ctx.request.body.data.whatYouWillLearn =
+            JSON.stringify(whatYouWillLearn);
+        }
+      }
+
+      if (requirements) {
+        if (!Array.isArray(requirements)) {
+          return ctx.badRequest("Tipo de dato invalido", {
+            error: "El campo requerimientos debe ser un array",
+          });
+        }
+
+        if (requirements.length) {
+          ctx.request.body.data.requirements = JSON.stringify(requirements);
+        }
+      }
+
+      if (whoIsThisCourseFor) {
+        ctx.request.body.data.whoIsThisCourseFor =
+          JSON.stringify(whoIsThisCourseFor);
+      }
+
+      // si el usuario que está haciendo la petición es administrador, puede crear el curso
+
+      /* if (!ctx.request.body.instructor) {
+        if (user.role.type == 'instructor') {
+          ctx.request.body.instructor = user.id;
+        } else {
+          return ctx.unauthorized(`You can't create this entry`);
+        }
+      }*/
+
+      //populo el campo company del usuario que está haciendo la petición
+
+      const userPopulate = await strapi.db
+        .query("plugin::users-permissions.user")
+        .findOne({ where: { id: user.id }, populate: true });
+
+
+      //si el instructor tiene company asignado reviso si la company es un usuario de tipo institucion
+
+      if (userPopulate.company) {
+        const company = await strapi.db
+          .query("plugin::users-permissions.user")
+          .findOne({ where: { id: userPopulate.company.id }, populate: true });
+        console.log("COMPANY", company);
+
+        // si la company es de tipo institucion creo campos nuevo al curso: logo de la institucion y nombre de la institucion
+
+        if (company.role.id == 6) {
+          //console.log("hola")
+          ctx.request.body.data.logo_institucion = company.avatar.url;
+          ctx.request.body.data.nombre_institucion = company.nombre;
+        }
+
+      }
+
+
+
+
+
+
+
+      let data = [];
+
+      const { cupon_descuento } = ctx.request.body.data;
+
+      if (cupon_descuento) {
+
+
+        const cupon = await strapi.db
+          .query("api::cupon.cupon")
+          .findOne({ where: { slug: cupon_descuento }, populate: true });
+
+
+        // si el cupom_descuento no existe en la tabla cupon no se puede asignar el cupom_descuento al curso
+
+        if (!cupon) {
+          return ctx.badRequest("El cupom no existe", {
+            messages: [
+              {
+                id: "Curso.validation.cupom_descuento.required",
+                message: "El cupom no existe",
+              },
+            ],
+          },);
+        }
+
+
+        // si el cupom_descuento existe en la tabla cupon verifico el instructor del cupon
+
+        // si el instructor del cupon es diferente al instructor del curso no se puede asignar el cupom_descuento al curso
+
+        if (cupon.user.id != ctx.request.body.data.instructor) {
+          return ctx.badRequest(null, [
             {
-              id: "Curso.validation.cupom_descuento.required",
-              message: "El cupom no pertenece al instructor",
+              messages: [
+                {
+                  id: "Curso.validation.cupom_descuento.required",
+                  message: "El cupom no pertenece al instructor",
+                },
+              ],
             },
-          ],
-        },
-      ]);
+          ]);
+        }
+
+        // si el cupom_descuento existe en la tabla cupon y el instructor del cupon es igual al instructor del curso se puede asignar el cupom_descuento al curso y en la tabla cupon se actualiza el campo curso con el id del curso creado
+
+
+        data = await super.create(ctx);
+
+        let cursos_cupon = [data.data.id, ...cupon.cursos.map((curso) => curso.id)]
+
+
+
+        await strapi.db
+          .query("api::cupon.cupon")
+          .update(
+            {
+              where: { slug: cupon_descuento },
+              data: { cursos: cursos_cupon }
+            }
+          );
+
+
+      } else {
+
+
+
+        // SI tipo = conferencia, creo la conferencia en zoom
+        if (ctx.request.body.data.tipo == "conferencia") {
+
+          let accessToken = await this.getZoomAccessToken();
+
+
+
+          const response = await axios.post(`${ZOOM_URL}/users/me/meetings`, {
+            topic: ctx.request.body.data.name,
+            type: 2,
+            start_time: ctx.request.body.data.fecha,
+            duration: ctx.request.body.data.duracion,
+
+           // timezone: "America/Argentina/Buenos_Aires",
+            password:   ctx.request.body.data.password, 
+            agenda: ctx.request.body.data.shortDescription,
+
+           /* recurrence: {
+              type: 2,  // Semanal
+              repeat_interval: 1,  // Cada semana
+
+            },*/
+
+            settings: {
+
+              host_video: true,
+
+              participant_video: true,
+
+              cn_meeting: false,
+
+              in_meeting: false,
+
+              join_before_host: false,
+
+              mute_upon_entry: false,
+
+              watermark: false,
+
+              use_pmi: false,
+
+              approval_type: 1,
+
+              audio: "both",
+
+              auto_recording: "none",
+
+              enforce_login: false,
+
+              registrants_email_notification: true,
+
+              waiting_room: false,
+
+              registrants_confirmation_email: true,
+
+              alternative_hosts: "",
+
+              global_dial_in_countries: [],
+
+              registrants_restrict_number: 0,
+
+              contact_name: "",
+
+              contact_email: "",
+
+              registrants_restrict_email: 0,
+
+              meeting_authentication: false,
+
+              authentication_option: "",
+
+              authentication_domains: "",
+
+              authentication_name: "",
+
+              show_share_button: false,
+
+              allow_multiple_devices: false,
+
+              encryption_type: "enhanced_encryption",
+
+            },
+
+          }, {
+
+            headers: {
+              'Authorization': `Bearer ${accessToken}`,
+              'Content-Type': 'application/json'
+            }
+
+          });
+
+
+          let conference = {
+
+            "ZoomMeetingID": response.data.id.toString(),
+            "ZoomURL": response.data.join_url,
+            "ZoomPassword": response.data.password,
+            "ZoomStart": response.data.start_time,
+            "ZoomDuration": response.data.duration.toString(),
+            "state": "scheduled",
+            "meetingRAW": JSON.stringify(response.data),
+
+
+          }
+
+
+
+
+
+
+          ctx.request.body.data.conference = conference;
+
+
+
+        }
+
+
+        data = await super.create(ctx);
+
+      }
+
+
+
+
+
+
+
+
+
+      //
+
+
+      return data;
+    } catch (error) {
+      console.log(error);
+
     }
 
-    // si el cupom_descuento existe en la tabla cupon y el instructor del cupon es igual al instructor del curso se puede asignar el cupom_descuento al curso y en la tabla cupon se actualiza el campo curso con el id del curso creado
-
-
-    data = await super.create(ctx);
-
-    let cursos_cupon = [  data.data.id , ...cupon.cursos.map((curso) => curso.id)]
 
 
 
-    await strapi.db
-      .query("api::cupon.cupon")
-      .update(
-        { where: { slug: cupon_descuento },
-        data: { cursos:  cursos_cupon } }
-      );
+  },
+  async registerMeeting(ctx) {
 
+    try {
       
-    }else{
+      let {user} = ctx.state;
 
 
-
-      // SI tipo = conferencia, creo la conferencia en zoom
-
-      if (ctx.request.body.data.tipo == "conferencia") {}
-
-
-      data = await super.create(ctx);
-
-    }
+      if (!user) {
+        return ctx.unauthorized(`Not authorized`);
+      }
 
 
+      const { id } = ctx.params;
+
+      if (!id) {
+        return ctx.unauthorized(`Not id provided`);
+      }
 
 
+      const curso = await strapi.entityService.findOne("api::curso.curso", id, {
 
-
-
-
-
-    //
+        populate :["conference","instructor"],
+        fields : ["id", "tipo"]
 
         
-    return data;
-  },
+        
+      });
 
+      console.log("curso",curso);
+
+      if (!curso || curso.tipo != "conferencia" || !curso.conference) {
+
+        return ctx.notFound(`Conference not found`);
+
+      }
+
+      const misCursos = await strapi.db
+      .query("api::mis-curso.mis-curso")
+      .findOne({ where: { curso: id, usuario: user.id } });
+
+
+      console.log("misCursos",misCursos);
+
+      if (!misCursos && user.id != curso.instructor.id && user.role.type != "administrador") {
+        return ctx.unauthorized(`You can't create this entry`);
+      }
+
+
+      const { ZoomMeetingID, ZoomPassword } = curso.conference;
+
+
+      const accessToken = await this.getZoomAccessToken();
+
+
+
+      const response = await axios.post(`${ZOOM_URL}/meetings/${ZoomMeetingID}/registrants`, {
+
+        email: user.email,
+
+        first_name: user.nombre,
+
+        last_name: user.apellidos,
+
+      }, {
+
+        headers: {
+
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
+
+      });
+
+
+      return response.data ;
+
+
+       
+    } catch (error) {
+      console.log(error);
+    }
+
+
+
+
+
+
+
+
+
+
+
+  },
+  async getZoomAccessToken() {
+    try {
+      const response = await axios.post('https://zoom.us/oauth/token', qs.stringify({
+        grant_type: 'account_credentials',
+        account_id: ZOOM_ACCOUNT_ID,
+      }), {
+        headers: {
+          'Authorization': `Basic ${Buffer.from(`${ZOOM_CLIENT_ID}:${ZOOM_CLIENT_SECRET}`).toString('base64')}`
+        }
+      });
+      //ZOOM_ACCOUNT_ID, ZOOM_CLIENT_ID, ZOOM_CLIENT_SECRET, ZOOM_SECRET_TOKEN, ZOOM_VERIFICATION_TOKEN,ZOOM_UR
+      console.log('Token de acceso de Zoom:', response.data);
+
+      return response.data.access_token;
+    } catch (error) {
+      console.log('Error al obtener el token de acceso de Zoom:', error);
+
+
+      return ctx.badRequest("Error al obtener el token de acceso de Zoom", {
+        error: "Error al obtener el token de acceso de Zoom"
+      });
+    }
+  },
   // modifico el findone para que solo los cursos puedan ser consultados por todos
 
   async findOne(ctx) {

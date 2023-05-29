@@ -12,10 +12,10 @@
     "ZoomURL": {
       "type": "string"
     },
-    "datetime": {
+    "ZoomStart": {
       "type": "datetime"
     },
-    "duration": {
+    "ZoomDuration": {
       "type": "string"
     },
     "state": {
@@ -27,6 +27,13 @@
         "canceled"
       ],
       "default": "scheduled"
+    },
+    "meetingRAW": {
+      "type": "text",
+      "private": true
+    },
+    "ZoomPassword": {
+      "type": "string"
     }
   }
 }

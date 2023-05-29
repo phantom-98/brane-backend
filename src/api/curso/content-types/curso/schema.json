@@ -108,6 +108,13 @@
     },
     "logo_institucion": {
       "type": "string"
+    },
+    "conference": {
+      "type": "component",
+      "repeatable": false,
+      "component": "course.conference",
+      "required": false,
+      "private": true
     }
   }
 }

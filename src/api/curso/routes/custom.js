@@ -12,7 +12,13 @@ module.exports = {
         method: "GET",
         path: "/cursos/slug/:slug",
         handler: "curso.findBySlug",
-      }
+      },
+      //registro la fucion para ingresar a una conferencia
+      {
+        method: "GET",
+        path: "/conferencia/ingresar/:id",
+        handler: "curso.registerMeeting",
+      },
 
     ]
   };
