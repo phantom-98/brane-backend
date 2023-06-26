@@ -351,14 +351,15 @@ module.exports = (plugin) => {
     
     
     
-          await strapi.plugins['email'].services.email.send({
+    /*
+         await strapi.plugins['email'].services.email.send({
             to: email,
             subject: 'Tu cuenta en Brane ha sido creada con éxito',
             text: 'Hello world!',
             html: html,
           });
     
-    
+    */
     
         return entityActualizada;
 
