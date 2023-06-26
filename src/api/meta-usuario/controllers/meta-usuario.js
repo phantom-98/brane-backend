@@ -165,75 +165,96 @@ module.exports = createCoreController(
 		},
 
 		async stripeConnect(ctx) {
-			// recibo el usuario logueado
 
-			const user = ctx.state.user;
+			try {
+				const user = ctx.state.user;
 
-			// verifico que sea usuario y tenga role instructor
-
-			if (!user || user.role.id != 3) {
-				//ctx.response.status	= 401;
-				return ctx.response.unauthorized([
-
-					{
-						id: "No autorizado",
-
-						message: "No autorizado",
-					},
-
-				]);
-			}
-
-			// verifico que el usuario no tenga ya una cuenta creada
-
-			let meta = await strapi.db.query("api::meta-usuario.meta-usuario").findOne({ where: { usuario: user.id } });
-
-			if (!meta) {
-
-				// le creamos	una meta
-
-				meta = await strapi.db.query("api::meta-usuario.meta-usuario").create({ data: { usuario: user.id } });
-
-
-
-			}
-
-			// verifico que no tenga ya una cuenta creada con el campo stripe_account_id
-
-			if (meta.stripe_account_id) {
-
-				return ctx.badRequest("Ya tienes una cuenta creada", { message: "Ya tienes una cuenta creada" });
-			}
-
-			//	si no tiene cuenta creada, creo la cuenta
-
-			const account = await stripe.accounts.create({
-				type: 'express',
-				country: 'US',
-				email: user.email,
-				capabilities: {
-					transfers: { requested: true },
-				},
-				//tos_acceptance: {service_agreement: 'recipient'},
-				business_type: 'individual',
-				individual: {
-					first_name: user.nombre,
-					last_name: user.apellidos
+				// verifico que sea usuario y tenga role instructor
+	
+				if (!user || user.role.id != 3) {
+					//ctx.response.status	= 401;
+					return ctx.response.unauthorized([
+	
+						{
+							id: "No autorizado",
+	
+							message: "No autorizado",
+						},
+	
+					]);
 				}
-			});
-
-
-			console.log(account);
-
-			const link = await stripe.accountLinks.create({
-				account: account.id,
-				refresh_url: 'https://example.com/reauth',
-				return_url: 'https://example.com/return',
-				type: 'account_onboarding',
-			});
-
-			return ctx.send({ link });
-
+	
+				// verifico que el usuario no tenga ya una cuenta creada
+	
+				let meta = await strapi.db.query("api::meta-usuario.meta-usuario").findOne({ where: { usuario: user.id } });
+	
+				if (!meta) {
+	
+					// le creamos	una meta
+	
+					meta = await strapi.db.query("api::meta-usuario.meta-usuario").create({ data: { usuario: user.id } });
+	
+	
+	
+				}
+	
+				// verifico que no tenga ya una cuenta creada con el campo stripe_account_id
+				let account  ="";
+				if (meta.stripe_account_id_status == "completed") {
+	
+					return ctx.badRequest("Ya tienes una cuenta creada", { message: "Ya tienes una cuenta creada" });
+				}else if(meta.stripe_account_id_status == "pending"){
+	
+					account = await stripe.accounts.retrieve(meta.stripe_account_id);
+	
+				}else{
+					account = await stripe.accounts.create({
+						type: 'express',
+						country: 'US',
+						email: user.email,
+						capabilities: {
+							transfers: { requested: true },
+						},
+						//tos_acceptance: {service_agreement: 'recipient'},
+						business_type: 'individual',
+						individual: {
+							first_name: user.nombre,
+							last_name: user.apellidos
+						}
+					});
+	
+					meta = 	await strapi.db
+					.query("api::meta-usuario.meta-usuario")
+					.update(
+							{
+									where: { usuario: user.id },
+									data: { stripe_account_id: account.id , stripe_account_id_status: "pending" }
+							}
+					);
+	
+				}
+				console.log(account);
+	
+	
+				// guardo el id de la cuenta en la base de datos
+	
+	
+	
+				const link = await stripe.accountLinks.create({
+					account: account.id,
+					refresh_url: `https://example.com/reauth?account_id=${account.id}`,
+					return_url: `https://example.com/return?account_id=${account.id}`,
+					type: 'account_onboarding',
+				});
+	
+				return ctx.send({ link });
+	
+	
+	
+			} catch (error) {
+				console.log(error);
+			}
+			// recibo el usuario logueado
 
 
 

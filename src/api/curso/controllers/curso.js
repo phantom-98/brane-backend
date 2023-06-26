@@ -605,7 +605,6 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
       
       let {user} = ctx.state;
 
-
       if (!user) {
         return ctx.unauthorized(`Not authorized`);
       }
@@ -635,7 +634,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
       }
 
-      const misCursos = await strapi.db
+     /* const misCursos = await strapi.db
       .query("api::mis-curso.mis-curso")
       .findOne({ where: { curso: id, usuario: user.id } });
 
@@ -644,7 +643,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
       if (!misCursos && user.id != curso.instructor.id && user.role.type != "administrador") {
         return ctx.unauthorized(`You can't create this entry`);
-      }
+      }*/
 
 
       const { ZoomMeetingID, ZoomPassword } = curso.conference;

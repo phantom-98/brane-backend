@@ -58,6 +58,15 @@
     },
     "paypal_account_id": {
       "type": "string"
+    },
+    "stripe_account_id_state": {
+      "type": "enumeration",
+      "enum": [
+        "none",
+        "pending",
+        "completed"
+      ],
+      "default": "none"
     }
   }
 }
