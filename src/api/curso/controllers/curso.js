@@ -378,7 +378,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
         if (company.role.id == 6) {
           //console.log("hola")
-          ctx.request.body.data.logo_institucion = company.avatar.url;
+          ctx.request.body.data.logo_institucion = company.avatar ? company.avatar.url : "";
           ctx.request.body.data.nombre_institucion = company.nombre;
         }
 
