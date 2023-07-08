@@ -1270,10 +1270,10 @@ module.exports = (plugin) => {
         populate: true,
       });
 
-      //si no hay usuarios retorno un error 400
+      //si no hay usuarios retorno un array vacio
 
     if (users.length == 0) {
-      return ctx.badRequest("No hay usuarios para esta institucion");
+      return [];
     }
 
     //recorro los usuarios par ver los cursos que tiene como instructor
@@ -1391,10 +1391,10 @@ module.exports = (plugin) => {
       });
 
 
-      //si no hay usuarios retorno un error 400
+      //si no hay usuarios retorno un array vacio
 
     if (users.length == 0) {
-      return ctx.badRequest("No hay usuarios para esta institucion");
+      return [];
     }
 
     //recorro los usuarios par ver los cursos que tiene como instructor
