@@ -14,22 +14,22 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
   // Method 2: Wrapping a core action (leaves core logic in place)
   async find(ctx) {
     // some custom logic here
-    ctx.query = { ...ctx.query, local: "en" };
-
+    ctx.query = { ...ctx.query, local: "en", populate: '*' };
+console.log("ctx.query", ctx.query);
     // Calling the default core action
     const { data, meta } = await super.find(ctx);
 
     // recorro los cursos y anexo el instructor
-
+    //console.log("DATA", data);
     for (let i = 0; i < data.length; i++) {
       const curso = data[i];
-      console.log(curso.attributes.instructor);
+     // console.log("CURSO", data[i]);
       curso.attributes.instructor = await strapi.db
         .query("plugin::users-permissions.user")
         .findOne({
           // uid syntax: 'api::api-name.content-type-name'
           where: {
-            id: curso.attributes.instructor.data.id,
+            id: curso.attributes.instructor.data.id
           },
           //selecciono solo el instructor
           populate: true,
@@ -51,7 +51,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
         delete curso.attributes.instructor[element];
       });
     }
-
+    console.log("DATA");
     // some more custom logic
     meta.date = Date.now();
 
