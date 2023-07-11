@@ -740,7 +740,7 @@ module.exports = createCoreController(
       // Navegar a la url
 
       await page.goto(url, { waitUntil: 'networkidle0' });
-      await page.addStyleTag({
+      /*await page.addStyleTag({
         content: `
           @media print {
             body {
@@ -749,13 +749,13 @@ module.exports = createCoreController(
             }
           }
         `,
-      });
+      });*/
 
       await page.emulateMediaType('screen');
       await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
       await page.setViewport({ width: 1366, height: 667, deviceScaleFactor: 1 });
 
-      await page.pdf({ path: 'output.pdf', format: 'A3', printBackground: true , landscape: true, pageRanges: '1' , margin : {top: 27, bottom: 0, left: 0, right: 0}});
+      await page.pdf({ path: 'output.pdf', format: 'A4', printBackground: true , landscape: true, pageRanges: '1' , margin : {top: 0, bottom: 0, left: 0, right: 0}, scale: 0.74});
     
       await browser.close();
 
