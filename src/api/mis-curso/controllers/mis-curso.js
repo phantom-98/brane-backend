@@ -646,7 +646,85 @@ module.exports = createCoreController(
 
 
 
-    }
+    },
+    async obtenerCertificado(ctx) {
+      // esta funcion devuelve el certificado del usuario en el curso
+      console.log("ENTRO EN OBTENER CERTIFICADO");
+      // verifico que el usuario este logueado
+
+      const usuario = ctx.state.user;
+      console.log(usuario);
+
+      if (!usuario) {
+
+        return ctx.response.unauthorized("No autorizado",
+
+          {
+            id: "No autorizado",
+
+            message: "No autorizado - No esta logueado",
+          },
+
+        );
+      }
+
+      //obtengo el curso del params
+
+      let {idcurso}  = ctx.params;
+
+      //verifico que el curso tenga certificado
+
+      const curso = await strapi.db.query("api::curso.curso").findOne({ where: { id: idcurso } });
+
+      console.log("CURSO",curso);
+      if (!curso.certificado) {
+
+        return ctx.response.unauthorized("No autorizado", {"message": "El curso no tiene certificado"});
+      }
+
+      // verifico que el usuario este en el curso 
+
+      const usuarioCurso = await strapi.db.query("api::mis-curso.mis-curso").findOne({ where: { curso: idcurso, usuario: usuario.id }, populate: ['curso'] });
+
+      
+      if (!usuarioCurso) {
+
+        return ctx.response.unauthorized("No autorizado", {"message": "El usuario no está en el curso"});
+
+      }
+
+      //verifico que el curso este completado
+
+      if(!usuarioCurso.completado){
+
+        return ctx.response.unauthorized("No autorizado", {"message": "El usuario no ha completado el curso"});
+
+      }
+
+      //verifico si el curso pertece a un instructor de una institucion y fue comprado por una empresa e imprimo el certificado
+
+
+      if(usuarioCurso.curso.nombre_institucion && usuarioCurso.course_company){
+
+        return("certificado de la institucion y empresa");
+
+      } else if(usuarioCurso.curso.nombre_institucion){
+
+        return("certificado de la institucion");
+
+      } else if(usuarioCurso.course_company){
+
+        return("certificado de la empresa");
+
+      } else {
+
+        return("certificado del instructor");
+
+      }
+
+
+    },
+      
 
   })
 );

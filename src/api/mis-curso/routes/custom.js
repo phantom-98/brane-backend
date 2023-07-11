@@ -6,6 +6,11 @@ module.exports = {
 			handler: "mis-curso.findCursoByUser",
 		},
 		{
+			method: "GET",
+			path: "/estudiante/certificado/:idcurso",
+			handler: "mis-curso.obtenerCertificado",
+		},
+		{
 
 			method: "GET",
 			path: "/estudiante/profesores/me",
