@@ -653,7 +653,11 @@ module.exports = createCoreController(
       
       
       let filePath = path.join(process.cwd(), 'certificados_html', 'certificado.html');
-      this.launchPuppeteer(filePath);
+
+      let rutaDestino = path.join(process.cwd(), 'public/uploads/certificados', 'certificado.pdf');
+
+      rutaDestino = await this.launchPuppeteer(filePath,rutaDestino);
+
 
       const usuario = ctx.state.user;
       console.log(usuario);
@@ -728,18 +732,18 @@ module.exports = createCoreController(
 
     },
 
-    async launchPuppeteer(url) {
+    async launchPuppeteer(urlubicacion,urldestino) {
       
       const browser = await puppeteer.launch();
       const page = await browser.newPage();
 
 
 
-       url = path.join('file:///', url);
+      urlubicacion = path.join('file:///', urlubicacion);
 
       // Navegar a la url
 
-      await page.goto(url, { waitUntil: 'networkidle0' });
+      await page.goto(urlubicacion, { waitUntil: 'networkidle0' });
       /*await page.addStyleTag({
         content: `
           @media print {
@@ -755,9 +759,12 @@ module.exports = createCoreController(
       await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
       await page.setViewport({ width: 1366, height: 667, deviceScaleFactor: 1 });
 
-      await page.pdf({ path: 'output.pdf', format: 'A4', printBackground: true , landscape: true, pageRanges: '1' , margin : {top: 0, bottom: 0, left: 0, right: 0}, scale: 0.74});
+      await page.pdf({ path: urldestino , format: 'A4', printBackground: true , landscape: true, pageRanges: '1' , margin : {top: 0, bottom: 0, left: 0, right: 0}, scale: 0.74});
     
       await browser.close();
+
+
+      return urldestino;
 
     }
       
