@@ -5,6 +5,8 @@
  */
 
 const { createCoreController } = require("@strapi/strapi").factories;
+const puppeteer = require('puppeteer');
+const path = require('path');
 
 module.exports = createCoreController(
   "api::mis-curso.mis-curso",
@@ -648,9 +650,10 @@ module.exports = createCoreController(
 
     },
     async obtenerCertificado(ctx) {
-      // esta funcion devuelve el certificado del usuario en el curso
-      console.log("ENTRO EN OBTENER CERTIFICADO");
-      // verifico que el usuario este logueado
+      
+      
+      let filePath = path.join(process.cwd(), 'certificados_html', 'certificado.html');
+      this.launchPuppeteer(filePath);
 
       const usuario = ctx.state.user;
       console.log(usuario);
@@ -724,6 +727,39 @@ module.exports = createCoreController(
 
 
     },
+
+    async launchPuppeteer(url) {
+      
+      const browser = await puppeteer.launch();
+      const page = await browser.newPage();
+
+
+
+       url = path.join('file:///', url);
+
+      // Navegar a la url
+
+      await page.goto(url, { waitUntil: 'networkidle0' });
+      await page.addStyleTag({
+        content: `
+          @media print {
+            body {
+              font-size: 12px;
+              margin: 10px;
+            }
+          }
+        `,
+      });
+
+      await page.emulateMediaType('screen');
+      await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
+      await page.setViewport({ width: 1366, height: 667, deviceScaleFactor: 1 });
+
+      await page.pdf({ path: 'output.pdf', format: 'A3', printBackground: true , landscape: true, pageRanges: '1' , margin : {top: 27, bottom: 0, left: 0, right: 0}});
+    
+      await browser.close();
+
+    }
       
 
   })
