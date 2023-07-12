@@ -651,12 +651,6 @@ module.exports = createCoreController(
     },
     async obtenerCertificado(ctx) {
       
-      
-      let filePath = path.join(process.cwd(), 'certificados_html', 'certificado.html');
-
-      let rutaDestino = path.join(process.cwd(), 'public/uploads/certificados', 'certificado.pdf');
-
-      rutaDestino = await this.launchPuppeteer(filePath,rutaDestino);
 
 
       const usuario = ctx.state.user;
@@ -709,32 +703,52 @@ module.exports = createCoreController(
       }
 
       //verifico si el curso pertece a un instructor de una institucion y fue comprado por una empresa e imprimo el certificado
-
+      let rutaDestino = "";
 
       if(usuarioCurso.curso.nombre_institucion && usuarioCurso.course_company){
 
-        return("certificado de la institucion y empresa");
+        let filePath = path.join(process.cwd(), 'certificados_html', 'certificado-institucion-empresa.html');
+
+        rutaDestino = path.join(process.cwd(), 'public/uploads/certificados', 'certificado-institucion-empresa.pdf');
+  
+        rutaDestino = await this.launchPuppeteer(filePath,rutaDestino);
+
 
       } else if(usuarioCurso.curso.nombre_institucion){
 
-        return("certificado de la institucion");
+        let filePath = path.join(process.cwd(), 'certificados_html', 'certificado-institucion.html');
+
+        rutaDestino = path.join(process.cwd(), 'public/uploads/certificados', 'certificado-institucion.pdf');
+  
+        rutaDestino = await this.launchPuppeteer(filePath,rutaDestino);
 
       } else if(usuarioCurso.course_company){
 
-        return("certificado de la empresa");
+        let filePath = path.join(process.cwd(), 'certificados_html', 'certificado-empresa.html');
+
+        rutaDestino = path.join(process.cwd(), 'public/uploads/certificados', 'certificado-empresa.pdf');
+  
+        rutaDestino = await this.launchPuppeteer(filePath,rutaDestino);
 
       } else {
 
-        return("certificado del instructor");
+        let filePath = path.join(process.cwd(), 'certificados_html', 'certificado.html');
+
+        rutaDestino = path.join(process.cwd(), 'public/uploads/certificados', 'certificado.pdf');
+  
+        rutaDestino = await this.launchPuppeteer(filePath,rutaDestino);
+
+        
 
       }
 
+      return ctx.response.send({url: rutaDestino});
 
     },
 
     async launchPuppeteer(urlubicacion,urldestino) {
       
-      const browser = await puppeteer.launch();
+      const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
       const page = await browser.newPage();
 
 
