@@ -673,11 +673,20 @@ module.exports = createCoreController(
 
       let {idcurso}  = ctx.params;
 
+      if (!idcurso) {
+
+        return ctx.response.badRequest("Faltan datos", {"message": "No se ha recibido el id del curso"});
+      }
+
       //verifico que el curso tenga certificado
 
       const curso = await strapi.db.query("api::curso.curso").findOne({ where: { id: idcurso } });
 
-      console.log("CURSO",curso);
+      let datos = {
+        nombre: usuario.nombre + " " + usuario.apellidos,
+        nombreCurso: curso.name,
+
+      }
       if (!curso.certificado) {
 
         return ctx.response.unauthorized("No autorizado", {"message": "El curso no tiene certificado"});
@@ -705,38 +714,58 @@ module.exports = createCoreController(
       //verifico si el curso pertece a un instructor de una institucion y fue comprado por una empresa e imprimo el certificado
       let rutaDestino = "";
 
+      // creo una varibale filename para darle un nombre unico al certificado nombre persona + curso + fecha  
+
+      let filename = usuario.slug +'-'+ curso.name;
+
+      filename = filename.substring(0, 30);
+
+      filename = filename.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+      filename = filename.replace(/ /g, "-");
+
+      filename = filename.toLowerCase();
+
+      // corto para que no sea tan largo
+
+      
+
+      filename = filename + ".pdf";
+
+
+
       if(usuarioCurso.curso.nombre_institucion && usuarioCurso.course_company){
 
         let filePath = path.join(process.cwd(), 'certificados_html', 'certificado-institucion-empresa.html');
 
-        rutaDestino = path.join(process.cwd(), 'public/uploads/certificados', 'certificado-institucion-empresa.pdf');
+        rutaDestino = path.join(process.cwd(), 'public/uploads/certificados', filename);
   
-        rutaDestino = await this.launchPuppeteer(filePath,rutaDestino);
+        rutaDestino = await this.launchPuppeteer(filePath,rutaDestino,datos);
 
 
       } else if(usuarioCurso.curso.nombre_institucion){
 
         let filePath = path.join(process.cwd(), 'certificados_html', 'certificado-institucion.html');
 
-        rutaDestino = path.join(process.cwd(), 'public/uploads/certificados', 'certificado-institucion.pdf');
+        rutaDestino = path.join(process.cwd(), 'public/uploads/certificados',   filename);
   
-        rutaDestino = await this.launchPuppeteer(filePath,rutaDestino);
+        rutaDestino = await this.launchPuppeteer(filePath,rutaDestino,datos);
 
       } else if(usuarioCurso.course_company){
 
         let filePath = path.join(process.cwd(), 'certificados_html', 'certificado-empresa.html');
 
-        rutaDestino = path.join(process.cwd(), 'public/uploads/certificados', 'certificado-empresa.pdf');
+        rutaDestino = path.join(process.cwd(), 'public/uploads/certificados', filename);
   
-        rutaDestino = await this.launchPuppeteer(filePath,rutaDestino);
+        rutaDestino = await this.launchPuppeteer(filePath,rutaDestino,datos);
 
       } else {
 
         let filePath = path.join(process.cwd(), 'certificados_html', 'certificado.html');
 
-        rutaDestino = path.join(process.cwd(), 'public/uploads/certificados', 'certificado.pdf');
+        rutaDestino = path.join(process.cwd(), 'public/uploads/certificados', filename);
   
-        rutaDestino = await this.launchPuppeteer(filePath,rutaDestino);
+        rutaDestino = await this.launchPuppeteer(filePath,rutaDestino,datos);
 
         
 
@@ -746,7 +775,7 @@ module.exports = createCoreController(
 
     },
 
-    async launchPuppeteer(urlubicacion,urldestino) {
+    async launchPuppeteer(urlubicacion,urldestino,datos) {
       
       const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
       const page = await browser.newPage();
@@ -768,6 +797,14 @@ module.exports = createCoreController(
           }
         `,
       });*/
+
+      await page.evaluate((data) => {
+        // Aquí puedes acceder y modificar el contenido del HTML
+        // Puedes asignar los valores de las variables a elementos del HTML
+        // Por ejemplo, puedes seleccionar un elemento por su ID y asignarle un nuevo valor
+        document.getElementById('nombre').textContent = data.nombre;
+        document.getElementById('nombre-curso').textContent = data.nombreCurso;
+      }, datos);
 
       await page.emulateMediaType('screen');
       await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
