@@ -812,7 +812,10 @@ module.exports = createCoreController(
         //document.getElementById('logo-company').src = data.logoCompany;
         document.getElementById('logo-institucion').src = data.logoInstitucion;
       }, datos);
-
+      await page.waitForFunction(() => {
+        const img = document.querySelector('.logo-institucion img');
+        return img && img.complete && img.naturalWidth > 0;
+      });
       await page.emulateMediaType('screen');
       await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
       await page.setViewport({ width: 1366, height: 667, deviceScaleFactor: 1 });
