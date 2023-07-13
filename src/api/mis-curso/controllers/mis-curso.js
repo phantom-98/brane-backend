@@ -7,6 +7,7 @@
 const { createCoreController } = require("@strapi/strapi").factories;
 const puppeteer = require('puppeteer');
 const path = require('path');
+const { promises } = require("dns");
 
 module.exports = createCoreController(
   "api::mis-curso.mis-curso",
@@ -681,16 +682,9 @@ module.exports = createCoreController(
       //verifico que el curso tenga certificado y populado el instructor y el company
 
       const curso = await strapi.db.query("api::curso.curso").findOne({ where: { id: idcurso }, populate: ['instructor'] });
-      console.log("CURSO",curso);
-      let datos = {
-        nombre: usuario.nombre + " " + usuario.apellidos,
-        nombreCurso: curso.name,
-        instructor: curso.instructor.nombre + " " + curso.instructor.apellidos + " | Instructor",
+      //console.log("CURSO",curso);
 
-        //logoCompany: curso.instructor.company.avatar.url,
-        logoInstitucion: curso.logo_institucion,
-
-      }
+     
       if (!curso.certificado) {
 
         return ctx.response.unauthorized("No autorizado", {"message": "El curso no tiene certificado"});
@@ -698,9 +692,21 @@ module.exports = createCoreController(
 
       // verifico que el usuario este en el curso 
 
-      const usuarioCurso = await strapi.db.query("api::mis-curso.mis-curso").findOne({ where: { curso: idcurso, usuario: usuario.id }, populate: ['curso'] });
+      const usuarioCurso = await strapi.db.query("api::mis-curso.mis-curso").findOne({ where: { curso: idcurso, usuario: usuario.id }, populate: ['buying_company', 'curso', 'buying_company.avatar'] });
+      let datoCompany = null;
+      if(usuarioCurso.buying_company && usuarioCurso.buying_company.avatar){
+        datoCompany = process.env.URL_WEB + usuarioCurso.buying_company.avatar.url;
+      }
+      let datos = {
+        nombre: usuario.nombre + " " + usuario.apellidos,
+        nombreCurso: curso.name,
+        instructor: curso.instructor.nombre + " " + curso.instructor.apellidos + " | Instructor",
+        logoCompany:  datoCompany,
+        logoInstitucion: curso.logo_institucion? curso.logo_institucion : null,
 
-      
+      } 
+
+      console.log("DATOS",datos.logoCompany);
       if (!usuarioCurso) {
 
         return ctx.response.unauthorized("No autorizado", {"message": "El usuario no está en el curso"});
@@ -809,13 +815,40 @@ module.exports = createCoreController(
         document.getElementById('nombre').textContent = data.nombre;
         document.getElementById('nombre-curso').textContent = data.nombreCurso;
         document.getElementById('instructor').textContent = data.instructor;
-        //document.getElementById('logo-company').src = data.logoCompany;
-        document.getElementById('logo-institucion').src = data.logoInstitucion;
+       if (data.logoInstitucion){
+          document.querySelector('.logo-institucion img').src = data.logoInstitucion;
+        }else{
+          document.querySelector('.logo-institucion img').style.display = 'none';
+        }
+
+        if(data.logoCompany){
+          document.querySelector('.logo-empresa img').src = data.logoCompany;
+        }else{
+          document.querySelector('.logo-empresa img').style.display = 'none';
+        }
       }, datos);
-      await page.waitForFunction(() => {
+      console.log("DATOS",datos);
+      let promesas = [];
+      if(datos.logoInstitucion){
+      let imagen1 = page.waitForFunction(() => {
         const img = document.querySelector('.logo-institucion img');
+
         return img && img.complete && img.naturalWidth > 0;
+
       });
+      promesas.push(imagen1);
+    }
+    if(datos.logoCompany){
+        let imagen2 = page.waitForFunction(() => {
+        const img2 = document.querySelector('.logo-empresa img');
+        
+        return img2 && img2.complete && img2.naturalWidth > 0;
+      });
+      promesas.push(imagen2);
+    }
+    if(promesas.length > 0){
+      await Promise.all(promesas);
+    }
       await page.emulateMediaType('screen');
       await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
       await page.setViewport({ width: 1366, height: 667, deviceScaleFactor: 1 });
