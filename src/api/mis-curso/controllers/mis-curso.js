@@ -654,7 +654,7 @@ module.exports = createCoreController(
 
 
       const usuario = ctx.state.user;
-      console.log(usuario);
+      //console.log(usuario);
 
       if (!usuario) {
 
@@ -678,13 +678,17 @@ module.exports = createCoreController(
         return ctx.response.badRequest("Faltan datos", {"message": "No se ha recibido el id del curso"});
       }
 
-      //verifico que el curso tenga certificado
+      //verifico que el curso tenga certificado y populado el instructor y el company
 
-      const curso = await strapi.db.query("api::curso.curso").findOne({ where: { id: idcurso } });
-
+      const curso = await strapi.db.query("api::curso.curso").findOne({ where: { id: idcurso }, populate: ['instructor'] });
+      console.log("CURSO",curso);
       let datos = {
         nombre: usuario.nombre + " " + usuario.apellidos,
         nombreCurso: curso.name,
+        instructor: curso.instructor.nombre + " " + curso.instructor.apellidos + " | Instructor",
+
+        //logoCompany: curso.instructor.company.avatar.url,
+        logoInstitucion: curso.logo_institucion,
 
       }
       if (!curso.certificado) {
@@ -804,13 +808,16 @@ module.exports = createCoreController(
         // Por ejemplo, puedes seleccionar un elemento por su ID y asignarle un nuevo valor
         document.getElementById('nombre').textContent = data.nombre;
         document.getElementById('nombre-curso').textContent = data.nombreCurso;
+        document.getElementById('instructor').textContent = data.instructor;
+        //document.getElementById('logo-company').src = data.logoCompany;
+        document.getElementById('logo-institucion').src = data.logoInstitucion;
       }, datos);
 
       await page.emulateMediaType('screen');
       await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
       await page.setViewport({ width: 1366, height: 667, deviceScaleFactor: 1 });
 
-      await page.pdf({ path: urldestino , format: 'A4', printBackground: true , landscape: true, pageRanges: '1' , margin : {top: 0, bottom: 0, left: 0, right: 0}, scale: 0.74});
+      await page.pdf({ path: urldestino , format: 'A4', printBackground: true , landscape: true, pageRanges: '1' , margin : {top: 0, bottom: 0, left: 0, right: 0}, scale: 0.69});
     
       await browser.close();
 
