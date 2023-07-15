@@ -786,79 +786,79 @@ module.exports = createCoreController(
     },
 
     async launchPuppeteer(urlubicacion,urldestino,datos) {
-      
-      const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-      const page = await browser.newPage();
 
-
-
-      urlubicacion = path.join('file:///', urlubicacion);
-
-      // Navegar a la url
-
-      await page.goto(urlubicacion, { waitUntil: 'networkidle0' });
-      /*await page.addStyleTag({
-        content: `
-          @media print {
-            body {
-              font-size: 12px;
-              margin: 10px;
-            }
+      try {
+        const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+        const page = await browser.newPage();
+  
+  
+  
+        urlubicacion = path.join('file:///', urlubicacion);
+  
+        // Navegar a la url
+  
+        await page.goto(urlubicacion, { waitUntil: 'networkidle0' });
+  
+  
+        await page.evaluate((data) => {
+          // Aquí puedes acceder y modificar el contenido del HTML
+          // Puedes asignar los valores de las variables a elementos del HTML
+          // Por ejemplo, puedes seleccionar un elemento por su ID y asignarle un nuevo valor
+          document.getElementById('nombre').textContent = data.nombre;
+          document.getElementById('nombre-curso').textContent = data.nombreCurso;
+          document.getElementById('instructor').textContent = data.instructor;
+         if (data.logoInstitucion){
+            document.querySelector('.logo-institucion img').src = data.logoInstitucion;
+          }else{
+            document.querySelector('.logo-institucion img').style.display = 'none';
           }
-        `,
-      });*/
+  
+          if(data.logoCompany){
+            document.querySelector('.logo-empresa img').src = data.logoCompany;
+          }else{
+            document.querySelector('.logo-empresa img').style.display = 'none';
+          }
+        }, datos);
+        console.log("DATOS",datos);
+        let promesas = [];
+        if(datos.logoInstitucion){
+        let imagen1 = page.waitForFunction(() => {
+          const img = document.querySelector('.logo-institucion img');
+  
+          return img && img.complete && img.naturalWidth > 0;
+  
+        });
+        promesas.push(imagen1);
+      }
+      if(datos.logoCompany){
+          let imagen2 = page.waitForFunction(() => {
+          const img2 = document.querySelector('.logo-empresa img');
+          
+          return img2 && img2.complete && img2.naturalWidth > 0;
+        });
+        promesas.push(imagen2);
+      }
+      if(promesas.length > 0){
+        await Promise.all(promesas);
+      }
+      /*  await page.emulateMediaType('screen');
+        await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
+        await page.setViewport({ width: 1366, height: 667, deviceScaleFactor: 1 });*/
+  
+       await Promise.all([ page.emulateMediaType('screen'), page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]), page.setViewport({ width: 1366, height: 667, deviceScaleFactor: 1 }) ]);
+  
+        await page.pdf({ path: urldestino , format: 'A4', printBackground: true , landscape: true, pageRanges: '1' , margin : {top: 0, bottom: 0, left: 0, right: 0}, scale: 0.69});
+      
+        await browser.close();
+  
+  
+        return urldestino;
+      } catch (error) {
+        console.log(error);
+        throw new Error(error);
+      }
+      
 
-      await page.evaluate((data) => {
-        // Aquí puedes acceder y modificar el contenido del HTML
-        // Puedes asignar los valores de las variables a elementos del HTML
-        // Por ejemplo, puedes seleccionar un elemento por su ID y asignarle un nuevo valor
-        document.getElementById('nombre').textContent = data.nombre;
-        document.getElementById('nombre-curso').textContent = data.nombreCurso;
-        document.getElementById('instructor').textContent = data.instructor;
-       if (data.logoInstitucion){
-          document.querySelector('.logo-institucion img').src = data.logoInstitucion;
-        }else{
-          document.querySelector('.logo-institucion img').style.display = 'none';
-        }
-
-        if(data.logoCompany){
-          document.querySelector('.logo-empresa img').src = data.logoCompany;
-        }else{
-          document.querySelector('.logo-empresa img').style.display = 'none';
-        }
-      }, datos);
-      console.log("DATOS",datos);
-      let promesas = [];
-      if(datos.logoInstitucion){
-      let imagen1 = page.waitForFunction(() => {
-        const img = document.querySelector('.logo-institucion img');
-
-        return img && img.complete && img.naturalWidth > 0;
-
-      });
-      promesas.push(imagen1);
-    }
-    if(datos.logoCompany){
-        let imagen2 = page.waitForFunction(() => {
-        const img2 = document.querySelector('.logo-empresa img');
-        
-        return img2 && img2.complete && img2.naturalWidth > 0;
-      });
-      promesas.push(imagen2);
-    }
-    if(promesas.length > 0){
-      await Promise.all(promesas);
-    }
-      await page.emulateMediaType('screen');
-      await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
-      await page.setViewport({ width: 1366, height: 667, deviceScaleFactor: 1 });
-
-      await page.pdf({ path: urldestino , format: 'A4', printBackground: true , landscape: true, pageRanges: '1' , margin : {top: 0, bottom: 0, left: 0, right: 0}, scale: 0.69});
-    
-      await browser.close();
-
-
-      return urldestino;
 
     }
       
