@@ -43,6 +43,13 @@
     },
     "course_company": {
       "type": "boolean"
+    },
+    "certificado": {
+      "allowedTypes": [
+        "files"
+      ],
+      "type": "media",
+      "multiple": false
     }
   }
 }

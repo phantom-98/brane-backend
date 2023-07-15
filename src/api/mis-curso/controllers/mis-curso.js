@@ -9,6 +9,10 @@ const { createCoreController } = require("@strapi/strapi").factories;
 const playwright = require('playwright');
 const path = require('path');
 const chromePaths = require("chrome-paths");
+const fs = require('fs');
+const fsp = fs.promises;
+const mime = require('mime');
+const uuid = require('uuid').v4;
 
 module.exports = createCoreController(
   "api::mis-curso.mis-curso",
@@ -693,8 +697,17 @@ module.exports = createCoreController(
 
       // verifico que el usuario este en el curso 
 
-      const usuarioCurso = await strapi.db.query("api::mis-curso.mis-curso").findOne({ where: { curso: idcurso, usuario: usuario.id }, populate: ['buying_company', 'curso', 'buying_company.avatar'] });
+      const usuarioCurso = await strapi.db.query("api::mis-curso.mis-curso").findOne({ where: { curso: idcurso, usuario: usuario.id }, populate: ['buying_company', 'curso', 'buying_company.avatar','certificado'] });
       let datoCompany = null;
+
+      if(usuarioCurso.certificado){
+
+        // elimino el archivo
+
+        await strapi.db.query("plugin::upload.file").delete({where: {id: usuarioCurso.certificado.id}});
+
+      }
+
       if(usuarioCurso.buying_company && usuarioCurso.buying_company.avatar){
         datoCompany = process.env.URL_WEB + usuarioCurso.buying_company.avatar.url;
       }
@@ -707,7 +720,9 @@ module.exports = createCoreController(
 
       } 
 
-      console.log("DATOS",datos.logoCompany);
+      
+
+
       if (!usuarioCurso) {
 
         return ctx.response.unauthorized("No autorizado", {"message": "El usuario no está en el curso"});
@@ -782,7 +797,55 @@ module.exports = createCoreController(
 
       }
 
-      return ctx.response.send({url: rutaDestino});
+      
+      const stats = await fsp.stat(rutaDestino);
+  
+
+      const fileName = path.basename(rutaDestino);
+
+      const uploadProvider = strapi.plugin('upload').service('provider');
+      const config = strapi.config.get('plugin.upload');
+
+      // creo un stream a partir del archivo
+
+      const stream = fs.createReadStream(rutaDestino);
+
+      let entity =        {
+        path: rutaDestino, 
+        name: fileName,
+        size: stats.size,
+        provider: config.provider,
+        ext:path.extname(fileName),
+    getStream: () =>  stream,
+        hash : fileName.replace(".pdf", "") + curso.id + usuario.id ,
+        mime : mime.getType(rutaDestino)
+      }
+
+      await uploadProvider.upload(entity);
+
+
+
+      await fsp.unlink(rutaDestino);
+
+    let media=  await strapi
+    .query('plugin::upload.file')
+    .create({ data: entity });
+
+      // actualizo el campo certificado del curso api::mis-curso.mis-curso
+
+      await strapi.db.query("api::mis-curso.mis-curso").update({
+        where: { id: usuarioCurso.id },
+        data: { certificado: media.id },
+      });
+
+      let ruta = process.env.URL_WEB + media.url;
+
+
+      
+
+      return  ctx.response.send({url: ruta});
+
+
 
     },
     async  launchPlaywright(urlubicacion, urldestino, datos) {
