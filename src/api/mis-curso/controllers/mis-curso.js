@@ -5,9 +5,10 @@
  */
 
 const { createCoreController } = require("@strapi/strapi").factories;
-const puppeteer = require('puppeteer');
+//const puppeteer = require('puppeteer');
+const playwright = require('playwright');
 const path = require('path');
-const { promises } = require("dns");
+const chromePaths = require("chrome-paths");
 
 module.exports = createCoreController(
   "api::mis-curso.mis-curso",
@@ -750,7 +751,7 @@ module.exports = createCoreController(
 
         rutaDestino = path.join(process.cwd(), 'public/uploads/certificados', filename);
   
-        rutaDestino = await this.launchPuppeteer(filePath,rutaDestino,datos);
+        rutaDestino = await this.launchPlaywright(filePath,rutaDestino,datos);
 
 
       } else if(usuarioCurso.curso.nombre_institucion){
@@ -759,7 +760,7 @@ module.exports = createCoreController(
 
         rutaDestino = path.join(process.cwd(), 'public/uploads/certificados',   filename);
   
-        rutaDestino = await this.launchPuppeteer(filePath,rutaDestino,datos);
+        rutaDestino = await this.launchPlaywright(filePath,rutaDestino,datos);
 
       } else if(usuarioCurso.course_company){
 
@@ -767,7 +768,7 @@ module.exports = createCoreController(
 
         rutaDestino = path.join(process.cwd(), 'public/uploads/certificados', filename);
   
-        rutaDestino = await this.launchPuppeteer(filePath,rutaDestino,datos);
+        rutaDestino = await this.launchPlaywright(filePath,rutaDestino,datos);
 
       } else {
 
@@ -775,7 +776,7 @@ module.exports = createCoreController(
 
         rutaDestino = path.join(process.cwd(), 'public/uploads/certificados', filename);
   
-        rutaDestino = await this.launchPuppeteer(filePath,rutaDestino,datos);
+        rutaDestino = await this.launchPlaywright(filePath,rutaDestino,datos);
 
         
 
@@ -784,8 +785,87 @@ module.exports = createCoreController(
       return ctx.response.send({url: rutaDestino});
 
     },
+    async  launchPlaywright(urlubicacion, urldestino, datos) {
+      try {
+        const browser = await playwright.chromium.launch({ headless: true });
+        const context = await browser.newContext();
+        const page = await context.newPage();
+    
+        urlubicacion = path.join('file:///', urlubicacion);
+    
+        // Navegar a la URL
+        await page.goto(urlubicacion, { waitUntil: 'networkidle' });
+    
+        await page.evaluate((data) => {
+          // Aquí puedes acceder y modificar el contenido del HTML
+          // Puedes asignar los valores de las variables a elementos del HTML
+          // Por ejemplo, puedes seleccionar un elemento por su ID y asignarle un nuevo valor
+          document.getElementById('nombre').textContent = data.nombre;
+          document.getElementById('nombre-curso').textContent = data.nombreCurso;
+          document.getElementById('instructor').textContent = data.instructor;
+    
+          if (data.logoInstitucion) {
+            document.querySelector('.logo-institucion img').src = data.logoInstitucion;
+          } else {
+            document.querySelector('.logo-institucion img').style.display = 'none';
+          }
+    
+          if (data.logoCompany) {
+            document.querySelector('.logo-empresa img').src = data.logoCompany;
+          } else {
+            document.querySelector('.logo-empresa img').style.display = 'none';
+          }
+        }, datos);
+    
 
-    async launchPuppeteer(urlubicacion,urldestino,datos) {
+    
+        let promesas = [];
+        if (datos.logoInstitucion) {
+          let imagen1 = page.waitForFunction(() => {
+            const img = document.querySelector('.logo-institucion img');
+            return img && img.complete && img.naturalWidth > 0;
+          });
+          promesas.push(imagen1);
+        }
+    
+        if (datos.logoCompany) {
+          let imagen2 = page.waitForFunction(() => {
+            const img2 = document.querySelector('.logo-empresa img');
+            return img2 && img2.complete && img2.naturalWidth > 0;
+          });
+          promesas.push(imagen2);
+        }
+    
+        if (promesas.length > 0) {
+          await Promise.all(promesas);
+        }
+    
+        await Promise.all([
+          page.emulateMedia('screen'),
+        //  page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]),
+          page.setViewportSize({ width: 1366, height: 667 }),
+        ]);
+    
+        await page.pdf({
+          path: urldestino,
+          format: 'a4',
+          printBackground: true,
+          landscape: true,
+          pageRanges: '1',
+          margin: { top: 0, bottom: 0, left: 0, right: 0 },
+          scale: 0.69,
+        });
+    
+        await browser.close();
+    
+        return urldestino;
+      } catch (error) {
+        console.log(error);
+        throw new Error(error);
+      }
+    }
+
+   /* async launchPuppeteer(urlubicacion,urldestino,datos) {
 
       try {
         const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
@@ -841,9 +921,7 @@ module.exports = createCoreController(
       if(promesas.length > 0){
         await Promise.all(promesas);
       }
-      /*  await page.emulateMediaType('screen');
-        await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
-        await page.setViewport({ width: 1366, height: 667, deviceScaleFactor: 1 });*/
+
   
        await Promise.all([ page.emulateMediaType('screen'), page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]), page.setViewport({ width: 1366, height: 667, deviceScaleFactor: 1 }) ]);
   
@@ -860,7 +938,9 @@ module.exports = createCoreController(
       
 
 
-    }
+    }*/
+
+    
       
 
   })
