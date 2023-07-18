@@ -5,9 +5,14 @@
  */
 
 const { createCoreController } = require("@strapi/strapi").factories;
-const puppeteer = require('puppeteer');
+//const puppeteer = require('puppeteer');
+const playwright = require('playwright');
 const path = require('path');
-const { promises } = require("dns");
+const chromePaths = require("chrome-paths");
+const fs = require('fs');
+const fsp = fs.promises;
+const mime = require('mime');
+const uuid = require('uuid').v4;
 
 module.exports = createCoreController(
   "api::mis-curso.mis-curso",
@@ -692,8 +697,17 @@ module.exports = createCoreController(
 
       // verifico que el usuario este en el curso 
 
-      const usuarioCurso = await strapi.db.query("api::mis-curso.mis-curso").findOne({ where: { curso: idcurso, usuario: usuario.id }, populate: ['buying_company', 'curso', 'buying_company.avatar'] });
+      const usuarioCurso = await strapi.db.query("api::mis-curso.mis-curso").findOne({ where: { curso: idcurso, usuario: usuario.id }, populate: ['buying_company', 'curso', 'buying_company.avatar','certificado'] });
       let datoCompany = null;
+
+      if(usuarioCurso.certificado){
+
+        // elimino el archivo
+
+        await strapi.db.query("plugin::upload.file").delete({where: {id: usuarioCurso.certificado.id}});
+
+      }
+
       if(usuarioCurso.buying_company && usuarioCurso.buying_company.avatar){
         datoCompany = process.env.URL_WEB + usuarioCurso.buying_company.avatar.url;
       }
@@ -706,7 +720,9 @@ module.exports = createCoreController(
 
       } 
 
-      console.log("DATOS",datos.logoCompany);
+      
+
+
       if (!usuarioCurso) {
 
         return ctx.response.unauthorized("No autorizado", {"message": "El usuario no está en el curso"});
@@ -750,7 +766,7 @@ module.exports = createCoreController(
 
         rutaDestino = path.join(process.cwd(), 'public/uploads/certificados', filename);
   
-        rutaDestino = await this.launchPuppeteer(filePath,rutaDestino,datos);
+        rutaDestino = await this.launchPlaywright(filePath,rutaDestino,datos);
 
 
       } else if(usuarioCurso.curso.nombre_institucion){
@@ -759,7 +775,7 @@ module.exports = createCoreController(
 
         rutaDestino = path.join(process.cwd(), 'public/uploads/certificados',   filename);
   
-        rutaDestino = await this.launchPuppeteer(filePath,rutaDestino,datos);
+        rutaDestino = await this.launchPlaywright(filePath,rutaDestino,datos);
 
       } else if(usuarioCurso.course_company){
 
@@ -767,7 +783,7 @@ module.exports = createCoreController(
 
         rutaDestino = path.join(process.cwd(), 'public/uploads/certificados', filename);
   
-        rutaDestino = await this.launchPuppeteer(filePath,rutaDestino,datos);
+        rutaDestino = await this.launchPlaywright(filePath,rutaDestino,datos);
 
       } else {
 
@@ -775,92 +791,219 @@ module.exports = createCoreController(
 
         rutaDestino = path.join(process.cwd(), 'public/uploads/certificados', filename);
   
-        rutaDestino = await this.launchPuppeteer(filePath,rutaDestino,datos);
+        rutaDestino = await this.launchPlaywright(filePath,rutaDestino,datos);
 
         
 
       }
 
-      return ctx.response.send({url: rutaDestino});
+      
+      const stats = await fsp.stat(rutaDestino);
+  
+
+      const fileName = path.basename(rutaDestino);
+
+      const uploadProvider = strapi.plugin('upload').service('provider');
+      const config = strapi.config.get('plugin.upload');
+
+      // creo un stream a partir del archivo
+
+      const stream = fs.createReadStream(rutaDestino);
+
+      let entity =        {
+        path: rutaDestino, 
+        name: fileName,
+        size: stats.size,
+        provider: config.provider,
+        ext:path.extname(fileName),
+    getStream: () =>  stream,
+        hash : fileName.replace(".pdf", "") + curso.id + usuario.id ,
+        mime : mime.getType(rutaDestino)
+      }
+
+      await uploadProvider.upload(entity);
+
+
+
+      await fsp.unlink(rutaDestino);
+
+    let media=  await strapi
+    .query('plugin::upload.file')
+    .create({ data: entity });
+
+      // actualizo el campo certificado del curso api::mis-curso.mis-curso
+
+      await strapi.db.query("api::mis-curso.mis-curso").update({
+        where: { id: usuarioCurso.id },
+        data: { certificado: media.id },
+      });
+
+      let ruta = process.env.URL_WEB + media.url;
+
+
+      
+
+      return  ctx.response.send({url: ruta});
+
+
 
     },
-
-    async launchPuppeteer(urlubicacion,urldestino,datos) {
-      
-      const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-      const page = await browser.newPage();
-
-
-
-      urlubicacion = path.join('file:///', urlubicacion);
-
-      // Navegar a la url
-
-      await page.goto(urlubicacion, { waitUntil: 'networkidle0' });
-      /*await page.addStyleTag({
-        content: `
-          @media print {
-            body {
-              font-size: 12px;
-              margin: 10px;
-            }
-          }
-        `,
-      });*/
-
-      await page.evaluate((data) => {
-        // Aquí puedes acceder y modificar el contenido del HTML
-        // Puedes asignar los valores de las variables a elementos del HTML
-        // Por ejemplo, puedes seleccionar un elemento por su ID y asignarle un nuevo valor
-        document.getElementById('nombre').textContent = data.nombre;
-        document.getElementById('nombre-curso').textContent = data.nombreCurso;
-        document.getElementById('instructor').textContent = data.instructor;
-       if (data.logoInstitucion){
-          document.querySelector('.logo-institucion img').src = data.logoInstitucion;
-        }else{
-          document.querySelector('.logo-institucion img').style.display = 'none';
-        }
-
-        if(data.logoCompany){
-          document.querySelector('.logo-empresa img').src = data.logoCompany;
-        }else{
-          document.querySelector('.logo-empresa img').style.display = 'none';
-        }
-      }, datos);
-      console.log("DATOS",datos);
-      let promesas = [];
-      if(datos.logoInstitucion){
-      let imagen1 = page.waitForFunction(() => {
-        const img = document.querySelector('.logo-institucion img');
-
-        return img && img.complete && img.naturalWidth > 0;
-
-      });
-      promesas.push(imagen1);
-    }
-    if(datos.logoCompany){
-        let imagen2 = page.waitForFunction(() => {
-        const img2 = document.querySelector('.logo-empresa img');
-        
-        return img2 && img2.complete && img2.naturalWidth > 0;
-      });
-      promesas.push(imagen2);
-    }
-    if(promesas.length > 0){
-      await Promise.all(promesas);
-    }
-      await page.emulateMediaType('screen');
-      await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
-      await page.setViewport({ width: 1366, height: 667, deviceScaleFactor: 1 });
-
-      await page.pdf({ path: urldestino , format: 'A4', printBackground: true , landscape: true, pageRanges: '1' , margin : {top: 0, bottom: 0, left: 0, right: 0}, scale: 0.69});
+    async  launchPlaywright(urlubicacion, urldestino, datos) {
+      try {
+        const browser = await playwright.chromium.launch({ headless: true });
+        const context = await browser.newContext();
+        const page = await context.newPage();
     
-      await browser.close();
+        urlubicacion = path.join('file:///', urlubicacion);
+    
+        // Navegar a la URL
+        await page.goto(urlubicacion, { waitUntil: 'networkidle' });
+    
+        await page.evaluate((data) => {
+          // Aquí puedes acceder y modificar el contenido del HTML
+          // Puedes asignar los valores de las variables a elementos del HTML
+          // Por ejemplo, puedes seleccionar un elemento por su ID y asignarle un nuevo valor
+          document.getElementById('nombre').textContent = data.nombre;
+          document.getElementById('nombre-curso').textContent = data.nombreCurso;
+          document.getElementById('instructor').textContent = data.instructor;
+    
+          if (data.logoInstitucion) {
+            document.querySelector('.logo-institucion img').src = data.logoInstitucion;
+          } else {
+            document.querySelector('.logo-institucion img').style.display = 'none';
+          }
+    
+          if (data.logoCompany) {
+            document.querySelector('.logo-empresa img').src = data.logoCompany;
+          } else {
+            document.querySelector('.logo-empresa img').style.display = 'none';
+          }
+        }, datos);
+    
 
-
-      return urldestino;
-
+    
+        let promesas = [];
+        if (datos.logoInstitucion) {
+          let imagen1 = page.waitForFunction(() => {
+            const img = document.querySelector('.logo-institucion img');
+            return img && img.complete && img.naturalWidth > 0;
+          });
+          promesas.push(imagen1);
+        }
+    
+        if (datos.logoCompany) {
+          let imagen2 = page.waitForFunction(() => {
+            const img2 = document.querySelector('.logo-empresa img');
+            return img2 && img2.complete && img2.naturalWidth > 0;
+          });
+          promesas.push(imagen2);
+        }
+    
+        if (promesas.length > 0) {
+          await Promise.all(promesas);
+        }
+    
+        await Promise.all([
+          page.emulateMedia('screen'),
+        //  page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]),
+          page.setViewportSize({ width: 1366, height: 667 }),
+        ]);
+    
+        await page.pdf({
+          path: urldestino,
+          format: 'a4',
+          printBackground: true,
+          landscape: true,
+          pageRanges: '1',
+          margin: { top: 0, bottom: 0, left: 0, right: 0 },
+          scale: 0.69,
+        });
+    
+        await browser.close();
+    
+        return urldestino;
+      } catch (error) {
+        console.log(error);
+        throw new Error(error);
+      }
     }
+
+   /* async launchPuppeteer(urlubicacion,urldestino,datos) {
+
+      try {
+        const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+        const page = await browser.newPage();
+  
+  
+  
+        urlubicacion = path.join('file:///', urlubicacion);
+  
+        // Navegar a la url
+  
+        await page.goto(urlubicacion, { waitUntil: 'networkidle0' });
+  
+  
+        await page.evaluate((data) => {
+          // Aquí puedes acceder y modificar el contenido del HTML
+          // Puedes asignar los valores de las variables a elementos del HTML
+          // Por ejemplo, puedes seleccionar un elemento por su ID y asignarle un nuevo valor
+          document.getElementById('nombre').textContent = data.nombre;
+          document.getElementById('nombre-curso').textContent = data.nombreCurso;
+          document.getElementById('instructor').textContent = data.instructor;
+         if (data.logoInstitucion){
+            document.querySelector('.logo-institucion img').src = data.logoInstitucion;
+          }else{
+            document.querySelector('.logo-institucion img').style.display = 'none';
+          }
+  
+          if(data.logoCompany){
+            document.querySelector('.logo-empresa img').src = data.logoCompany;
+          }else{
+            document.querySelector('.logo-empresa img').style.display = 'none';
+          }
+        }, datos);
+        console.log("DATOS",datos);
+        let promesas = [];
+        if(datos.logoInstitucion){
+        let imagen1 = page.waitForFunction(() => {
+          const img = document.querySelector('.logo-institucion img');
+  
+          return img && img.complete && img.naturalWidth > 0;
+  
+        });
+        promesas.push(imagen1);
+      }
+      if(datos.logoCompany){
+          let imagen2 = page.waitForFunction(() => {
+          const img2 = document.querySelector('.logo-empresa img');
+          
+          return img2 && img2.complete && img2.naturalWidth > 0;
+        });
+        promesas.push(imagen2);
+      }
+      if(promesas.length > 0){
+        await Promise.all(promesas);
+      }
+
+  
+       await Promise.all([ page.emulateMediaType('screen'), page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]), page.setViewport({ width: 1366, height: 667, deviceScaleFactor: 1 }) ]);
+  
+        await page.pdf({ path: urldestino , format: 'A4', printBackground: true , landscape: true, pageRanges: '1' , margin : {top: 0, bottom: 0, left: 0, right: 0}, scale: 0.69});
+      
+        await browser.close();
+  
+  
+        return urldestino;
+      } catch (error) {
+        console.log(error);
+        throw new Error(error);
+      }
+      
+
+
+    }*/
+
+    
       
 
   })
