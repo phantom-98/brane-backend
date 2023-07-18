@@ -44,11 +44,18 @@ module.exports = ({ env }) => ({
           rejectUnauthorized: true
         }
         // ... any custom nodemailer options
-      }
+      },
+      settings: {
+        defaultFrom: env('SMTP_FROM_ADDRESS'),
+        defaultReplyTo: env('SMTP_FROM_ADDRESS'),
+      },
     },
   },
   'email-designer': {
     enabled: true
+  },
+  'google-auth': {
+    enabled: true,
   },
   'strapi-plugin-populate-deep': {
     config: {

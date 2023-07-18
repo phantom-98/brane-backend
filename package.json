@@ -23,6 +23,7 @@
     "playwright": "^1.36.1",
     "puppeteer": "^20.8.1",
     "qs": "^6.11.2",
+    "strapi-google-auth": "^0.1.2",
     "strapi-plugin-email-designer": "^2.1.2",
     "strapi-plugin-populate-deep": "^2.0.0",
     "strapi-plugin-slugify": "^2.3.2",
