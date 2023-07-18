@@ -38,8 +38,10 @@ module.exports = ({ env }) => ({
           user: env('SMTP_USERNAME'),
           pass: env('SMTP_PASSWORD'),
         },
+        from: env('SMTP_FROM_ADDRESS'),
+
         tls: {
-          rejectUnauthorized: false
+          rejectUnauthorized: true
         }
         // ... any custom nodemailer options
       }
