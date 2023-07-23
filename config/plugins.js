@@ -56,6 +56,10 @@ module.exports = ({ env }) => ({
   },
   'google-auth': {
     enabled: true,
+    clientID: env('GOOGLE_CLIENT_ID'),
+    clientSecret: env('GOOGLE_CLIENT_SECRET'),
+    redirectUri: env('GOOGLE_REDIRECT_URI'),
+    resolve: "./node_modules/strapi-google-auth/",
   },
   'strapi-plugin-populate-deep': {
     config: {
