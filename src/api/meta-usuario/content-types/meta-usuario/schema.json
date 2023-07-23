@@ -67,6 +67,10 @@
         "completed"
       ],
       "default": "none"
+    },
+    "session_stripe_id": {
+      "type": "string",
+      "private": true
     }
   }
 }

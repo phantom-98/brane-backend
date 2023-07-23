@@ -8,6 +8,8 @@ const stripe = require("stripe")(STRIPE_SECRET_KEY);
 
 const axios = require("axios");
 
+const uuid = require("uuid");
+
 const oauth = stripe.oauth;
 const { createCoreController } = require("@strapi/strapi").factories;
 
@@ -185,7 +187,7 @@ module.exports = createCoreController(
 				}
 	
 				// verifico que el usuario no tenga ya una cuenta creada
-	
+				let sesion_stripe_id = uuid.v4();
 				let meta = await strapi.db.query("api::meta-usuario.meta-usuario").findOne({ where: { usuario: user.id } });
 	
 				if (!meta) {
@@ -222,13 +224,13 @@ module.exports = createCoreController(
 							last_name: user.apellidos
 						}
 					});
-	
+					
 					meta = 	await strapi.db
 					.query("api::meta-usuario.meta-usuario")
 					.update(
 							{
 									where: { usuario: user.id },
-									data: { stripe_account_id: account.id , stripe_account_id_state: "pending" }
+									data: { stripe_account_id: account.id , stripe_account_id_state: "pending", sesion_stripe_id: sesion_stripe_id }
 							}
 					);
 	
@@ -236,14 +238,14 @@ module.exports = createCoreController(
 				console.log(account);
 	
 	
-				// guardo el id de la cuenta en la base de datos
+				
 	
 	
 	
 				const link = await stripe.accountLinks.create({
 					account: account.id,
-					refresh_url: `https://example.com/reauth?account_id=${account.id}&user_id=${user.id}`,
-					return_url: `${URL}/meta-usuario/stripe-connect/callback?account_id=${account.id}&user_id=${user.id}`,
+					refresh_url: `https://example.com/reauth?account_id=${account.id}&user_id=${user.id}&sesion_stripe_id=${sesion_stripe_id}`,
+					return_url: `${URL}/meta-usuario/stripe-connect/callback?account_id=${account.id}&user_id=${user.id}&sesion_stripe_id=${sesion_stripe_id}`,
 					type: 'account_onboarding',
 				});
 	
@@ -334,11 +336,84 @@ module.exports = createCoreController(
 
 				const user_id = ctx.request.query.user_id;
 
-				if(!account_id || !user_id){
+				const sesion_stripe_id = ctx.request.query.sesion_stripe_id;
+
+				if(!account_id || !user_id || !sesion_stripe_id){
 
 					return ctx.badRequest("No se recibieron los parametros account_id y user_id", { message: "No se recibieron los parametros account_id y user_id" });
 
 				}
+
+				// busco el usuario
+
+				const user = await strapi.query("user", "users-permissions").findOne({ id: user_id });
+
+				if(!user){
+
+					return ctx.badRequest("No se encontró el usuario", { message: "No se encontró el usuario" });
+
+				}
+
+
+				// busco la meta del usuario
+
+				let meta = await strapi.db.query("api::meta-usuario.meta-usuario").findOne({ where: { usuario: user.id } });
+
+				if(!meta){
+
+					return ctx.badRequest("No se encontró la meta del usuario", { message: "No se encontró la meta del usuario" });
+
+				}
+
+
+				// verifico que no tenga ya una cuenta creada con el campo stripe_account_id
+
+				if (meta.stripe_account_id_state == "completed") {
+
+					return ctx.badRequest("Ya tienes una cuenta creada", { message: "Ya tienes una cuenta creada" });
+
+				}
+
+
+				// verifico que sesion_stripe_id sea el mismo el de meta.sesion_stripe_id
+
+
+				if (meta.sesion_stripe_id != sesion_stripe_id) {
+
+					return ctx.badRequest("No se encontró la meta del usuario", { message: "No se encontró la meta del usuario" });
+
+				}
+
+
+				// verifico que el acount_id sea el mismo que el de meta.stripe_account_id
+
+				if (meta.stripe_account_id != account_id) {
+
+					return ctx.badRequest("No se encontró la meta del usuario", { message: "No se encontró la meta del usuario" });
+
+				}
+
+
+				// verifico que el estado de la cuenta sea completed
+
+
+				const account = await stripe.accounts.retrieve(account_id);
+
+
+				console.log(account);
+
+
+				if (account.details_submitted != true || account.charges_enabled != true || account.payouts_enabled != true) {
+
+					return ctx.badRequest("No se encontró la meta del usuario", { message: "No se encontró la meta del usuario" });
+
+				}
+
+
+
+
+
+				
 
 
 
