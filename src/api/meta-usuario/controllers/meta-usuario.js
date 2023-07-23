@@ -3,7 +3,7 @@
 /**
 	* meta-usuario controller
 	*/
-	const { STRIPE_PUBLIC_KEY, STRIPE_SECRET_KEY, STRIPE_URL, STRIPE_ID_CLIENT, STRIPE_WEBHOOK_SECRET, REMOTE_URL, PAYPAL_ID_CLIENT, PAYPAL_SECRET_KEY, PAYPAL_URL } = process.env;
+	const { STRIPE_PUBLIC_KEY, STRIPE_SECRET_KEY, STRIPE_URL, STRIPE_ID_CLIENT, STRIPE_WEBHOOK_SECRET, REMOTE_URL, PAYPAL_ID_CLIENT, PAYPAL_SECRET_KEY, PAYPAL_URL, URL } = process.env;
 const stripe = require("stripe")(STRIPE_SECRET_KEY);
 
 const axios = require("axios");
@@ -242,8 +242,8 @@ module.exports = createCoreController(
 	
 				const link = await stripe.accountLinks.create({
 					account: account.id,
-					refresh_url: `https://example.com/reauth?account_id=${account.id}`,
-					return_url: `https://example.com/return?account_id=${account.id}`,
+					refresh_url: `https://example.com/reauth?account_id=${account.id}&user_id=${user.id}`,
+					return_url: `${URL}/meta-usuario/stripe-connect/callback?account_id=${account.id}&user_id=${user.id}`,
 					type: 'account_onboarding',
 				});
 	
@@ -319,18 +319,40 @@ module.exports = createCoreController(
 			//	console.log(error);
 				console.log(error.response);
 			}
+		},
+
+
+		async stripeConnectCallback(ctx) {
+
+
+			try {
+
+				
+				// saco de la url los parametros account_id y user_id
+
+				const account_id = ctx.request.query.account_id;
+
+				const user_id = ctx.request.query.user_id;
+
+				if(!account_id || !user_id){
+
+					return ctx.badRequest("No se recibieron los parametros account_id y user_id", { message: "No se recibieron los parametros account_id y user_id" });
+
+				}
 
 
 
-
-
-
-
-
-			
-
-
+	
+				return ctx.send({ meta });
+	
+			} catch (error) {
+				console.log(error);
+			}
 
 		}
+
+		
+
+
 	})
 );

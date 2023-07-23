@@ -28,5 +28,11 @@ module.exports = {
 				path: "/meta-usuario/paypal-connect",
 				handler: "meta-usuario.paypalConnect",
 			},						
+
+			{
+				method: "GET",
+				path: "/meta-usuario/stripe-connect/callback",
+				handler: "meta-usuario.stripeConnectCallback",
+			}
 	],
 };
