@@ -200,10 +200,10 @@ module.exports = createCoreController(
 	
 				// verifico que no tenga ya una cuenta creada con el campo stripe_account_id
 				let account  ="";
-				if (meta.stripe_account_id_status == "completed") {
+				if (meta.stripe_account_id_state == "completed") {
 	
 					return ctx.badRequest("Ya tienes una cuenta creada", { message: "Ya tienes una cuenta creada" });
-				}else if(meta.stripe_account_id_status == "pending"){
+				}else if(meta.stripe_account_id_state == "pending"){
 	
 					account = await stripe.accounts.retrieve(meta.stripe_account_id);
 	
@@ -228,7 +228,7 @@ module.exports = createCoreController(
 					.update(
 							{
 									where: { usuario: user.id },
-									data: { stripe_account_id: account.id , stripe_account_id_status: "pending" }
+									data: { stripe_account_id: account.id , stripe_account_id_state: "pending" }
 							}
 					);
 	
