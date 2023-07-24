@@ -33,6 +33,11 @@ module.exports = {
 				method: "GET",
 				path: "/meta-usuario/stripe-connect/callback",
 				handler: "meta-usuario.stripeConnectCallback",
+			},
+			{
+				method: "GET",
+				path: "/meta-usuario/stripe-connect/refresh",
+				handler: "meta-usuario.stripeConnectRefresh",
 			}
 	],
 };
