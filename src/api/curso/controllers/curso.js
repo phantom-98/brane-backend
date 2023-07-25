@@ -1552,4 +1552,89 @@ console.log("ctx.query", ctx.query);
 
     return { data: entity, meta: {} };
   },
+
+  //modifico el controlador para editar la conferencia 
+  async editMeeting(ctx) {
+
+    // obtengo el usuario que está haciendo la petición
+
+    const user = ctx.state.user;
+
+    //verifico que el usuario este logueado  
+
+    if (!user) {
+      return ctx.unauthorized(`You can't edit this entry`);
+    }
+
+    //verifico que el usuario sea administrador o instructor
+
+    if (user.role.type != "administrador" && user.role.type != "instructor") {
+
+      return ctx.unauthorized(`You can't edit this entry`);
+
+    }
+
+    // obtengo el id del curso que se quiere consultar
+
+    const { id } = ctx.params;
+
+    // consulto si el curso que se quiere consultar existe traigo solo id el titulo y el instructor
+
+    const conferencia = await strapi.db.query("api::curso.curso").findOne({
+      // uid syntax: 'api::api-name.content-type-name'
+      where: {
+        id,
+      },
+
+      select: ["id", "titulo", "instructor"],
+    });
+
+    // si el curso no existe, retorno error 404 not found
+
+    if (!conferencia) {
+
+      return ctx.notFound();
+
+    }
+
+    //verifico que el usuario sea el instructor del curso
+
+    if (user.id != conferencia.instructor.id) {
+
+      return ctx.unauthorized(`You can't edit this entry`);
+
+    }
+
+    //obtengo los datos que se quieren editar
+
+    const { meetingId, meetingPassword } = ctx.request.body;
+
+    //verifico que los datos no esten vacios
+
+    if (!meetingId || !meetingPassword) {
+
+      return ctx.badRequest(null, "Debe enviar los datos de la conferencia");
+
+    }
+
+    //actualizo los datos de la conferencia
+
+    const entity = await strapi.db.query("api::curso.curso").update({
+
+      where: { id },
+
+      data: { meetingId, meetingPassword },
+
+    });
+
+    return sanitizeEntity(entity, { model: strapi.models["curso"] });
+
+    
+
+
+
+
+
+  }
+
 }));

@@ -19,6 +19,23 @@ module.exports = {
         path: "/conferencia/ingresar/:id",
         handler: "curso.registerMeeting",
       },
+      //editar la conferencia
+
+      {
+        method: "PUT",
+        path: "/meetings/:id",
+        handler: "curso.editMeeting",
+
+      },
+
+      //eliminar la conferencia
+
+      {
+        method: "DELETE",
+        path: "/conferencia/eliminar/:id",
+        handler: "curso.deleteMeeting",
+
+      },
 
     ]
   };
