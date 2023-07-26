@@ -472,6 +472,8 @@ console.log("ctx.query", ctx.query);
            // timezone: "America/Argentina/Buenos_Aires",
             password:   ctx.request.body.data.password, 
             agenda: ctx.request.body.data.shortDescription,
+            
+
 
            /* recurrence: {
               type: 2,  // Semanal
@@ -497,7 +499,7 @@ console.log("ctx.query", ctx.query);
 
               use_pmi: false,
 
-              approval_type: 1,
+              approval_type: 2,
 
               audio: "both",
 
@@ -505,11 +507,11 @@ console.log("ctx.query", ctx.query);
 
               enforce_login: false,
 
-              registrants_email_notification: true,
+              registrants_email_notification: false,
 
               waiting_room: false,
 
-              registrants_confirmation_email: true,
+              registrants_confirmation_email: false,
 
               alternative_hosts: "",
 
@@ -523,7 +525,9 @@ console.log("ctx.query", ctx.query);
 
               registrants_restrict_email: 0,
 
-              meeting_authentication: false,
+              meeting_authentication: true,
+
+              private_meeting: true,
 
               authentication_option: "",
 
@@ -1634,6 +1638,10 @@ console.log("ctx.query", ctx.query);
 
 
 
+
+  },
+
+  async deleteMeeting(ctx) {
 
   }
 
