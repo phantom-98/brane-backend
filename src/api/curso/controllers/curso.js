@@ -566,11 +566,6 @@ console.log("ctx.query", ctx.query);
 
           }
 
-
-
-
-
-
           ctx.request.body.data.conference = conference;
 
 
@@ -1589,8 +1584,7 @@ console.log("ctx.query", ctx.query);
       where: {
         id,
       },
-
-      select: ["id", "titulo", "instructor"],
+      populate: { instructor: true, id: true, titulo: true },
     });
 
     // si el curso no existe, retorno error 404 not found
@@ -1609,34 +1603,53 @@ console.log("ctx.query", ctx.query);
 
     }
 
-    //obtengo los datos que se quieren editar
+    let accessToken = await this.getZoomAccessToken();
 
-    const { meetingId, meetingPassword } = ctx.request.body;
 
-    //verifico que los datos no esten vacios
 
-    if (!meetingId || !meetingPassword) {
+    const response = await axios.path(`${ZOOM_URL}/users/me/meetings`, {
+      topic: ctx.request.body.data.name,
+      type: 2,
+      start_time: ctx.request.body.data.fecha,
+      duration: ctx.request.body.data.duracion,
 
-      return ctx.badRequest(null, "Debe enviar los datos de la conferencia");
+     // timezone: "America/Argentina/Buenos_Aires",
+      password:   ctx.request.body.data.password, 
+      agenda: ctx.request.body.data.shortDescription,
+      
+      
 
-    }
+    }, {
 
-    //actualizo los datos de la conferencia
-
-    const entity = await strapi.db.query("api::curso.curso").update({
-
-      where: { id },
-
-      data: { meetingId, meetingPassword },
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      }
 
     });
 
-    return sanitizeEntity(entity, { model: strapi.models["curso"] });
 
+    let conference = {
+
+      "ZoomMeetingID": response.data.id.toString(),
+      "ZoomURL": response.data.join_url,
+      "ZoomPassword": response.data.password,
+      "ZoomStart": response.data.start_time,
+      "ZoomDuration": response.data.duration.toString(),
+      "state": "scheduled",
+      "meetingRAW": JSON.stringify(response.data),
+
+
+    }
+
+    ctx.request.body.data.conference = conference;
+
+
+    //retorno la conferencia editada en zoom 
+
+
+    return response.data;
     
-
-
-
 
 
   },

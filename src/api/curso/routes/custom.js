@@ -22,7 +22,7 @@ module.exports = {
       //editar la conferencia
 
       {
-        method: "PUT",
+        method: "PATCH",
         path: "/meetings/:id",
         handler: "curso.editMeeting",
 
