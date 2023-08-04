@@ -36,6 +36,14 @@ module.exports = {
         handler: "curso.deleteMeeting",
 
       },
+      {
+        method: "POST",
+        path: "/conferencia/verificar/acceso",
+        handler: "curso.getAccessZommMeeting",
 
+
+        
+
+      }
     ]
   };

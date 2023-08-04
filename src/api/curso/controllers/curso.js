@@ -5,7 +5,7 @@
  */
 
 const { createCoreController } = require("@strapi/strapi").factories;
-const jwt = require('jsonwebtoken');
+const crypto = require('crypto')
 const qs = require('qs');
 const axios = require("axios");
 const { ZOOM_ACCOUNT_ID, ZOOM_CLIENT_ID, ZOOM_CLIENT_SECRET, ZOOM_SECRET_TOKEN, ZOOM_VERIFICATION_TOKEN, ZOOM_URL } = process.env;
@@ -15,7 +15,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
   async find(ctx) {
     // some custom logic here
     ctx.query = { ...ctx.query, local: "en", populate: '*' };
-console.log("ctx.query", ctx.query);
+    console.log("ctx.query", ctx.query);
     // Calling the default core action
     const { data, meta } = await super.find(ctx);
 
@@ -23,7 +23,7 @@ console.log("ctx.query", ctx.query);
     //console.log("DATA", data);
     for (let i = 0; i < data.length; i++) {
       const curso = data[i];
-     // console.log("CURSO", data[i]);
+      // console.log("CURSO", data[i]);
       curso.attributes.instructor = await strapi.db
         .query("plugin::users-permissions.user")
         .findOne({
@@ -469,17 +469,17 @@ console.log("ctx.query", ctx.query);
             start_time: ctx.request.body.data.fecha,
             duration: ctx.request.body.data.duracion,
 
-           // timezone: "America/Argentina/Buenos_Aires",
-            password:   ctx.request.body.data.password, 
+            timezone: ctx.request.body.data.timezone, 
+            password: ctx.request.body.data.password,
             agenda: ctx.request.body.data.shortDescription,
-            
 
 
-           /* recurrence: {
-              type: 2,  // Semanal
-              repeat_interval: 1,  // Cada semana
 
-            },*/
+            /* recurrence: {
+               type: 2,  // Semanal
+               repeat_interval: 1,  // Cada semana
+ 
+             },*/
 
             settings: {
 
@@ -499,7 +499,7 @@ console.log("ctx.query", ctx.query);
 
               use_pmi: false,
 
-              approval_type: 2,
+              approval_type: 1,
 
               audio: "both",
 
@@ -509,11 +509,10 @@ console.log("ctx.query", ctx.query);
 
               registrants_email_notification: false,
 
-              waiting_room: false,
+              waiting_room: true,
 
               registrants_confirmation_email: false,
 
-              alternative_hosts: "",
 
               global_dial_in_countries: [],
 
@@ -527,17 +526,10 @@ console.log("ctx.query", ctx.query);
 
               meeting_authentication: true,
 
-              private_meeting: true,
-
-              authentication_option: "",
-
-              authentication_domains: "",
-
-              authentication_name: "",
-
               show_share_button: false,
 
               allow_multiple_devices: false,
+              registration_type : 2,
 
               encryption_type: "enhanced_encryption",
 
@@ -601,8 +593,8 @@ console.log("ctx.query", ctx.query);
   async registerMeeting(ctx) {
 
     try {
-      
-      let {user} = ctx.state;
+
+      let { user } = ctx.state;
 
       if (!user) {
         return ctx.unauthorized(`Not authorized`);
@@ -618,14 +610,14 @@ console.log("ctx.query", ctx.query);
 
       const curso = await strapi.entityService.findOne("api::curso.curso", id, {
 
-        populate :["conference","instructor"],
-        fields : ["id", "tipo"]
+        populate: ["conference", "instructor"],
+        fields: ["id", "tipo"]
 
-        
-        
+
+
       });
 
-      console.log("curso",curso);
+      console.log("curso", curso);
 
       if (!curso || curso.tipo != "conferencia" || !curso.conference) {
 
@@ -633,16 +625,16 @@ console.log("ctx.query", ctx.query);
 
       }
 
-     /* const misCursos = await strapi.db
-      .query("api::mis-curso.mis-curso")
-      .findOne({ where: { curso: id, usuario: user.id } });
-
-
-      console.log("misCursos",misCursos);
-
-      if (!misCursos && user.id != curso.instructor.id && user.role.type != "administrador") {
-        return ctx.unauthorized(`You can't create this entry`);
-      }*/
+      /* const misCursos = await strapi.db
+       .query("api::mis-curso.mis-curso")
+       .findOne({ where: { curso: id, usuario: user.id } });
+ 
+ 
+       console.log("misCursos",misCursos);
+ 
+       if (!misCursos && user.id != curso.instructor.id && user.role.type != "administrador") {
+         return ctx.unauthorized(`You can't create this entry`);
+       }*/
 
 
       const { ZoomMeetingID, ZoomPassword } = curso.conference;
@@ -671,10 +663,10 @@ console.log("ctx.query", ctx.query);
       });
 
 
-      return response.data ;
+      return response.data;
 
 
-       
+
     } catch (error) {
       console.log(error);
     }
@@ -701,7 +693,6 @@ console.log("ctx.query", ctx.query);
         }
       });
       //ZOOM_ACCOUNT_ID, ZOOM_CLIENT_ID, ZOOM_CLIENT_SECRET, ZOOM_SECRET_TOKEN, ZOOM_VERIFICATION_TOKEN,ZOOM_UR
-      console.log('Token de acceso de Zoom:', response.data);
 
       return response.data.access_token;
     } catch (error) {
@@ -1613,11 +1604,12 @@ console.log("ctx.query", ctx.query);
       start_time: ctx.request.body.data.fecha,
       duration: ctx.request.body.data.duracion,
 
-     // timezone: "America/Argentina/Buenos_Aires",
-      password:   ctx.request.body.data.password, 
+      // timezone: "America/Argentina/Buenos_Aires",
+      password: ctx.request.body.data.password,
       agenda: ctx.request.body.data.shortDescription,
       
-      
+
+
 
     }, {
 
@@ -1649,13 +1641,190 @@ console.log("ctx.query", ctx.query);
 
 
     return response.data;
-    
+
 
 
   },
 
   async deleteMeeting(ctx) {
 
+  },
+
+  async getAccessZommMeeting(ctx) {
+
+    const message = `v0:${ctx.request.headers['x-zm-request-timestamp']}:${JSON.stringify(ctx.request.body)}`
+
+    const hashForVerify = crypto.createHmac('sha256', ZOOM_SECRET_TOKEN).update(message).digest('hex')
+
+    const signature = `v0=${hashForVerify}`;
+
+    if (ctx.request.headers['x-zm-signature'] !== signature) {
+
+      // lanzo error 401 unauthorized
+
+      return ctx.unauthorized(`You can't edit this entry`);
+    }
+
+    let { event , payload } = ctx.request.body;
+
+
+
+    if (event === 'endpoint.url_validation') {
+
+      const { plainToken } = payload.plainToken;
+
+
+
+      const hashForValidate = crypto.createHmac('sha256', ZOOM_SECRET_TOKEN).update(plainToken).digest('hex')
+      ctx.send({
+        "plainToken": plainToken,
+        "encryptedToken": hashForValidate
+      })
+    }else if(event === 'meeting.started'){
+
+      console.log("meeting.started");
+
+
+      try {
+        const { object } = ctx.request.body.payload;
+
+        // consulto el curso por el id de la conferencia usando strapi entity manager
+  
+        let entry = await strapi.entityService.findMany("api::curso.curso",
+  
+          {
+            filters: { 
+              conference:{
+  
+                ZoomMeetingID :{
+                  $eq: object.id
+                }
+              }
+            },
+            fields: ['status','name', 'slug']
+          }
+         
+  
+        );
+
+        // llega un  array uso el primer elemento
+
+        entry = entry[0];
+  
+  
+        //
+  
+        if (!entry) {
+  
+          return ctx.notFound();
+  
+        }
+  
+        // busco todas las personas que estan inscritas en el curso y les creo una notificacion
+  
+        const misCursos = await strapi.db.query("api::mis-curso.mis-curso").findMany({
+  
+          where: { curso: entry.id },
+  
+          populate: true
+  
+        });
+
+        if (!misCursos) {
+  
+          return ctx.notFound();
+  
+        }
+
+
+        // le cambio el estado al curso
+
+        await strapi.entityService.update("api::curso.curso",entry.id  ,{
+
+          
+
+          data: { conference: { state: "in_progress" }  }
+
+        });
+  
+  
+       misCursos.forEach(async (misCurso) => {
+  
+          await strapi.db.query("api::notificacion.notificacion").create({
+  
+            data:{
+              user: misCurso.usuario.id,
+            tipo: "aviso",
+            descripcion: `La conferencia ${entry.name} ha comenzado`,
+  
+            estado: false,
+            fecha: new Date(),
+  
+            url: `/curso/${misCurso.curso.id}/clase/${entry.id}`
+            }
+  
+          });
+  
+        });
+  
+    
+  
+        return ctx.send({
+  
+          "data": entry
+        });
+  
+      } catch (error) {
+         console.log(error);
+
+        // retorno error 500
+
+        return ctx.badRequest('Ha ocurrido un error', { message: error });
+
+      }
+
+
+
+
+
+
+
+
+
+    }else if(event === 'meeting.participant_joined_waiting_room'){
+
+
+      console.log("meeting.participant_joined_waiting_room");
+
+      console.log(payload);
+
+
+
+    }else if(event === 'meeting.participant_joined'){
+
+
+      console.log("meeting.participant_joined");
+
+
+      console.log(payload);
+
+
+    }else {
+
+      console.log("otro evento", event);
+
+      console.log(payload);
+
+    }
+
+
+
+    return ctx.send({
+      "data": "ok"
+    });
+
   }
+
+
 
 }));

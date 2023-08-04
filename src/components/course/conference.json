@@ -7,7 +7,8 @@
   "options": {},
   "attributes": {
     "ZoomMeetingID": {
-      "type": "string"
+      "type": "string",
+      "unique": false
     },
     "ZoomURL": {
       "type": "string"
