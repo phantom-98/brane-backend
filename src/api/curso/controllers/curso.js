@@ -1596,16 +1596,29 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
     let accessToken = await this.getZoomAccessToken();
 
+    //obtengo el ZoomMeetingId de la conferencia 
+
+    let conferenceId = await strapi.entityService.findOne ('api::curso.curso', id, {
+     
+      populate: {conference: true}
+
+      
+    });
+
+   
+    let zoomMeetingId = conferenceId.conference.ZoomMeetingID;
+
+    //console.log("ZoomMeetingId", conferenceId.conference.ZoomMeetingID);
 
 
-    const response = await axios.path(`${ZOOM_URL}/users/me/meetings`, {
-      topic: ctx.request.body.data.name,
-      type: 2,
-      start_time: ctx.request.body.data.fecha,
+
+    const response = await axios.patch(`${ZOOM_URL}/meetings/${zoomMeetingId}`, {
+      //topic: ctx.request.body.data.name,
+      //start_time: ctx.request.body.data.fecha,
       duration: ctx.request.body.data.duracion,
 
       // timezone: "America/Argentina/Buenos_Aires",
-      password: ctx.request.body.data.password,
+      // password: ctx.request.body.data.password,
       agenda: ctx.request.body.data.shortDescription,
       
 
@@ -1620,12 +1633,10 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
     });
 
-
+    console.log("response", response);
     let conference = {
 
-      "ZoomMeetingID": response.data.id.toString(),
-      "ZoomURL": response.data.join_url,
-      "ZoomPassword": response.data.password,
+      //"ZoomPassword": response.data.password,
       "ZoomStart": response.data.start_time,
       "ZoomDuration": response.data.duration.toString(),
       "state": "scheduled",
