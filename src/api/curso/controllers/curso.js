@@ -1610,7 +1610,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
     //console.log("ZoomMeetingId", conferenceId.conference.ZoomMeetingID);
 
-console.log(ctx.request.body.data);
+//console.log(ctx.request.body.data);
 
     const response = await axios.patch(`${ZOOM_URL}/meetings/${zoomMeetingId}`, {
       topic: ctx.request.body.data.name,
@@ -1653,7 +1653,7 @@ console.log(ctx.request.body.data);
     //retorno la conferencia editada en zoom 
 
 
-    return response.data;
+    return ctx.send({message: "Conferencia editada con éxito"});
 
 
 
@@ -1661,6 +1661,88 @@ console.log(ctx.request.body.data);
 
   async deleteMeeting(ctx) {
 
+    // obtengo el usuario que está haciendo la petición
+
+    const user = ctx.state.user;
+
+    //verifico que el usuario este logueado  
+
+    if (!user) {
+      return ctx.unauthorized(`You can't edit this entry`);
+    }
+
+    //verifico que el usuario sea administrador o instructor
+
+    if (user.role.type != "administrador" && user.role.type != "instructor") {
+
+      return ctx.unauthorized(`You can't edit this entry`);
+
+    }
+
+    // obtengo el id del curso que se quiere consultar
+
+    const { id } = ctx.params;
+
+    // consulto si el curso que se quiere consultar existe traigo solo id el titulo y el instructor
+
+    const conferencia = await strapi.db.query("api::curso.curso").findOne({
+      // uid syntax: 'api::api-name.content-type-name'
+      where: {
+        id,
+      },
+      populate: { instructor: true, id: true, titulo: true },
+    });
+
+    // si el curso no existe, retorno error 404 not found
+
+    if (!conferencia) {
+
+      return ctx.notFound();
+
+    }
+
+    //verifico que el usuario sea el instructor del curso
+
+    if (user.id != conferencia.instructor.id) {
+
+      return ctx.unauthorized(`You can't edit this entry`);
+
+    }
+
+    let accessToken = await this.getZoomAccessToken();
+
+    let conferenceId = await strapi.entityService.findOne ('api::curso.curso', id, {
+     
+      populate: {conference: true}
+
+      
+    });
+
+    let zoomMeetingId = conferenceId.conference.ZoomMeetingID;
+    console.log(zoomMeetingId);
+
+    //elimino la conferencia en zoom
+
+    await axios.delete(`${ZOOM_URL}/meetings/${zoomMeetingId}`,{
+
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      }
+
+    }); 
+
+    //elimino el curso de la base de datos
+
+    await strapi.db.query("api::curso.curso").delete({
+      where:{
+        id: id
+      }
+
+    })
+
+
+    return ctx.send({message: "Conferencia eliminada con éxito"});
   },
 
   async getAccessZommMeeting(ctx) {
