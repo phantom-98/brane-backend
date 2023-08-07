@@ -1610,15 +1610,14 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
     //console.log("ZoomMeetingId", conferenceId.conference.ZoomMeetingID);
 
-
+console.log(ctx.request.body.data);
 
     const response = await axios.patch(`${ZOOM_URL}/meetings/${zoomMeetingId}`, {
-      //topic: ctx.request.body.data.name,
-      //start_time: ctx.request.body.data.fecha,
+      topic: ctx.request.body.data.name,
+      start_time: ctx.request.body.data.fecha,
       duration: ctx.request.body.data.duracion,
-
-      // timezone: "America/Argentina/Buenos_Aires",
-      // password: ctx.request.body.data.password,
+      timezone: "America/Argentina/Buenos_Aires",
+      //password: ctx.request.body.data.password,
       agenda: ctx.request.body.data.shortDescription,
       
 
@@ -1633,14 +1632,17 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
     });
 
-    console.log("response", response);
+    // busco la conferencia en zoom para actualizar en mi base de datos
+
+    
+
     let conference = {
 
       //"ZoomPassword": response.data.password,
-      "ZoomStart": response.data.start_time,
-      "ZoomDuration": response.data.duration.toString(),
+      "ZoomStart": ctx.request.body.data.fecha,
+      "ZoomDuration": ctx.request.body.data.duracion,
       "state": "scheduled",
-      "meetingRAW": JSON.stringify(response.data),
+      
 
 
     }
