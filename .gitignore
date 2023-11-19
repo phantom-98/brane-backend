@@ -127,3 +127,4 @@ src/extensions/users-permissions/documentation/1.0.0/users-permissions.json
 src/api/meta-company/documentation/1.0.0/meta-company.json
 src/api/company-user/documentation/1.0.0/company-user.json
 package-lock.json
+front/

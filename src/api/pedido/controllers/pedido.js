@@ -5,7 +5,7 @@
 	*/
 
 const { createCoreController } = require('@strapi/strapi').factories;
-const { STRIPE_PUBLIC_KEY, STRIPE_SECRET_KEY, STRIPE_URL, STRIPE_ID_CLIENT, STRIPE_WEBHOOK_SECRET, REMOTE_URL, PAYPAL_ID_CLIENT, PAYPAL_SECRET_KEY, PAYPAL_URL, PAYPAL_WEBHOOK_ID } = process.env;
+const { STRIPE_PUBLIC_KEY, STRIPE_SECRET_KEY, STRIPE_URL, STRIPE_ID_CLIENT, STRIPE_WEBHOOK_SECRET, REMOTE_URL, PAYPAL_ID_CLIENT, PAYPAL_SECRET_KEY, PAYPAL_URL, PAYPAL_WEBHOOK_ID,URL_FRONT } = process.env;
 const stripe = require('stripe')(STRIPE_SECRET_KEY);
 const unparsed = require("koa-body/unparsed.js");
 const axios = require('axios');
@@ -20,377 +20,163 @@ module.exports = createCoreController(
 		//modifico el metodo create para que cuando se cree mis curso se agregue el campo progress con valor 0
 		async create(ctx) {
 			const user = ctx.state.user;
-
-
-
-
 			if (!user) {
-
-				return ctx.unauthorized("No tienes permiso", { error: 'No autorizado' });
+							return ctx.unauthorized("No tienes permiso", { error: 'No autorizado' });
 			}
-
 
 			let { cursos, redirect } = ctx.request.body.data;
 
-
-
-
-			// si no hay cursos
-
 			if (!cursos) {
-
-				return ctx.notFound("Revisa la información enviada", { error: 'No hay cursos' });
-
+							return ctx.notFound("Revisa la información enviada", { error: 'No hay cursos' });
 			}
-
-			// verifico que el usuario no tiene el curso comprado
 
 			for (let i = 0; i < cursos.length; i++) {
+							let mis_curso = await strapi.db.query("api::mis-curso.mis-curso").findOne({
+											where: { usuario: user.id, curso: cursos[i].curso }
+							});
 
-				let mis_curso = await strapi.db.query("api::mis-curso.mis-curso").findOne({
-
-					where: { usuario: user.id, curso: cursos[i].curso }
-
-				});
-
-				if (mis_curso) {
-
-					return ctx.badRequest(`Curso ya comprado previamente `, { error: 'Uno o más cursos ya se encuentran en tu biblioteca' })
-
-					return ctx.badRequest({ error: 'Ya tienes el curso comprado' });
-
-				}
-
+							if (mis_curso) {
+											return ctx.badRequest(`Curso ya comprado previamente `, { error: 'Uno o más cursos ya se encuentran en tu biblioteca' })
+							}
 			}
-
-			// verifico que el usuario no tiene el curso comprado
-
-
-
-			// recorro los cursos  y calculo el monto total verifico si tienen descuento y si tienen descuento calculo el monto total con el descuento o cupon asociado
-
 
 			let monto_centimos = 0;
-
-			// defino el array de line_items para enviar a stripe
 			let line_items = [];
-
 			let discount_total = 0;
-			// defino el array de destinations (instructores) para enviar a stripe
-
 			let destinations = [];
-
-			// defino el total	de la comision de brane
-
 			let total = 0;
-
 			let transfer_group = uuidv4();
 
+			// Función para convertir montos a centavos
+			const convertirACentimos = (monto) => Math.round(monto * 100);
+
 			for (let i = 0; i < cursos.length; i++) {
-
-				let monto_curso = 0;
-
-				let discount = 0;
-
-				let monto_curso_descuento_porcentual = 0;
-				let monto_curso_descuento_fijo = 0;
-
-
-
-
-				let curso = await strapi.db.query("api::curso.curso").findOne({
-
-					where: { id: cursos[i].curso },
-					populate: ['instructor', 'imagen'],
-					select: ['precio', 'precioDescuento', 'cupon_descuento', "name"]
-
-
-				});
-
-
-
-
-
-
-
-				if (!curso) {
-
-					return ctx.notFound(`No existe el curso`, { error: 'No existe el curso' });
-				}
-
-
-				if (cursos[i].cupon) {
-
-
-
-					// busco cupon en la base de datos por nombre y  curso
-
-
-					let cupon = await strapi.db.query("api::cupon.cupon").findOne({
-
-						where: { slug: cursos[i].cupon, cursos: cursos[i].curso }
-					});
-
-
-
-					if (!cupon) {
-
-						return ctx.notFound(`No existe el cupon`, { error: 'No existe el cupon' });
-					}
-
-					if (cupon.estado !== true) {
-
-						return ctx.badRequest("Cupón no disponible", { error: 'El cupon no esta activo' });
-
-					}
-
-
-
-					if (cupon.tipo == 'porcentaje') {
-
-						// calculo el monto del curso	con el descuento del cupon
-
-						monto_curso = this.formatearMontos(curso.precio);
-
-						// calculo el descuento del curso con el cupon porcentual
-
-
-						cupon.valor = monto_curso * (cupon.valor / 100);
-
-
-						cupon.valor = this.formatearMontos(cupon.valor);
-
-						monto_curso_descuento_porcentual = cupon.valor;
-
-
-						monto_curso = monto_curso - monto_curso_descuento_porcentual;
-
-						discount = monto_curso_descuento_porcentual;
-
-
-					} else {
-
-						// calculo el monto del curso	con el descuento del cupon
-
-						monto_curso = this.formatearMontos(curso.precio);
-
-						monto_curso_descuento_fijo = this.formatearMontos(cupon.valor);
-
-						monto_curso = monto_curso - monto_curso_descuento_fijo;
-
-						discount = monto_curso_descuento_fijo;
-
-
-
-
-					}
-
-				} else if (curso.precioDescuento) {
-
-					console.log("DESCUENTO");
-
-					monto_curso = this.formatearMontos(curso.precio);
-
-					monto_curso = this.formatearMontos(curso.precioDescuento);
-
-					discount = monto_curso_descuento_fijo;
-
-
-
-				} else {
-
-					console.log("SIN DESCUENTO");
-
-					monto_curso = this.formatearMontos(curso.precio);
-
-				}
-
-				// convierto los montos a centimos
-
-				console.log("monto_curso_antes", monto_curso);
-				monto_curso = monto_curso * 100;
-
-				console.log("monto_curso_antesx100", monto_curso);
-				monto_curso_descuento_porcentual = monto_curso_descuento_porcentual * 100;
-
-				monto_curso_descuento_fijo = monto_curso_descuento_fijo * 100;
-
-
-				// defino una variable de descuento para enviar a stripe	donde esté cuañlqueira de los 3 descuentos disponibles. 
-
-
-
-
-				discount = discount * 100;
-
-				// sumo el descuento total
-
-
-				discount_total += discount;
-
-
-
-
-				monto_centimos += monto_curso;
-
-				monto_centimos = this.formatearMontos(monto_centimos);
-
-
-
-
-				let stripe_account_id = await strapi.db.query("api::meta-usuario.meta-usuario").findOne({
-
-					where: { usuario: curso.instructor.id },
-
-					select: ['stripe_account_id']
-
-				});
-
-
-
-
-
-
-				line_items.push({
-					price_data: {
-
-						currency: 'usd',
-
-						product_data: {
-
-							name: curso.name,
-
-							images: curso.imagen ? [`${REMOTE_URL}${curso.imagen[0].url}`] : [],
-
-
-						},
-
-						unit_amount: monto_curso,
-
-						//			discount: discountObject
-
-
-
-					},
-					//	discount: discountObject,
-					quantity: 1
-
-				});
-
-
-
-
-				// agrego el instructor al array de destinations para enviar a stripe
-
-				destinations.push({
-
-					amount: monto_curso - Math.round(monto_curso * 0.2),
-					// coloco el 20% de la comision de brane asegurando quede un numero entero
-					application_fee_amount: Math.round(monto_centimos * 0.2),
-
-					account: stripe_account_id.stripe_account_id,
-
-				});
-
-
-
+							let monto_curso = 0;
+							let discount = 0;
+							let monto_curso_descuento_porcentual = 0;
+							let monto_curso_descuento_fijo = 0;
+							let curso = await strapi.db.query("api::curso.curso").findOne({
+											where: { id: cursos[i].curso },
+											populate: ['instructor', 'imagen'],
+											select: ['precio', 'precioDescuento', 'cupon_descuento', "name"]
+							});
+
+							if (!curso) {
+											return ctx.notFound(`No existe el curso`, { error: 'No existe el curso' });
+							}
+
+							if (cursos[i].cupon) {
+											let cupon = await strapi.db.query("api::cupon.cupon").findOne({
+															where: { slug: cursos[i].cupon, cursos: cursos[i].curso }
+											});
+
+											if (!cupon) {
+															return ctx.notFound(`No existe el cupon`, { error: 'No existe el cupon' });
+											}
+
+											if (cupon.estado !== true) {
+															return ctx.badRequest("Cupón no disponible", { error: 'El cupon no esta activo' });
+											}
+
+											if (cupon.tipo == 'porcentaje') {
+															monto_curso = this.formatearMontos(curso.precio);
+															cupon.valor = monto_curso * (cupon.valor / 100);
+															cupon.valor = this.formatearMontos(cupon.valor);
+															monto_curso_descuento_porcentual = cupon.valor;
+															monto_curso = monto_curso - monto_curso_descuento_porcentual;
+															discount = monto_curso_descuento_porcentual;
+											} else {
+															monto_curso = this.formatearMontos(curso.precio);
+															monto_curso_descuento_fijo = this.formatearMontos(cupon.valor);
+															monto_curso = monto_curso - monto_curso_descuento_fijo;
+															discount = monto_curso_descuento_fijo;
+											}
+							} else if (curso.precioDescuento) {
+											console.log("DESCUENTO");
+											monto_curso = this.formatearMontos(curso.precio);
+											monto_curso = this.formatearMontos(curso.precioDescuento);
+											discount = monto_curso_descuento_fijo;
+							} else {
+											console.log("SIN DESCUENTO");
+											monto_curso = this.formatearMontos(curso.precio);
+							}
+
+							// Convertir montos a centimos para Stripe
+							console.log("monto_curso_antes", monto_curso);
+							monto_curso = convertirACentimos(monto_curso);
+							console.log("monto_curso_antesx100", monto_curso);
+							monto_curso_descuento_porcentual = convertirACentimos(monto_curso_descuento_porcentual);
+							monto_curso_descuento_fijo = convertirACentimos(monto_curso_descuento_fijo);
+							discount = convertirACentimos(discount);
+							discount_total += discount;
+							monto_centimos += monto_curso;
+
+							let stripe_account_id = await strapi.db.query("api::meta-usuario.meta-usuario").findOne({
+											where: { usuario: curso.instructor.id },
+											select: ['stripe_account_id']
+							});
+
+							line_items.push({
+											price_data: {
+															currency: 'usd',
+															product_data: {
+																			name: curso.name,
+																			images: curso.imagen ? [`${REMOTE_URL}${curso.imagen[0].url}`] : [],
+															},
+															unit_amount: monto_curso,
+											},
+											quantity: 1
+							});
+
+							destinations.push({
+											amount: monto_curso - Math.round(monto_curso * 0.2),
+											application_fee_amount: Math.round(monto_curso * 0.2),
+											account: stripe_account_id.stripe_account_id,
+							});
 			}
-
 
 			const session = await stripe.checkout.sessions.create({
-				success_url: 'https://brane-app.netlify.app/successful-purchase/',
-				cancel_url: 'https://brane-app.netlify.app/payment-failure/',
-				line_items: line_items,
-				mode: 'payment',
-				customer_email: user.email,
-				payment_method_types: ['card'],
-
-			}
-
-			);
-
-
-			// si destinatarios tiene datos los serializo para enviarlos a la base de datos como un string
-
-
+							success_url: `${URL_FRONT}/successful-purchase/`,
+							cancel_url:`${URL_FRONT}/payment-failure/`,
+							line_items: line_items,
+							mode: 'payment',
+							customer_email: user.email,
+							payment_method_types: ['card'],
+			});
 
 			if (destinations.length > 0) {
-
-				destinations = JSON.stringify(destinations);
-
+							destinations = JSON.stringify(destinations);
 			} else {
-
-				destinations = null;
-
+							destinations = null;
 			}
-
-
-			// convierto la sesion en un string para enviarla a la base de datos llamda raw
-
 
 			let raw = JSON.stringify(session);
-
-
-
-
-
 			ctx.request.body.data = {
-
-				usuario: user.id,
-
-				cursos: cursos.map((curso) => curso.curso),
-
-				total: monto_centimos / 100,
-
-				subtotal: (monto_centimos + discount_total) / 100,
-
-				descuento: discount_total / 100,
-
-				cantidad: cursos.length,
-
-				estado: 'creado',
-
-				metodo_de_pago: 'stripe',
-
-				stripe_sesion_id: session.id,
-
-				destinatarios: destinations,
-				// monto_comision : monto_centimos - Math.round(monto_centimos * 0.2) , lo paso a string	para que no me de error en la base de datos
-
-				monto_comision: JSON.stringify((monto_centimos - Math.round(monto_centimos * 0.2)) / 100),
-
-
-				fee_comision: "20%",
-
-
-				raw: raw,
-
-				paymentInId: session.payment_intent
-
-
-
-
-
+							usuario: user.id,
+							cursos: cursos.map((curso) => curso.curso),
+							total: monto_centimos / 100,
+							subtotal: (monto_centimos + discount_total) / 100,
+							descuento: discount_total / 100,
+							cantidad: cursos.length,
+							estado: 'creado',
+							metodo_de_pago: 'stripe',
+							stripe_sesion_id: session.id,
+							destinatarios: destinations,
+							monto_comision: JSON.stringify((monto_centimos - Math.round(monto_centimos * 0.2)) / 100),
+							fee_comision: "20%",
+							raw: raw,
+							paymentInId: session.payment_intent
 			}
-
 
 			await super.create(ctx);
 
-
-			// redirecciono	al usuario a la pagina de pago de stripe
 			if (redirect) {
-
-				return ctx.response.redirect(session.url);
+							return ctx.response.redirect(session.url);
 			}
 
-
 			return ctx.send({ url: session.url });
+},
 
-
-
-
-
-		},
 
 		async paypalCreate(ctx) {
 
@@ -820,6 +606,169 @@ module.exports = createCoreController(
 
 		},
 
+		async cardnetCreate(ctx) {
+
+			const user = ctx.state.user;
+			if (!user) {
+							return ctx.unauthorized("No tienes permiso", { error: 'No autorizado' });
+			}
+
+			let { cursos, redirect } = ctx.request.body.data;
+
+			if (!cursos) {
+							return ctx.notFound("Revisa la información enviada", { error: 'No hay cursos' });
+			}
+
+			for (let i = 0; i < cursos.length; i++) {
+							let mis_curso = await strapi.db.query("api::mis-curso.mis-curso").findOne({
+											where: { usuario: user.id, curso: cursos[i].curso }
+							});
+
+							if (mis_curso) {
+											return ctx.badRequest(`Curso ya comprado previamente `, { error: 'Uno o más cursos ya se encuentran en tu biblioteca' })
+							}
+			}
+
+			let monto_centimos = 0;
+			let line_items = [];
+			let discount_total = 0;
+			let destinations = [];
+			let total = 0;
+			let transfer_group = uuidv4();
+
+			// Función para convertir montos a centavos
+			const convertirACentimos = (monto) => Math.round(monto * 100);
+
+			for (let i = 0; i < cursos.length; i++) {
+							let monto_curso = 0;
+							let discount = 0;
+							let monto_curso_descuento_porcentual = 0;
+							let monto_curso_descuento_fijo = 0;
+							let curso = await strapi.db.query("api::curso.curso").findOne({
+											where: { id: cursos[i].curso },
+											populate: ['instructor', 'imagen'],
+											select: ['precio', 'precioDescuento', 'cupon_descuento', "name"]
+							});
+
+							if (!curso) {
+											return ctx.notFound(`No existe el curso`, { error: 'No existe el curso' });
+							}
+
+							if (cursos[i].cupon) {
+											let cupon = await strapi.db.query("api::cupon.cupon").findOne({
+															where: { slug: cursos[i].cupon, cursos: cursos[i].curso }
+											});
+
+											if (!cupon) {
+															return ctx.notFound(`No existe el cupon`, { error: 'No existe el cupon' });
+											}
+
+											if (cupon.estado !== true) {
+															return ctx.badRequest("Cupón no disponible", { error: 'El cupon no esta activo' });
+											}
+
+											if (cupon.tipo == 'porcentaje') {
+															monto_curso = this.formatearMontos(curso.precio);
+															cupon.valor = monto_curso * (cupon.valor / 100);
+															cupon.valor = this.formatearMontos(cupon.valor);
+															monto_curso_descuento_porcentual = cupon.valor;
+															monto_curso = monto_curso - monto_curso_descuento_porcentual;
+															discount = monto_curso_descuento_porcentual;
+											} else {
+															monto_curso = this.formatearMontos(curso.precio);
+															monto_curso_descuento_fijo = this.formatearMontos(cupon.valor);
+															monto_curso = monto_curso - monto_curso_descuento_fijo;
+															discount = monto_curso_descuento_fijo;
+											}
+							} else if (curso.precioDescuento) {
+											console.log("DESCUENTO");
+											monto_curso = this.formatearMontos(curso.precio);
+											monto_curso = this.formatearMontos(curso.precioDescuento);
+											discount = monto_curso_descuento_fijo;
+							} else {
+											console.log("SIN DESCUENTO");
+											monto_curso = this.formatearMontos(curso.precio);
+							}
+
+							// Convertir montos a centimos para Stripe
+							console.log("monto_curso_antes", monto_curso);
+							monto_curso = convertirACentimos(monto_curso);
+							console.log("monto_curso_antesx100", monto_curso);
+							monto_curso_descuento_porcentual = convertirACentimos(monto_curso_descuento_porcentual);
+							monto_curso_descuento_fijo = convertirACentimos(monto_curso_descuento_fijo);
+							discount = convertirACentimos(discount);
+							discount_total += discount;
+							monto_centimos += monto_curso;
+
+							let stripe_account_id = await strapi.db.query("api::meta-usuario.meta-usuario").findOne({
+											where: { usuario: curso.instructor.id },
+											select: ['stripe_account_id']
+							});
+
+							line_items.push({
+											price_data: {
+															currency: 'usd',
+															product_data: {
+																			name: curso.name,
+																			images: curso.imagen ? [`${REMOTE_URL}${curso.imagen[0].url}`] : [],
+															},
+															unit_amount: monto_curso,
+											},
+											quantity: 1
+							});
+
+							destinations.push({
+											amount: monto_curso - Math.round(monto_curso * 0.2),
+											application_fee_amount: Math.round(monto_curso * 0.2),
+											account: stripe_account_id.stripe_account_id,
+							});
+			}
+
+			const session = await stripe.checkout.sessions.create({
+							success_url: `${URL_FRONT}/successful-purchase/`,
+							cancel_url:`${URL_FRONT}/payment-failure/`,
+							line_items: line_items,
+							mode: 'payment',
+							customer_email: user.email,
+							payment_method_types: ['card'],
+			});
+
+			if (destinations.length > 0) {
+							destinations = JSON.stringify(destinations);
+			} else {
+							destinations = null;
+			}
+
+			let raw = JSON.stringify(session);
+			ctx.request.body.data = {
+							usuario: user.id,
+							cursos: cursos.map((curso) => curso.curso),
+							total: monto_centimos / 100,
+							subtotal: (monto_centimos + discount_total) / 100,
+							descuento: discount_total / 100,
+							cantidad: cursos.length,
+							estado: 'creado',
+							metodo_de_pago: 'stripe',
+							stripe_sesion_id: session.id,
+							destinatarios: destinations,
+							monto_comision: JSON.stringify((monto_centimos - Math.round(monto_centimos * 0.2)) / 100),
+							fee_comision: "20%",
+							raw: raw,
+							paymentInId: session.payment_intent
+			}
+
+			await super.create(ctx);
+
+			if (redirect) {
+							return ctx.response.redirect(session.url);
+			}
+
+			return ctx.send({ url: session.url });
+
+
+
+		},
+
 		async checkout(ctx) {
 
 
@@ -827,7 +776,7 @@ module.exports = createCoreController(
 
 			const sig = ctx.request.headers['stripe-signature'];
 
-
+			console.log("sig", ctx.request.body[unparsed]);
 
 			let event;
 
@@ -917,18 +866,6 @@ module.exports = createCoreController(
 
 							});
 
-
-						// ASIGNO LOS CURSOS AL USUARIO  USANDO EL CONTROLADOR CREATED DE api::mis-curso.mis-curso
-
-						// busco el usuario que realizo el pedido
-
-
-
-						// busco los cursos que se compraron en el pedido
-
-						// recorro pedidos.cursos  y añado cada curso
-
-
 						for (let i = 0; i < pedido.cursos.length; i++) {
 
 							const curso = pedido.cursos[i];
@@ -943,10 +880,6 @@ module.exports = createCoreController(
 								progress: 0,
 
 							}
-
-							// busco el isntructor del curso 
-
-
 
 							let misCurso = await strapi.db.query("api::mis-curso.mis-curso").findOne({
 
@@ -964,8 +897,6 @@ module.exports = createCoreController(
 								where: { id: curso.id },
 								populate: ['instructor']
 							});
-
-							// añado el id del instructor al curso
 
 							data.instructor = curso1.instructor.id;
 
@@ -1321,22 +1252,9 @@ module.exports = createCoreController(
 		},
 
 		formatearMontos(monto) {
-
-			// recibo el monto, si es decimal retorno solo dos decimales, si es entero retorno el monto
-
-
-			if (monto % 1 === 0) {
-
-				return monto;
-
-			} else {
-
-				return monto.toFixed(0);
-
-			}
-
-
-		}
+			// Redondea el monto a dos decimales para manejo de montos monetarios
+			return Number(monto.toFixed(2));
+}
 
 
 	})

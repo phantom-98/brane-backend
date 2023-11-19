@@ -1,0 +1,42 @@
+{
+  "kind": "singleType",
+  "collectionName": "configs",
+  "info": {
+    "singularName": "config",
+    "pluralName": "configs",
+    "displayName": "config",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "tarifa_instructor_default": {
+      "type": "decimal",
+      "default": 40,
+      "max": 100,
+      "min": 0,
+      "private": true
+    },
+    "tarifa_marketing_instructor": {
+      "type": "decimal",
+      "default": 20,
+      "max": 100,
+      "min": 0,
+      "private": true
+    },
+    "tarifa_institucion": {
+      "displayName": "tarifa_institucion",
+      "type": "component",
+      "repeatable": false,
+      "component": "course.tarifa-institucion"
+    },
+    "pasarela_paises": {
+      "displayName": "pararelas_paises",
+      "type": "component",
+      "repeatable": false,
+      "component": "pararelas.pararelas-paises"
+    }
+  }
+}

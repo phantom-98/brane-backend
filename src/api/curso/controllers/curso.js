@@ -204,7 +204,10 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
   },
 
-  // modifico el delete para que solo los cursos puedan ser eliminados por el usuario que lo creó y por el adminisrador
+   verificarConstraseña(codigo) {
+    const regex = /^[a-zA-Z0-9@\-_.]{1,10}$/;
+    return regex.test(codigo);
+},// modifico el delete para que solo los cursos puedan ser eliminados por el usuario que lo creó y por el adminisrador
 
   async delete(ctx) {
     // obtengo el usuario que está haciendo la petición
@@ -372,7 +375,6 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
         const company = await strapi.db
           .query("plugin::users-permissions.user")
           .findOne({ where: { id: userPopulate.company.id }, populate: true });
-        console.log("COMPANY", company);
 
         // si la company es de tipo institucion creo campos nuevo al curso: logo de la institucion y nombre de la institucion
 
@@ -459,9 +461,17 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
         // SI tipo = conferencia, creo la conferencia en zoom
         if (ctx.request.body.data.tipo == "conferencia") {
 
+
+
           let accessToken = await this.getZoomAccessToken();
 
+          if(!this.verificarConstraseña(ctx.request.body.data.password)){
 
+            return ctx.badRequest("La contraseña debe tener entre 1 y 10 caracteres y solo puede contener letras, números y los siguientes caracteres especiales @ - _ .", {
+              error: "La contraseña debe tener entre 1 y 10 caracteres y solo puede contener letras, números y los siguientes caracteres especiales @ - _ ."
+            });
+
+          };
 
           const response = await axios.post(`${ZOOM_URL}/users/me/meetings`, {
             topic: ctx.request.body.data.name,

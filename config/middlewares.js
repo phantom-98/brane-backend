@@ -2,26 +2,25 @@ module.exports = [
   'strapi::errors',
   //'strapi::security',
   {
-         name: "strapi::security",
-         config: {
-           contentSecurityPolicy: {
-             directives: {
-               "script-src": ["'self'", "editor.unlayer.com"],
-               "frame-src": ["'self'", "editor.unlayer.com"],
-               "img-src": [
-                 "'self'",
-                 "data:",
-                 "cdn.jsdelivr.net",
-                 "strapi.io",
-                 "s3.amazonaws.com",
-               ],
-             },
-           },
-         },
-       },
-  // ...
-  'strapi::cors',
+    name: "strapi::security",
+    config: {
+      contentSecurityPolicy: {
+        directives: {
+          "script-src": ["'self'", "editor.unlayer.com"],
+          "frame-src": ["'self'", "editor.unlayer.com"],
+          "img-src": [
+            "'self'",
+            "data:",
+            "cdn.jsdelivr.net",
+            "strapi.io",
+            "s3.amazonaws.com",
+          ],
+        },
+      },
+    },
+  },
   'strapi::poweredBy',
+  'strapi::cors',
   'strapi::logger',
   'strapi::query',
   {
@@ -32,9 +31,8 @@ module.exports = [
       includeUnparsed: true,
     },
   },
- // 'global::stripe-webhook',
   'strapi::session',
   'strapi::favicon',
   'strapi::public',
-  
+
 ];

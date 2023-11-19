@@ -1452,6 +1452,39 @@ let cursos = [];
     
   }
 
+  plugin.controllers.user.getPaymentMethods = async (ctx) => {
+    const geoip = require('geoip-country');
+    console.log(ctx.headers["x-forwarded-for"]); // If using proxy, IP will be in an x-forwarded-for header
+    console.log(ctx.ip);
+    console.log(ctx.ips);
+
+
+  const ip = ctx.headers["x-forwarded-for"] || ctx.ip;
+
+  const geo = geoip.lookup(ip);
+
+  const country = geo.country;
+
+
+    let {pasarela_paises} = await strapi.service("api::config.config").find({
+      populate: '*'
+    });
+
+    pasarela_paises = pasarela_paises[country]
+
+    if(!pasarela_paises ){
+
+      pasarela_paises = {
+      "paypal": true
+      }
+
+    }
+    
+
+    return ctx.send({data: {ip: ip, geo: geo, data:pasarela_paises}});
+    
+  }
+
 
 
   plugin.routes["content-api"].routes.push(
@@ -1462,6 +1495,12 @@ let cursos = [];
       config: {
         prefix: "",
       },
+    },
+    {
+      method: "GET",
+      path: "/users/getPaymentMethods/",
+      handler: "user.getPaymentMethods",
+
     },
     {
       method: "GET",
@@ -1546,6 +1585,8 @@ let cursos = [];
       path: "/users/companyReport/",
       handler: "user.companyReport",
     },
+
+
   );
 
   return plugin;

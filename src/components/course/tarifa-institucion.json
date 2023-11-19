@@ -1,0 +1,30 @@
+{
+  "collectionName": "components_course_tarifa_institucions",
+  "info": {
+    "displayName": "tarifa_institucion",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "tarifa_brane": {
+      "type": "decimal",
+      "default": 20,
+      "max": 100,
+      "min": 0,
+      "private": true
+    },
+    "tarifa_profesor": {
+      "type": "decimal",
+      "default": 40,
+      "private": true,
+      "max": 100,
+      "min": 0
+    },
+    "tarifa_institucion": {
+      "type": "decimal",
+      "max": 100,
+      "min": 0,
+      "default": 40
+    }
+  }
+}

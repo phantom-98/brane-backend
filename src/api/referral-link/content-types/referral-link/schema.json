@@ -1,0 +1,30 @@
+{
+  "kind": "collectionType",
+  "collectionName": "referral_links",
+  "info": {
+    "singularName": "referral-link",
+    "pluralName": "referral-links",
+    "displayName": "Referral links"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "link": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "curso": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::curso.curso"
+    },
+    "instructor": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    }
+  }
+}

@@ -3,7 +3,7 @@
 /**
 	* meta-usuario controller
 	*/
-	const { STRIPE_PUBLIC_KEY, STRIPE_SECRET_KEY, STRIPE_URL, STRIPE_ID_CLIENT, STRIPE_WEBHOOK_SECRET, REMOTE_URL, PAYPAL_ID_CLIENT, PAYPAL_SECRET_KEY, PAYPAL_URL, URL } = process.env;
+	const { STRIPE_PUBLIC_KEY, STRIPE_SECRET_KEY, STRIPE_URL, STRIPE_ID_CLIENT, STRIPE_WEBHOOK_SECRET, REMOTE_URL, PAYPAL_ID_CLIENT, PAYPAL_SECRET_KEY, PAYPAL_URL, URL,URL_FRONT } = process.env;
 const stripe = require("stripe")(STRIPE_SECRET_KEY);
 
 const axios = require("axios");
@@ -171,7 +171,7 @@ module.exports = createCoreController(
 			try {
 				const user = ctx.state.user;
 
-				// verifico que sea usuario y tenga role instructor
+			console.log("USER", user.id);
 	
 				if (!user || user.role.id != 3) {
 					//ctx.response.status	= 401;
@@ -208,6 +208,17 @@ module.exports = createCoreController(
 				}else if(meta.stripe_account_id_state == "pending"){
 	
 					account = await stripe.accounts.retrieve(meta.stripe_account_id);
+
+					await strapi.db
+					.query("api::meta-usuario.meta-usuario")
+					.update(
+							{
+									where: { usuario: user.id },
+									data: { session_stripe_id: session_stripe_id }
+							}
+					);
+
+					meta.session_stripe_id = session_stripe_id;
 	
 				}else{
 					account = await stripe.accounts.create({
@@ -299,27 +310,27 @@ module.exports = createCoreController(
 					return ctx.badRequest("Ya tienes una cuenta creada", { message: "Ya tienes una cuenta creada" });
 				}
 
-				if (user.email != ctx.request.body.data.paypal_account_id) {
+				/*if (user.email != ctx.request.body.data.paypal_account_id) {
 
 					return ctx.badRequest("El email debe ser el mismo con el que se registró en la plataforma", { message: "El email no coincide" });
 
-				}
+				}*/
 
 
-				// la guardo en la base de datos
-
-
-			// borro todo del body menos el el paypal_account_id
-
-			ctx.request.body.data = { paypal_account_id: ctx.request.body.data.paypal_account_id };
+			ctx.request.body.data = { paypal_account_id: user.email };
 
 			ctx.params.id = meta.id;
 
-				return super.update(ctx);
+			await super.update(ctx);
+
+			return ctx.send({ message: "Cuenta vinculada correctamente", email: user.email });
+
+				
 	
 			} catch (error) {
 			//	console.log(error);
 				console.log(error.response);
+				return ctx.badRequest(error.response.data.message, { message: error.response.data.message });
 			}
 		},
 
@@ -339,7 +350,7 @@ module.exports = createCoreController(
 				const session_stripe_id = ctx.request.query.session_stripe_id;
 
 				if(!account_id || !user_id || !session_stripe_id){
-
+					return ctx.redirect(`${URL_FRONT}/payments?error=No se recibieron los parametros account_id y user_id`);
 					return ctx.badRequest("No se recibieron los parametros account_id y user_id", { message: "No se recibieron los parametros account_id y user_id" });
 
 				}
@@ -348,7 +359,7 @@ module.exports = createCoreController(
 
 				const user = await strapi.db.query("plugin::users-permissions.user").findOne({ where: { id: user_id } });
 				if(!user){
-
+					return ctx.redirect(`${URL_FRONT}/payments?error=No se encontró el usuario`);
 					return ctx.badRequest("No se encontró el usuario", { message: "No se encontró el usuario" });
 
 				}
@@ -360,6 +371,8 @@ module.exports = createCoreController(
 
 				if(!meta){
 
+					return ctx.redirect(`${URL_FRONT}/payments?error=No se encontró la meta del usuario`);
+
 					return ctx.badRequest("No se encontró la meta del usuario", { message: "No se encontró la meta del usuario" });
 
 				}
@@ -368,18 +381,19 @@ module.exports = createCoreController(
 				// verifico que no tenga ya una cuenta creada con el campo stripe_account_id
 
 				if (meta.stripe_account_id_state == "completed") {
-
+					return ctx.redirect(`${URL_FRONT}/payments?error=Ya tienes una cuenta creada`);
 					return ctx.badRequest("Ya tienes una cuenta creada", { message: "Ya tienes una cuenta creada" });
 
 				}
 
 
-				// verifico que session_stripe_id sea el mismo el de meta.session_stripe_id
+				console.log("META",meta.session_stripe_id)
+				console.log("SESSION STRIPE ID",session_stripe_id)
 
 
 				if (meta.session_stripe_id != session_stripe_id) {
-
-					return ctx.badRequest("No se encontró la meta del usuario", { message: "No se encontró la meta del usuario" });
+					return ctx.redirect(`${URL_FRONT}/payments?error=Los session_stripe_id no coinciden, reinicia el proceso de vinculación`);
+					return ctx.badRequest("Los session_stripe_id no coinciden", { message: "Los session_stripe_id no coinciden" });
 
 				}
 
@@ -387,8 +401,8 @@ module.exports = createCoreController(
 				// verifico que el acount_id sea el mismo que el de meta.stripe_account_id
 
 				if (meta.stripe_account_id != account_id) {
-
-					return ctx.badRequest("No se encontró la meta del usuario", { message: "No se encontró la meta del usuario" });
+					return ctx.redirect(`${URL_FRONT}/payments?error=stripe_account_id no coincide, reinicia el proceso de vinculación`);
+					return ctx.badRequest("stripe_account_id no coincide", { message: "stripe_account_id no coincide" });
 
 				}
 
@@ -417,8 +431,8 @@ module.exports = createCoreController(
 
 
 				if (account.details_submitted != true || account.charges_enabled != true || account.payouts_enabled != true) {
-
-					return ctx.badRequest("No se encontró la meta del usuario", { message: "No se encontró la meta del usuario" });
+					return ctx.redirect(`${URL_FRONT}/payments?error=Vinculación incompleta, el proceso de vinculación no se completó correctamente`);
+					return ctx.badRequest("Vinculación incompleta", { message: "Vinculación incompleta" });
 
 				}
 
@@ -429,9 +443,14 @@ module.exports = createCoreController(
 				
 
 
+				// redirecciono a URL_FRONTEND
+
+
+				return ctx.redirect(`${URL_FRONT}/payments?success=Vinculación exitosa`);
+
 
 	
-				return ctx.send({ meta });
+				
 	
 			} catch (error) {
 				console.log(error);
@@ -454,7 +473,7 @@ module.exports = createCoreController(
 				console.log("SESSION STRIPE ID",session_stripe_id)
 
 				if(!account_id || !user_id || !session_stripe_id){
-
+					return ctx.redirect(`${URL_FRONT}/payments?error=No se recibieron los parametros account_id y user_id`);
 					return ctx.badRequest("No se recibieron los parametros account_id y user_id", { message: "No se recibieron los parametros account_id y user_id" });
 
 				}
@@ -465,7 +484,7 @@ module.exports = createCoreController(
 
 				
 				if(!user){
-
+					return ctx.redirect(`${URL_FRONT}/payments?error=No se encontró el usuario`);
 					return ctx.badRequest("No se encontró el usuario", { message: "No se encontró el usuario" });
 
 				}
@@ -476,9 +495,11 @@ module.exports = createCoreController(
 
 				const meta = await strapi.db.query("api::meta-usuario.meta-usuario").findOne({ where: { usuario: user_id } });
 
+				// 
+				console.log("META",meta)
 				console.log("META",meta.session_stripe_id)
 				if(!meta){
-
+					return ctx.redirect(`${URL_FRONT}/payments?error=No se encontró la meta del usuario`);
 					return ctx.badRequest("No se encontró la meta del usuario", { message: "No se encontró la meta del usuario" });
 
 				}
@@ -487,17 +508,18 @@ module.exports = createCoreController(
 				// verifico que no tenga ya una cuenta creada con el campo stripe_account_id
 
 				if (meta.stripe_account_id_state == "completed") {
-
+					return ctx.redirect(`${URL_FRONT}/payments?error=Ya tienes una cuenta creada`);
 					return ctx.badRequest("Ya tienes una cuenta creada", { message: "Ya tienes una cuenta creada" });
 
 				}
 
 
-				// verifico que session_stripe_id sea el mismo el de meta.session_stripe_id
+				console.log("META",meta.session_stripe_id)
+				console.log("SESSION STRIPE ID",session_stripe_id)
 
 
 				if (meta.session_stripe_id != session_stripe_id) {
-
+					return ctx.redirect(`${URL_FRONT}/payments?error=El session stripe id no coincide`);
 					return ctx.badRequest("El session stripe id no coincide", { message: "El session stripe id no coincide" });
 
 				}
@@ -506,7 +528,7 @@ module.exports = createCoreController(
 				// verifico que el acount_id sea el mismo que el de meta.stripe_account_id
 
 				if (meta.stripe_account_id != account_id) {
-
+					return ctx.redirect(`${URL_FRONT}/payments?error=No coinciden el account_id`);
 					return ctx.badRequest("No coinciden el account_id", { message: "No coinciden el account_id" });
 
 				}
@@ -522,10 +544,6 @@ module.exports = createCoreController(
 				//redirecciono a la url de link
 
 				return ctx.redirect(link.url);
-
-
-
-
 			}
 
 			catch (error) {

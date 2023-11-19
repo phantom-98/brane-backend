@@ -1,0 +1,17 @@
+{
+  "collectionName": "components_pararelas_pararelas_paises",
+  "info": {
+    "displayName": "pararelas_paises",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "DOM": {
+      "type": "json",
+      "private": true
+    },
+    "US": {
+      "type": "json"
+    }
+  }
+}
