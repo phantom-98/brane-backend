@@ -1,7 +1,6 @@
 const { sanitize } = require("@strapi/utils");
 const bcrypt = require("bcryptjs");
 const _ = require("lodash");
-const auth = require("@strapi/admin/server/services/auth");
 
 module.exports = (plugin) => {
   plugin.controllers.user.getBySlug = async (ctx) => {

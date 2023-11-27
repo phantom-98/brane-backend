@@ -78,6 +78,12 @@
     },
     "paypal_sesion_id": {
       "type": "string"
+    },
+    "cardnetSession": {
+      "type": "string"
+    },
+    "cardnetSk": {
+      "type": "string"
     }
   }
 }

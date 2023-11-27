@@ -16,5 +16,10 @@ module.exports = {
 					path: "/pedido/paypal/webhook/",
 					handler: "pedido.webhookPaypal",
 			},
+			{
+				method: "POST",
+				path: "/pedido/carnet/create/",
+				handler: "pedido.cardnetCreate",
+			}
 	],
 };

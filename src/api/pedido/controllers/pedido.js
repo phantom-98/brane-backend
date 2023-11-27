@@ -5,7 +5,10 @@
 	*/
 
 const { createCoreController } = require('@strapi/strapi').factories;
-const { STRIPE_PUBLIC_KEY, STRIPE_SECRET_KEY, STRIPE_URL, STRIPE_ID_CLIENT, STRIPE_WEBHOOK_SECRET, REMOTE_URL, PAYPAL_ID_CLIENT, PAYPAL_SECRET_KEY, PAYPAL_URL, PAYPAL_WEBHOOK_ID,URL_FRONT } = process.env;
+const { STRIPE_PUBLIC_KEY, STRIPE_SECRET_KEY, STRIPE_URL, STRIPE_ID_CLIENT, STRIPE_WEBHOOK_SECRET, REMOTE_URL, PAYPAL_ID_CLIENT, PAYPAL_SECRET_KEY, PAYPAL_URL, PAYPAL_WEBHOOK_ID,URL_FRONT, CARDNET_ACCESS_LINK , CARDNET_MERCHANT_TYPE,CARDNET_MERCHANT_NUMBER, CARDNET_MERCHANT_TERMINAL, CARDNET_MERCHANT_TERMINAL_AMEX, CARDNET_MERCHANT_NAME, CARDNET_TAX } = process.env;
+
+
+
 const stripe = require('stripe')(STRIPE_SECRET_KEY);
 const unparsed = require("koa-body/unparsed.js");
 const axios = require('axios');
@@ -723,15 +726,39 @@ module.exports = createCoreController(
 											account: stripe_account_id.stripe_account_id,
 							});
 			}
+			let session = null;
+			try {
+				session = await axios.post(`${CARDNET_ACCESS_LINK}/sessions`, {
 
-			const session = await stripe.checkout.sessions.create({
-							success_url: `${URL_FRONT}/successful-purchase/`,
-							cancel_url:`${URL_FRONT}/payment-failure/`,
-							line_items: line_items,
-							mode: 'payment',
-							customer_email: user.email,
-							payment_method_types: ['card'],
-			});
+					"TransactionType": "200",
+					"CurrencyCode": "214",
+					"AcquiringInstitutionCode": "349",
+					"MerchantType": `${CARDNET_MERCHANT_TYPE}`,
+					"MerchantNumber": `${CARDNET_MERCHANT_NUMBER}`,
+					"MerchantTerminal": `${CARDNET_MERCHANT_TERMINAL}`,
+					"MerchantTerminal_amex": `${CARDNET_MERCHANT_TERMINAL_AMEX}`,
+					"ReturnUrl":`${URL_FRONT}/successful-purchase/` ,
+					"CancelUrl": `${URL_FRONT}/payment-failure/`,
+					"Tax": `${CARDNET_TAX}`,
+					"MerchantName": `${CARDNET_MERCHANT_NAME}`,
+					"Amount": monto_centimos,
+	
+				}, {
+					headers: {
+						'Content-Type': 'application/json'
+				}
+				});
+			} catch (error) {
+				console.log("error", error);
+					return ctx.badRequest("Ha ocurrido un error", { error: error.message });
+
+
+			}
+
+
+console.log("session", session);
+
+
 
 			if (destinations.length > 0) {
 							destinations = JSON.stringify(destinations);
@@ -739,7 +766,7 @@ module.exports = createCoreController(
 							destinations = null;
 			}
 
-			let raw = JSON.stringify(session);
+			let raw = JSON.stringify(session.data);
 			ctx.request.body.data = {
 							usuario: user.id,
 							cursos: cursos.map((curso) => curso.curso),
@@ -748,22 +775,24 @@ module.exports = createCoreController(
 							descuento: discount_total / 100,
 							cantidad: cursos.length,
 							estado: 'creado',
-							metodo_de_pago: 'stripe',
+							metodo_de_pago: 'cardnet',
 							stripe_sesion_id: session.id,
 							destinatarios: destinations,
 							monto_comision: JSON.stringify((monto_centimos - Math.round(monto_centimos * 0.2)) / 100),
 							fee_comision: "20%",
 							raw: raw,
-							paymentInId: session.payment_intent
+							cardnetSession: session.SESSION,
+							cardnetSk : session["session-key"]
 			}
+
+
 
 			await super.create(ctx);
 
-			if (redirect) {
-							return ctx.response.redirect(session.url);
-			}
 
-			return ctx.send({ url: session.url });
+
+
+			return ctx.send({ url: `${CARDNET_ACCESS_LINK}/authorize` , session:session.SESSION});
 
 
 
@@ -987,10 +1016,6 @@ module.exports = createCoreController(
 
 				const valores = ctx.request.body;
 
-
-
-
-
 				const response = await axios({
 					url: `${PAYPAL_URL}/v1/oauth2/token`,
 					method: 'post',
@@ -1001,11 +1026,6 @@ module.exports = createCoreController(
 					},
 					data: 'grant_type=client_credentials'
 				});
-
-
-
-
-
 
 
 				let datos = {
