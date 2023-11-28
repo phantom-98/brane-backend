@@ -58,5 +58,8 @@ module.exports = ({ env }) => ({
     config: {
       defaultDepth: 5, // Default is 5
     }
-  }
+  },
+  "strapi-google-auth": {
+    enabled: true,
+  },
 });

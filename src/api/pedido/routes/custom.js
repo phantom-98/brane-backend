@@ -20,6 +20,17 @@ module.exports = {
 				method: "POST",
 				path: "/pedido/carnet/create/",
 				handler: "pedido.cardnetCreate",
-			}
+			},
+			{
+
+				method: "GET",
+				path: "/pedido/carnet/successful-purchase/",
+				handler: "pedido.cardnetSuccessPurchase",
+			},
+			{
+				method: "GET",
+				path: "/pedido/carnet/failed-purchase/",
+				handler: "pedido.cardnetFailedPurchase",
+			},
 	],
 };

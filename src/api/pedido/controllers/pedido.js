@@ -728,7 +728,7 @@ module.exports = createCoreController(
 			}
 			let session = null;
 			try {
-				session = await axios.post(`${CARDNET_ACCESS_LINK}/sessions`, {
+				let {data} = await axios.post(`${CARDNET_ACCESS_LINK}/sessions`, {
 
 					"TransactionType": "200",
 					"CurrencyCode": "214",
@@ -737,8 +737,8 @@ module.exports = createCoreController(
 					"MerchantNumber": `${CARDNET_MERCHANT_NUMBER}`,
 					"MerchantTerminal": `${CARDNET_MERCHANT_TERMINAL}`,
 					"MerchantTerminal_amex": `${CARDNET_MERCHANT_TERMINAL_AMEX}`,
-					"ReturnUrl":`${URL_FRONT}/successful-purchase/` ,
-					"CancelUrl": `${URL_FRONT}/payment-failure/`,
+					"ReturnUrl":`${URL}/api/pedido/carnet/successful-purchase/` ,
+					"CancelUrl": `${URL}/api/pedido/carnet/failed-purchase/`,
 					"Tax": `${CARDNET_TAX}`,
 					"MerchantName": `${CARDNET_MERCHANT_NAME}`,
 					"Amount": monto_centimos,
@@ -748,6 +748,13 @@ module.exports = createCoreController(
 						'Content-Type': 'application/json'
 				}
 				});
+
+				session ={
+					session :data.SESSION,
+					session_key:data['session-key']
+
+				}
+
 			} catch (error) {
 				console.log("error", error);
 					return ctx.badRequest("Ha ocurrido un error", { error: error.message });
@@ -756,7 +763,7 @@ module.exports = createCoreController(
 			}
 
 
-console.log("session", session);
+
 
 
 
@@ -781,8 +788,8 @@ console.log("session", session);
 							monto_comision: JSON.stringify((monto_centimos - Math.round(monto_centimos * 0.2)) / 100),
 							fee_comision: "20%",
 							raw: raw,
-							cardnetSession: session.SESSION,
-							cardnetSk : session["session-key"]
+							cardnetSession: session.session,
+							cardnetSk : session.session_key
 			}
 
 
@@ -792,11 +799,25 @@ console.log("session", session);
 
 
 
-			return ctx.send({ url: `${CARDNET_ACCESS_LINK}/authorize` , session:session.SESSION});
+			return ctx.send({ url: `${CARDNET_ACCESS_LINK}/authorize` , session:session.session});
 
 
 
 		},
+
+		async cardnetSuccessPurchase (ctx){
+
+console.log("ctx.request.body", ctx.reques);
+
+
+
+		},
+
+async cardnetFailedPurchase (ctx){
+	
+	
+	
+},
 
 		async checkout(ctx) {
 
