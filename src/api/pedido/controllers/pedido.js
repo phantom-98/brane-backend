@@ -110,7 +110,7 @@ module.exports = createCoreController(
 			}
 
 			for (let i = 0; i < cursos.length; i++) {
-				let mis_curso = await strapi.db.query("api::").findOne({
+				let mis_curso = await strapi.db.query("api::mis-curso.mis-curso").findOne({
 					where: { usuario: user.id, curso: cursos[i].curso }
 				});
 
@@ -287,7 +287,7 @@ module.exports = createCoreController(
 
 			for (let i = 0; i < cursos.length; i++) {
 
-				let mis_curso = await strapi.db.query("api::").findOne({
+				let mis_curso = await strapi.db.query("api::mis-curso.mis-curso").findOne({
 
 					where: { usuario: user.id, curso: cursos[i].curso }
 
@@ -699,7 +699,7 @@ module.exports = createCoreController(
 			}
 
 			for (let i = 0; i < cursos.length; i++) {
-				let mis_curso = await strapi.db.query("api::").findOne({
+				let mis_curso = await strapi.db.query("api::mis-curso.mis-curso").findOne({
 					where: { usuario: user.id, curso: cursos[i].curso }
 				});
 
@@ -945,7 +945,7 @@ module.exports = createCoreController(
 					}
 
 
-					let misCurso = await strapi.db.query("api::").findOne({
+					let misCurso = await strapi.db.query("api::mis-curso.mis-curso").findOne({
 
 						where: { usuario: pedido.usuario.id, curso: curso.id }
 
@@ -966,7 +966,7 @@ module.exports = createCoreController(
 
 					data.instructor = curso1.instructor.id;
 
-					await strapi.db.query("api::").create({ data: data });
+					await strapi.db.query("api::mis-curso.mis-curso").create({ data: data });
 
 
 					await strapi.db.query("api::curso.curso").update({
@@ -1176,7 +1176,7 @@ module.exports = createCoreController(
 
 							}
 
-							let misCurso = await strapi.db.query("api::").findOne({
+							let misCurso = await strapi.db.query("api::mis-curso.mis-curso").findOne({
 
 								where: { usuario: pedido.usuario.id, curso: curso.id }
 
@@ -1195,7 +1195,7 @@ module.exports = createCoreController(
 
 							data.instructor = curso1.instructor.id;
 
-							await strapi.db.query("api::").create({ data: data });
+							await strapi.db.query("api::mis-curso.mis-curso").create({ data: data });
 
 
 							await strapi.db.query("api::curso.curso").update({
@@ -1399,7 +1399,7 @@ module.exports = createCoreController(
 
 
 
-								let misCurso = await strapi.db.query("api::").findOne({
+								let misCurso = await strapi.db.query("api::mis-curso.mis-curso").findOne({
 
 									where: { usuario: pedido.usuario.id, curso: curso.id }
 
@@ -1420,7 +1420,7 @@ module.exports = createCoreController(
 
 								data.instructor = curso1.instructor.id;
 
-								await strapi.db.query("api::").create({ data: data });
+								await strapi.db.query("api::mis-curso.mis-curso").create({ data: data });
 
 
 								await strapi.db.query("api::curso.curso").update({
