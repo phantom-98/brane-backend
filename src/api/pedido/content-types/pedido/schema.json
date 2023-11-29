@@ -84,6 +84,12 @@
     },
     "cardnetSk": {
       "type": "string"
+    },
+    "cardNetDataResponse": {
+      "type": "component",
+      "repeatable": false,
+      "component": "pararelas.cardnet-response",
+      "private": true
     }
   }
 }

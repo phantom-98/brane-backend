@@ -18,18 +18,24 @@ module.exports = {
 			},
 			{
 				method: "POST",
-				path: "/pedido/carnet/create/",
+				path: "/pedido/cardnet/create/",
 				handler: "pedido.cardnetCreate",
 			},
 			{
 
-				method: "GET",
-				path: "/pedido/carnet/successful-purchase/",
+				method: "POST",
+				path: "/pedido/cardnet/successful-purchase/",
 				handler: "pedido.cardnetSuccessPurchase",
 			},
 			{
+
 				method: "GET",
-				path: "/pedido/carnet/failed-purchase/",
+				path: "/pedido/cardnet/successful-purchase/",
+				handler: "pedido.cardnetSuccessPurchase",
+			},
+			{
+				method: "POST",
+				path: "/pedido/cardnet/failed-purchase/",
 				handler: "pedido.cardnetFailedPurchase",
 			},
 	],

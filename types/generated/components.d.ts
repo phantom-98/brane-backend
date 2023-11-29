@@ -50,6 +50,24 @@ export interface CourseTarifaInstitucion extends Schema.Component {
   };
 }
 
+export interface PararelasCardnetResponse extends Schema.Component {
+  collectionName: 'components_pararelas_cardnet_responses';
+  info: {
+    displayName: 'cardnetResponse';
+    description: '';
+  };
+  attributes: {
+    AuthorizationCode: Attribute.String;
+    TxToken: Attribute.String;
+    ResponseCode: Attribute.String;
+    CreditcardNumber: Attribute.String;
+    CreditCardNumber: Attribute.String;
+    RetrivalReferenceNumber: Attribute.String;
+    RemoteResponseCode: Attribute.String;
+    textResponse: Attribute.String;
+  };
+}
+
 export interface PararelasPararelasPaises extends Schema.Component {
   collectionName: 'components_pararelas_pararelas_paises';
   info: {
@@ -67,6 +85,7 @@ declare module '@strapi/types' {
     export interface Components {
       'course.conference': CourseConference;
       'course.tarifa-institucion': CourseTarifaInstitucion;
+      'pararelas.cardnet-response': PararelasCardnetResponse;
       'pararelas.pararelas-paises': PararelasPararelasPaises;
     }
   }

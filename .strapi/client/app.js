@@ -3,6 +3,7 @@
  * Any modifications made will be discarded.
  */
 import usersPermissions from "@strapi/plugin-users-permissions/strapi-admin";
+import strapiGoogleAuth from "strapi-google-auth/strapi-admin";
 import emailDesigner from "strapi-plugin-email-designer/strapi-admin";
 import restCache from "strapi-plugin-rest-cache/strapi-admin";
 import { renderAdmin } from "@strapi/strapi/admin";
@@ -10,6 +11,7 @@ import { renderAdmin } from "@strapi/strapi/admin";
 renderAdmin(document.getElementById("strapi"), {
   plugins: {
     "users-permissions": usersPermissions,
+    "strapi-google-auth": strapiGoogleAuth,
     "email-designer": emailDesigner,
     "rest-cache": restCache,
   },
