@@ -80,6 +80,27 @@ export interface PararelasPararelasPaises extends Schema.Component {
   };
 }
 
+export interface SupportVideoSupport extends Schema.Component {
+  collectionName: 'components_support_video_supports';
+  info: {
+    displayName: 'Video Support';
+    description: '';
+  };
+  attributes: {
+    curso: Attribute.Relation<
+      'support.video-support',
+      'oneToOne',
+      'api::curso.curso'
+    >;
+    clase: Attribute.Relation<
+      'support.video-support',
+      'oneToOne',
+      'api::clase.clase'
+    >;
+    path: Attribute.String;
+  };
+}
+
 declare module '@strapi/types' {
   export module Shared {
     export interface Components {
@@ -87,6 +108,7 @@ declare module '@strapi/types' {
       'course.tarifa-institucion': CourseTarifaInstitucion;
       'pararelas.cardnet-response': PararelasCardnetResponse;
       'pararelas.pararelas-paises': PararelasPararelasPaises;
+      'support.video-support': SupportVideoSupport;
     }
   }
 }

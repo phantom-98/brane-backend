@@ -1685,6 +1685,47 @@ export interface ApiReferralLinkReferralLink extends Schema.CollectionType {
   };
 }
 
+export interface ApiSupportSupport extends Schema.CollectionType {
+  collectionName: 'supports';
+  info: {
+    singularName: 'support';
+    pluralName: 'supports';
+    displayName: 'Support';
+    description: '';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    type: Attribute.Enumeration<['video_class', 'billing', 'other']> &
+      Attribute.DefaultTo<'video_class'>;
+    subject: Attribute.String;
+    message: Attribute.Text;
+    creator: Attribute.Relation<
+      'api::support.support',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    date: Attribute.DateTime;
+    state: Attribute.Enumeration<['open', 'canceled', 'closed']>;
+    videoSupport: Attribute.Component<'support.video-support'>;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::support.support',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::support.support',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiValoracionCursoValoracionCurso
   extends Schema.CollectionType {
   collectionName: 'valoracion_cursos';
@@ -1816,6 +1857,7 @@ declare module '@strapi/types' {
       'api::producto.producto': ApiProductoProducto;
       'api::project.project': ApiProjectProject;
       'api::referral-link.referral-link': ApiReferralLinkReferralLink;
+      'api::support.support': ApiSupportSupport;
       'api::valoracion-curso.valoracion-curso': ApiValoracionCursoValoracionCurso;
       'api::wishlist.wishlist': ApiWishlistWishlist;
     }
