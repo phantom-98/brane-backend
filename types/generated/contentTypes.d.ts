@@ -860,6 +860,7 @@ export interface ApiClaseClase extends Schema.CollectionType {
     publico: Attribute.Boolean & Attribute.DefaultTo<false>;
     duracion: Attribute.String;
     additionalResources: Attribute.Text;
+    subtitles: Attribute.Component<'class.subtitles', true>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
