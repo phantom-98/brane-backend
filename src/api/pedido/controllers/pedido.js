@@ -980,7 +980,7 @@ module.exports = createCoreController(
 				}
 				
 
-				return ctx.redirect(`${URL_FRONT}/payment-success/`);
+				return ctx.redirect(`${URL_FRONT}/successful-purchase/`);
 
 
 			}
@@ -1055,7 +1055,7 @@ module.exports = createCoreController(
 				return ctx.redirect(`${URL_FRONT}/payment-failure?error=${codigosDeRespuestaCardnet[data.ResponseCode]}&code=${data.ResponseCode}`);
 			} else {
 
-				return ctx.redirect(`${URL_FRONT}/payment-success/`);
+				return ctx.redirect(`${URL_FRONT}/successful-purchase/`);
 
 
 			}
