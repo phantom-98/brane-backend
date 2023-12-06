@@ -1,16 +1,5 @@
 import type { Schema, Attribute } from '@strapi/strapi';
 
-export interface ClassSubtitles extends Schema.Component {
-  collectionName: 'components_class_subtitles';
-  info: {
-    displayName: 'subtitles';
-  };
-  attributes: {
-    lang: Attribute.String;
-    file: Attribute.Media;
-  };
-}
-
 export interface CourseConference extends Schema.Component {
   collectionName: 'components_course_conferences';
   info: {
@@ -115,7 +104,6 @@ export interface SupportVideoSupport extends Schema.Component {
 declare module '@strapi/types' {
   export module Shared {
     export interface Components {
-      'class.subtitles': ClassSubtitles;
       'course.conference': CourseConference;
       'course.tarifa-institucion': CourseTarifaInstitucion;
       'pararelas.cardnet-response': PararelasCardnetResponse;

@@ -46,12 +46,6 @@
     },
     "additionalResources": {
       "type": "text"
-    },
-    "subtitles": {
-      "displayName": "subtitles",
-      "type": "component",
-      "repeatable": true,
-      "component": "class.subtitles"
     }
   }
 }

@@ -1,12 +1,4 @@
 "use strict";
-const { Readable } = require("stream");
-const path = require('path');
-const { v4: uuid } = require('uuid');
-const Promise = require('bluebird'); 
-const os = require('os');
-const fse = require('fs-extra');
-const fs = require('fs');
-
 
 /**
  * clase controller
@@ -121,15 +113,15 @@ module.exports = createCoreController("api::clase.clase", ({ strapi }) => ({
 
     const { additionalResources } = ctx.request.body.data;
 
-    if (additionalResources) {
+    if(additionalResources ){
 
-      if (!Array.isArray(additionalResources)) {
+      if(!Array.isArray(additionalResources)){
 
-        return ctx.badRequest("Tipo de dato invalido", { error: "El campo recursos adicionales debe ser un array" });
+        return ctx.badRequest( "Tipo de dato invalido" ,{error:"El campo recursos adicionales debe ser un array"});
 
       }
 
-      if (additionalResources.length) {
+      if(additionalResources.length){
 
         ctx.request.body.data.additionalResources = JSON.stringify(additionalResources);
 
@@ -140,198 +132,6 @@ module.exports = createCoreController("api::clase.clase", ({ strapi }) => ({
     //si el usuario que está haciendo la petición es instructor o es administrador, puede crear la clase
 
     return await super.create(ctx);
-  },
-
-
-  async addOrUpdateSubtitles(ctx) {
-
-    const user = ctx.state.user;
-
-    if (!user) {
-
-      return ctx.unauthorized(`No has iniciado sesión`);
-
-    }
-    if (user.role.id != 3 && user.role.id != 5) {
-
-      return ctx.unauthorized(`No tienes permisos para realizar esta acción`);
-
-    }
-
-    const subtitlesBody = ctx.request.body;
-    const {clase} = ctx.request.body;
-    const subtitlesFiles = ctx.request.files;
-
-
-    if(!subtitlesBody){
-      return ctx.badRequest("Tipo de dato invalido", { error: "El campo body es requerido" });
-    }
-
-    if(!clase){
-
-      return ctx.badRequest("Tipo de dato invalido", { error: "El campo clase es requerido" });
-
-    }
-
-    if(!subtitlesFiles){
-
-      return ctx.badRequest("Tipo de dato invalido", { error: "El campo files es requerido" });
-
-    }
-
-    // Crear un array para almacenar los objetos 'subtitles'
-    const subtitles = [];
-
-    // Extraer las claves numéricas de los datos de entrada
-    const keys = Object.keys(subtitlesBody);
-
-    // Recorrer las claves y combinar los datos de idioma y archivo
-    for (const key of keys) {
-      const index = key.match(/\[(\d+)\]/); // Extraer el índice numérico
-      if (index) {
-        const idx = parseInt(index[1], 10);
-        const langData = subtitlesBody[`subtitles[${idx}][lang]`];
-        const fileData = subtitlesFiles[`subtitles[${idx}][file]`];
-
-        const subtitleObj = {
-          file: fileData,
-          lang: langData
-        };
-
-        subtitles.push(subtitleObj);
-      }
-    }
-
-
-
-    const claseData = await strapi.db.query("api::clase.clase").findOne({
-      // uid syntax: 'api::api-name.content-type-name'
-
-      where: { id: clase },
-
-      populate: ['curso','subtitles', 'subtitles.file']
-    });
-
-
- 
-    if (!claseData) {
-
-      return ctx.unauthorized(`La clase no existe`);
-
-    }
-
-
-
-
-    const curso = await strapi.db.query("api::curso.curso").findOne({
-
-
-      where: { id: claseData.curso.id, instructor: user.id },
-      
-
-
-    });
-
-
-    // saco los subtitles 
-
-
-    if (!curso) {
-
-      return ctx.unauthorized(`No tienes permisos para realizar esta acción`);
-
-    }
-
-    // recorro los subtitles  y proceso
-
-
-     for (const subtitle of subtitles) {
-
-      const { file, lang } = subtitle;
-
-
-      const extension = path.extname(file.name);
-
-      const fileName = `${uuid()}${extension}`;
-
-      const createAndAssignTmpWorkingDirectoryToFiles = () => fse.mkdtemp(path.join(os.tmpdir(), 'strapi-upload-'));
-      let buffer = await fs.promises.readFile(file.path);
-      const entity = {
-        name: `${file.name}`,
-        hash: uuid() + '_' + file.name,
-        ext: path.extname(file.name),
-        mime: file.type,
-        size: file.size / 1024 ,
-        provider: 'local',
-        tmpWorkingDirectory: await createAndAssignTmpWorkingDirectoryToFiles(),
-        getStream: () => Readable.from(buffer),
-        folderPath: '/1',
-        related: {
-          id: clase,
-          __type: 'api::clase.clase',
-          __pivot: { field: 'subtitles.file' }
-        }
-  
-      };
-  
-  
-  
-  
-  
-      await strapi.plugin('upload').service('upload').uploadFileAndPersist(entity)
-  
-  
-      await strapi
-        .query("plugin::upload.file")
-        .create({ data: entity });
-
-     }
-
-
-
-
-    let currentSubtitles = claseData.subtitles;
-
-
-    
-
-
-    subtitles.forEach(subtitle => {
-
-      const index = currentSubtitles.findIndex(currentSubtitle => currentSubtitle.lang === subtitle.lang);
-
-      if (index !== -1) {
-
-        currentSubtitles[index] = subtitle;
-
-      } else {
-
-        currentSubtitles.push(subtitle);
-
-      }
-
-    });
-
-    // guardo los subtitles en la clase
-
-
-    claseData.subtitles = currentSubtitles;
-
-
-     await strapi.entityService.update("api::clase.clase", clase, {
-      data: {
-        subtitles: currentSubtitles
-      },
-    });
-
-
-
-
-
-
-    return claseData; 
-
-
   },
 
   //modifico el delete para que solo usuarios tipo isntructor y administrador puedan eliminar clases
@@ -475,11 +275,11 @@ module.exports = createCoreController("api::clase.clase", ({ strapi }) => ({
 
     console.log("clase", clase.status)
 
-
+  
     let data = await super.findOne(ctx);
     //si el usuario que está haciendo la petición es el instructor de la clase o es administrador, puede ver la clase y si la clase esta finalizada le asigno el status de finalizada a la clase
     //retorno data mas la clase 
-
+   
     return { ...data, clase };
 
   },
