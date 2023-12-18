@@ -565,8 +565,8 @@ module.exports = createCoreController(
 					],
 					"intent": "CAPTURE",
 					"application_context": {
-						"cancel_url": "https://brane-app.netlify.app/payment-failure/",
-						"return_url": "https://brane-app.netlify.app/successful-purchase/",
+						"cancel_url": `${URL_FRONT}/payment-failure/`,
+						"return_url": `${URL_FRONT}/successful-purchase/`,
 						"brand_name": "Brane",
 						"landing_page": "BILLING",
 						"shipping_preference": "NO_SHIPPING",
@@ -880,7 +880,7 @@ module.exports = createCoreController(
 				where: {
 					cardnetSession: session
 				},
-				populate : ["usuario","cursos"]
+				populate: ["usuario", "cursos"]
 			});
 
 
@@ -976,9 +976,9 @@ module.exports = createCoreController(
 
 
 
-					
+
 				}
-				
+
 
 				return ctx.redirect(`${URL_FRONT}/successful-purchase/`);
 
@@ -1204,7 +1204,7 @@ module.exports = createCoreController(
 							});
 						}
 
-						if (pedido.destinatarios) {
+					/*	if (pedido.destinatarios) {
 
 							let destinations = JSON.parse(pedido.destinatarios);
 
@@ -1225,7 +1225,7 @@ module.exports = createCoreController(
 								});
 							}
 
-						}
+						}*/
 
 
 
@@ -1270,6 +1270,200 @@ module.exports = createCoreController(
 			// Return a response to acknowledge receipt of the event
 
 			return ctx.send('ok');
+
+		},
+		async creditCheckout(ctx) {
+
+			const user = ctx.state.user;
+			console.log(user);
+			if (!user) {
+				return ctx.unauthorized("No tienes permiso", { error: 'No autorizado' });
+			}
+
+			let { cursos } = ctx.request.body.data;
+
+			if (!cursos) {
+				return ctx.notFound("Revisa la información enviada", { error: 'No hay cursos' });
+			}
+
+			for (let i = 0; i < cursos.length; i++) {
+				let mis_curso = await strapi.db.query("api::mis-curso.mis-curso").findOne({
+					where: { usuario: user.id, curso: cursos[i].curso }
+				});
+
+				if (mis_curso) {
+					return ctx.badRequest(`Curso ya comprado previamente `, { error: 'Uno o más cursos ya se encuentran en tu biblioteca' })
+				}
+			}
+
+			// busco los creditos del usuario
+
+			let creditos = await strapi.db.query("api::credit.credit").findOne({
+
+				where: { user: user.id }
+
+			});
+
+
+			if (!creditos) {
+
+				return ctx.badRequest("No tienes creditos", { error: 'No tienes creditos' });
+
+			}
+
+			let monto_centimos = 0;
+			let discount_total = 0;
+
+			// Función para convertir montos a centavos
+			const convertirACentimos = (monto) => Math.round(monto * 100);
+
+			for (let i = 0; i < cursos.length; i++) {
+				let monto_curso = 0;
+				let discount = 0;
+				let monto_curso_descuento_porcentual = 0;
+				let monto_curso_descuento_fijo = 0;
+				let curso = await strapi.db.query("api::curso.curso").findOne({
+					where: { id: cursos[i].curso },
+					populate: ['instructor', 'imagen'],
+					select: ['precio', 'precioDescuento', 'cupon_descuento', "name"]
+				});
+
+				if (!curso) {
+					return ctx.notFound(`No existe el curso`, { error: 'No existe el curso' });
+				}
+
+				if (cursos[i].cupon) {
+					let cupon = await strapi.db.query("api::cupon.cupon").findOne({
+						where: { slug: cursos[i].cupon, cursos: cursos[i].curso }
+					});
+
+					if (!cupon) {
+						return ctx.notFound(`No existe el cupon`, { error: 'No existe el cupon' });
+					}
+
+					if (cupon.estado !== true) {
+						return ctx.badRequest("Cupón no disponible", { error: 'El cupon no esta activo' });
+					}
+
+					if (cupon.tipo == 'porcentaje') {
+						monto_curso = this.formatearMontos(curso.precio);
+						cupon.valor = monto_curso * (cupon.valor / 100);
+						cupon.valor = this.formatearMontos(cupon.valor);
+						monto_curso_descuento_porcentual = cupon.valor;
+						monto_curso = monto_curso - monto_curso_descuento_porcentual;
+						discount = monto_curso_descuento_porcentual;
+					} else {
+						monto_curso = this.formatearMontos(curso.precio);
+						monto_curso_descuento_fijo = this.formatearMontos(cupon.valor);
+						monto_curso = monto_curso - monto_curso_descuento_fijo;
+						discount = monto_curso_descuento_fijo;
+					}
+				} else if (curso.precioDescuento) {
+					console.log("DESCUENTO");
+					monto_curso = this.formatearMontos(curso.precio);
+					monto_curso = this.formatearMontos(curso.precioDescuento);
+					discount = monto_curso_descuento_fijo;
+				} else {
+					console.log("SIN DESCUENTO");
+					monto_curso = this.formatearMontos(curso.precio);
+				}
+
+				monto_curso = convertirACentimos(monto_curso);
+
+				monto_curso_descuento_porcentual = convertirACentimos(monto_curso_descuento_porcentual);
+				monto_curso_descuento_fijo = convertirACentimos(monto_curso_descuento_fijo);
+				discount = convertirACentimos(discount);
+				discount_total += discount;
+				monto_centimos += monto_curso;
+
+
+			}
+
+
+
+			if (creditos.quantity < (monto_centimos / 100)) {
+
+				return ctx.badRequest("No tienes suficientes creditos", { error: 'No tienes suficientes creditos' });
+
+			}
+
+console.log("creditos.quantity", creditos.quantity);
+console.log("monto_centimos", monto_centimos);
+
+
+
+
+			ctx.request.body.data = {
+				usuario: user.id,
+				cursos: cursos.map((curso) => curso.curso),
+				total: monto_centimos / 100,
+				subtotal: (monto_centimos + discount_total) / 100,
+				descuento: discount_total / 100,
+				cantidad: cursos.length,
+				estado: 'creado',
+				metodo_de_pago: 'credit',
+				monto_comision: JSON.stringify((monto_centimos - Math.round(monto_centimos * 0.2)) / 100),
+				fee_comision: "20%",
+			}
+
+
+
+			await super.create(ctx);
+
+
+			// asifno los cursos al usuario
+
+			for (let i = 0; i < cursos.length; i++) {
+
+				const curso = cursos[i];
+
+			let datos = {
+
+					usuario: user.id,
+
+					curso: curso.curso,
+
+					instructor: curso.instructor,
+
+					progress: 0,
+
+					completado: false,
+
+
+
+				}
+
+				await strapi.db.query("api::mis-curso.mis-curso").create({ data: datos });
+
+
+				await strapi.db.query("api::curso.curso").update({
+
+					where: { id: curso.curso },
+
+					data: { cantidadEstudiantes: curso.cantidadEstudiantes + 1 },
+
+				});
+
+			}
+
+
+			// resto los creditos al usuario
+
+			await strapi.db.query("api::credit.credit").update({
+
+				where: { user: user.id },
+
+				data: { quantity: creditos.quantity - (monto_centimos / 100) },
+
+			});
+
+
+			return ctx.redirect(`${URL_FRONT}/successful-purchase/`);
+
+
+
+
+
 
 		},
 

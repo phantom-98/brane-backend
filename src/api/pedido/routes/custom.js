@@ -11,6 +11,11 @@ module.exports = {
 					handler: "pedido.paypalCreate",
 			},
 			{
+				method: "POST",
+				path: "/pedido/credit/create/",
+				handler: "pedido.creditCheckout",
+		},
+			{
 
 					method: "POST",
 					path: "/pedido/paypal/webhook/",

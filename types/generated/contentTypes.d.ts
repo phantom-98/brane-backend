@@ -1064,6 +1064,46 @@ export interface ApiConfigConfig extends Schema.SingleType {
   };
 }
 
+export interface ApiCreditCredit extends Schema.CollectionType {
+  collectionName: 'credits';
+  info: {
+    singularName: 'credit';
+    pluralName: 'credits';
+    displayName: 'Creditos';
+    description: '';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    user: Attribute.Relation<
+      'api::credit.credit',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    quantity: Attribute.Float &
+      Attribute.SetMinMax<{
+        min: 0;
+      }> &
+      Attribute.DefaultTo<0>;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::credit.credit',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::credit.credit',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiCuponCupon extends Schema.CollectionType {
   collectionName: 'cupons';
   info: {
@@ -1845,6 +1885,7 @@ declare module '@strapi/types' {
       'api::comentario.comentario': ApiComentarioComentario;
       'api::company-user.company-user': ApiCompanyUserCompanyUser;
       'api::config.config': ApiConfigConfig;
+      'api::credit.credit': ApiCreditCredit;
       'api::cupon.cupon': ApiCuponCupon;
       'api::curso.curso': ApiCursoCurso;
       'api::fa-q.fa-q': ApiFaQFaQ;
