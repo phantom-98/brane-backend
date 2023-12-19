@@ -5,7 +5,7 @@
  */
 
 const { createCoreController } = require("@strapi/strapi").factories;
-//const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer');
 const playwright = require('playwright');
 const path = require('path');
 const chromePaths = require("chrome-paths");
@@ -779,7 +779,7 @@ module.exports = createCoreController(
 
         rutaDestino = path.join(process.cwd(), 'public/uploads/certificados', filename);
   
-        rutaDestino = await this.launchPlaywright(filePath,rutaDestino,datos);
+        rutaDestino = await this.launchPuppeteer(filePath,rutaDestino,datos);
 
 
       } else if(usuarioCurso.curso.nombre_institucion){
@@ -788,7 +788,7 @@ module.exports = createCoreController(
 
         rutaDestino = path.join(process.cwd(), 'public/uploads/certificados',   filename);
   
-        rutaDestino = await this.launchPlaywright(filePath,rutaDestino,datos);
+        rutaDestino = await this.launchPuppeteer(filePath,rutaDestino,datos);
 
       } else if(usuarioCurso.course_company){
 
@@ -796,7 +796,7 @@ module.exports = createCoreController(
 
         rutaDestino = path.join(process.cwd(), 'public/uploads/certificados', filename);
   
-        rutaDestino = await this.launchPlaywright(filePath,rutaDestino,datos);
+        rutaDestino = await this.launchPuppeteer(filePath,rutaDestino,datos);
 
       } else {
 
@@ -804,7 +804,7 @@ module.exports = createCoreController(
 
         rutaDestino = path.join(process.cwd(), 'public/uploads/certificados', filename);
   
-        rutaDestino = await this.launchPlaywright(filePath,rutaDestino,datos);
+        rutaDestino = await this.launchPuppeteer(filePath,rutaDestino,datos);
 
         
 
@@ -861,9 +861,10 @@ module.exports = createCoreController(
 
 
     },
-    async  launchPlaywright(urlubicacion, urldestino, datos) {
+    async  launchPuppeteer2(urlubicacion, urldestino, datos) {
       try {
-        const browser = await playwright.chromium.launch({ headless: true
+        const browser = await playwright.chromium.launch({ headless: true, 
+          executablePath: chromePaths.chrome,
         });
         const context = await browser.newContext();
         const page = await context.newPage();
@@ -940,9 +941,9 @@ module.exports = createCoreController(
         console.log(error);
         throw new Error(error);
       }
-    }
+    },
 
-   /* async launchPuppeteer(urlubicacion,urldestino,datos) {
+   async launchPuppeteer(urlubicacion,urldestino,datos) {
 
       try {
         const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
@@ -1015,7 +1016,7 @@ module.exports = createCoreController(
       
 
 
-    }*/
+    }
 
     
       
