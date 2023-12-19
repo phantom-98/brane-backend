@@ -689,6 +689,13 @@ module.exports = createCoreController(
       const curso = await strapi.db.query("api::curso.curso").findOne({ where: { id: idcurso }, populate: ['instructor'] });
       //console.log("CURSO",curso);
 
+
+      if(!curso){
+
+        return ctx.response.badRequest("No se ha encontrado el curso", {"message": "No se ha encontrado el curso"});
+
+      }
+
      
       if (!curso.certificado) {
 
@@ -699,6 +706,12 @@ module.exports = createCoreController(
 
       const usuarioCurso = await strapi.db.query("api::mis-curso.mis-curso").findOne({ where: { curso: idcurso, usuario: usuario.id }, populate: ['buying_company', 'curso', 'buying_company.avatar','certificado'] });
       let datoCompany = null;
+
+
+      if(!usuarioCurso){
+          
+          return ctx.response.unauthorized("No autorizado", {"message": "El usuario no está en el curso"});
+      }
 
       if(usuarioCurso.certificado){
 
