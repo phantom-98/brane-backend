@@ -863,7 +863,9 @@ module.exports = createCoreController(
     },
     async  launchPlaywright(urlubicacion, urldestino, datos) {
       try {
-        const browser = await playwright.chromium.launch({ headless: true });
+        const browser = await playwright.chromium.launch({ headless: true, 
+          executablePath: chromePaths.chrome,
+        });
         const context = await browser.newContext();
         const page = await context.newPage();
     
