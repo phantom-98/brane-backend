@@ -861,7 +861,7 @@ module.exports = createCoreController(
 
 
     },
-    async  launchPuppeteer2(urlubicacion, urldestino, datos) {
+    async  launchPlaywright(urlubicacion, urldestino, datos) {
       try {
         const browser = await playwright.chromium.launch({ headless: true, 
           executablePath: chromePaths.chrome,

@@ -60,18 +60,11 @@ module.exports = createCoreController(
         return ctx.unauthorized(`Ya tienes una clase finalizada`);
       }
 
-      //calculo el progreso del curso
-      
-      const curso = await strapi.db.query("api::curso.curso").findOne({
-        where: { id: id },
-      });
 
       const clases = await strapi.db.query("api::clase.clase").findMany({
         where: { curso: id },
       });
 
-      //agrego la clase finalizada
-      console.log("este es el body", ctx.request.body.data);
       const claseFinalizadaCreada = await strapi.db
         .query("api::clases-finalizada.clases-finalizada")
         .create({
@@ -93,18 +86,20 @@ module.exports = createCoreController(
       console.log("esto es clases finalizadas", clases.length);
       const progreso = (clasesFinalizadas.length * 100) / clases.length;
       console.log("este es el progreso", progreso);
-      //actualizo el progreso del curso
+      
 
-      const misCurso = await strapi.db
+      const isCompleted =  progreso === 100 ? true : false;
+
+      await strapi.db
         .query("api::mis-curso.mis-curso")
         .update({
           where: { usuario: user.id, curso: id },
-          data: { progress: progreso },
+          data: { progress: progreso , completed: isCompleted  },
         });
 
-      console.log(misCurso.progress);
 
-      //retorno la clase finalizada con exito 
+        
+
       
         return claseFinalizadaCreada;
     },
