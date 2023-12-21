@@ -20,6 +20,7 @@
     "crypto": "^1.0.1",
     "fs-extra": "^11.2.0",
     "geoip-country": "^4.2.43",
+    "jsrsasign": "^10.9.0",
     "mime": "^3.0.0",
     "mysql": "2.18.1",
     "paypal-rest-sdk": "^1.8.1",
