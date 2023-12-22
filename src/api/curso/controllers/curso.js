@@ -659,20 +659,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
        
         const signature = await this.getZoomAccessTokenMSDK({ meetingId: curso.conference.ZoomMeetingID, role: roleMetting })
 
-       return {
-          role: roleMetting == 0 ? "participante" : "instructor",
-          userId: user.id,
-          userName: user.nombre + " " + user.apellidos,
-          userEmail: user.email,
-          signature: signature,
-          meetingNumber: curso.conference.ZoomMeetingID,
-          meetingPassword: curso.conference.ZoomPassword,
-          meetingTopic: curso.name,
-          meetingStartTime: curso.conference.ZoomStart,
-          meetingDuration: curso.conference.ZoomDuration,
-          meetingTimeZone: curso.timezone,
-          sdkKey : ZOOM_MEETING_SDK_KEY,
-       } ;
+
 
 
       const { ZoomMeetingID, ZoomPassword } = curso.conference;
@@ -682,9 +669,9 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
 
 
-      const response = await axios.post(`${ZOOM_URL}/meetings/${ZoomMeetingID}/registrants`, {
+       await axios.post(`${ZOOM_URL}/meetings/${ZoomMeetingID}/registrants`, {
 
-        email: user.email,
+        email: "jdherrera952@gmail.com",
 
         first_name: user.nombre,
 
@@ -701,7 +688,20 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
       });
 
 
-      return response.data;
+       return {
+        role: roleMetting == 0 ? "participante" : "instructor",
+        userId: user.id,
+        userName: user.nombre + " " + user.apellidos,
+        userEmail: user.email,
+        signature: signature,
+        meetingNumber: curso.conference.ZoomMeetingID,
+        meetingPassword: curso.conference.ZoomPassword,
+        meetingTopic: curso.name,
+        meetingStartTime: curso.conference.ZoomStart,
+        meetingDuration: curso.conference.ZoomDuration,
+        meetingTimeZone: curso.timezone,
+        sdkKey : ZOOM_MEETING_SDK_KEY,
+     } ;
 
 
 
