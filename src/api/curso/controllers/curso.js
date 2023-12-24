@@ -645,7 +645,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
  
        if (!misCursos && user.id != curso.instructor.id && user.role.type != "administrador") {
-         return ctx.unauthorized(`You can't create this entry`);
+         return ctx.unauthorized(`You can't register this entry`);
        }
 
        // verifico si el usuario es el instructor del curso
