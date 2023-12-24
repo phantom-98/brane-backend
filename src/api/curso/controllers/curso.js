@@ -509,7 +509,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
               use_pmi: false,
 
-              approval_type: 1,
+              approval_type: 2,
 
               audio: "both",
 
@@ -606,6 +606,8 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
       let { user } = ctx.state;
 
+      console.log("user", user)
+
       if (!user) {
         return ctx.unauthorized(`Not authorized`);
       }
@@ -635,16 +637,16 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
       }
 
-      /* const misCursos = await strapi.db
+       const misCursos = await strapi.db
        .query("api::mis-curso.mis-curso")
        .findOne({ where: { curso: id, usuario: user.id } });
  
  
-       console.log("misCursos",misCursos);
+
  
        if (!misCursos && user.id != curso.instructor.id && user.role.type != "administrador") {
          return ctx.unauthorized(`You can't create this entry`);
-       }*/
+       }
 
        // verifico si el usuario es el instructor del curso
 
@@ -665,17 +667,17 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
       const { ZoomMeetingID, ZoomPassword } = curso.conference;
 
 
-      const accessToken = await this.getZoomAccessTokenSofS();
+      /*const accessToken = await this.getZoomAccessTokenSofS();
 
 
 
        await axios.post(`${ZOOM_URL}/meetings/${ZoomMeetingID}/registrants`, {
 
-        email: "jdherrera952@gmail.com",
+        email: user.email,
 
-        first_name: user.nombre,
+        first_name: "Daniel",
 
-        last_name: user.apellidos,
+        last_name: "Gonzalez",
 
       }, {
 
@@ -685,7 +687,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
           'Content-Type': 'application/json'
         }
 
-      });
+      });*/
 
 
        return {
