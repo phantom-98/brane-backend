@@ -642,10 +642,10 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
        .findOne({ where: { curso: id, usuario: user.id } });
  
  
-
+       console.log("misCursos",misCursos);
  
        if (!misCursos && user.id != curso.instructor.id && user.role.type != "administrador") {
-         return ctx.unauthorized(`You can't register this entry`);
+         return ctx.unauthorized(`You can't create this entry`);
        }
 
        // verifico si el usuario es el instructor del curso

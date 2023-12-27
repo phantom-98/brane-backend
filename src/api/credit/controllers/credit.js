@@ -7,7 +7,9 @@
 const { createCoreController } = require('@strapi/strapi').factories;
 
 module.exports = createCoreController('api::credit.credit', ({ strapi }) => ({
-	async findMe(ctx) {
+	async misCreditos(ctx) {
+
+		console.log('findMe');
 
 		const { user } = ctx.state;
 

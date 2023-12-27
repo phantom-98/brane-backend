@@ -4,9 +4,9 @@
 module.exports = {
 	routes: [
 			{
-					method: "GET",
+					method: "POST",
 					path: "/credits/me",
-					handler: "credit.findMe",
+					handler: "credit.misCreditos",
 			}
 	]
 };
