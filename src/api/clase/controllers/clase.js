@@ -381,8 +381,10 @@ module.exports = createCoreController("api::clase.clase", ({ strapi }) => ({
 
       where: { id },
 
-      populate: { curso: true },
+      populate: ['curso', 'subtitles', "subtitles.file", "additionalResources"],
     });
+
+
 
     //si la clase no existe, no puede ver la clase
 
@@ -442,14 +444,20 @@ module.exports = createCoreController("api::clase.clase", ({ strapi }) => ({
       }
     }
 
-    console.log("clase", clase.status)
+    if(clase.addOrUpdateSubtitles){
+      clase.addOrUpdateSubtitles = convertObjectsToArray(clase.addOrUpdateSubtitles)
+    }
+
+    if(clase.subtitles){
+
+        clase.subtitles = extractSubtitleUrls(clase.subtitles);
+    }
+    
 
 
-    let data = await super.findOne(ctx);
-    //si el usuario que está haciendo la petición es el instructor de la clase o es administrador, puede ver la clase y si la clase esta finalizada le asigno el status de finalizada a la clase
-    //retorno data mas la clase 
-
-    return { ...data, clase };
+    return  ctx.send ({
+      data : clase
+    })
 
   },
 
@@ -463,4 +471,16 @@ function convertArrayToObjects(array) {
 function convertObjectsToArray(objects) {
 // Mapea cada objeto del array extrayendo el valor de la propiedad 'text'
 return objects.map(obj => obj.text);
+}
+
+function extractSubtitleUrls(subtitles) {
+  return subtitles.map((subtitle) => {
+    const { lang, file } = subtitle;
+    const url = file ? file.url : null;
+
+    return {
+      lang,
+      url,
+    };
+  });
 }
