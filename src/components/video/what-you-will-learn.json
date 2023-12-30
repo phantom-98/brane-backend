@@ -1,0 +1,13 @@
+{
+  "collectionName": "components_video_what_you_will_learns",
+  "info": {
+    "displayName": "ArrayText",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "text": {
+      "type": "string"
+    }
+  }
+}

@@ -279,8 +279,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
       if (user.role.type == "instructor") {
         ctx.request.body.data.instructor = user.id;
       }
-      console.log(ctx.request.body.data.instructor);
-      // si el usuario que esta haciendo la peticion es de tipo administrador y no envia el instructor, no puede crear el curso
+
 
       if (!ctx.request.body.data.instructor && user.role.type != "instructor") {
         return ctx.badRequest(null, [
@@ -302,7 +301,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
       const { subTitles, whatYouWillLearn, requirements, whoIsThisCourseFor } = ctx.request.body.data;
 
-
+      console.log("subTitles", whatYouWillLearn);
 
       // son de tipo array, los serializo para poder guardarlos en la base de datos
 
@@ -311,45 +310,54 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
       if (subTitles) {
         // verifico sea un array  sino retorno un error
 
+        
+
         if (!Array.isArray(subTitles)) {
           return ctx.badRequest("Tipo de dato invalido", {
             error: "El campo subtitulos debe ser un array",
           });
         }
 
-        if (subTitles.length) {
-          ctx.request.body.data.subTitles = JSON.stringify(subTitles);
-        }
+        ctx.request.body.subTitles =  convertArrayToObjects(subTitles);
+
+
+
+
       }
 
       if (whatYouWillLearn) {
+        console.log("subTitles", whatYouWillLearn);
         if (!Array.isArray(whatYouWillLearn)) {
           return ctx.badRequest("Tipo de dato invalido", {
-            error: "El campo que aprenderas debe ser un array",
+            error: "El campo que whatYouWillLearn debe ser un array",
           });
         }
 
-        if (whatYouWillLearn.length) {
-          ctx.request.body.data.whatYouWillLearn =
-            JSON.stringify(whatYouWillLearn);
-        }
+        ctx.request.body.whatYouWillLearn =  convertArrayToObjects(whatYouWillLearn);
+
+        console.log("subTitles", ctx.request.body.whatYouWillLearn);
+
       }
 
       if (requirements) {
         if (!Array.isArray(requirements)) {
           return ctx.badRequest("Tipo de dato invalido", {
-            error: "El campo requerimientos debe ser un array",
+            error: "El campo requirements debe ser un array",
           });
         }
 
-        if (requirements.length) {
-          ctx.request.body.data.requirements = JSON.stringify(requirements);
-        }
+        ctx.request.body.requirements =  convertArrayToObjects(requirements);
       }
 
       if (whoIsThisCourseFor) {
-        ctx.request.body.data.whoIsThisCourseFor =
-          JSON.stringify(whoIsThisCourseFor);
+        if (!Array.isArray(whoIsThisCourseFor)) {
+          return ctx.badRequest("Tipo de dato invalido", {
+            error: "El campo whoIsThisCourseFor debe ser un array",
+          });
+        }
+
+        ctx.request.body.whoIsThisCourseFor =  convertArrayToObjects(whoIsThisCourseFor);
+
       }
 
       // si el usuario que está haciendo la petición es administrador, puede crear el curso
@@ -593,6 +601,16 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
       return data;
     } catch (error) {
       console.log(error);
+      
+
+      return ctx.badRequest("Error al crear el curso", {
+
+        ...error 
+      });
+  
+
+
+      
 
     }
 
@@ -1421,7 +1439,15 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
     }
 
     if (data.curso.whatYouWillLearn) {
-      data.curso.whatYouWillLearn = JSON.parse(data.curso.whatYouWillLearn);
+      console.log("data.curso.whatYouWillLearn", data.curso.whatYouWillLearn);
+
+      if (typeof data.curso.whatYouWillLearn == "string") {
+        data.curso.whatYouWillLearn = JSON.parse(data.curso.whatYouWillLearn);
+      }else{
+        data.curso.whatYouWillLearn = data.curso.whatYouWillLearn;
+      }
+
+
     } else {
       data.curso.whatYouWillLearn = [];
     }
@@ -1996,3 +2022,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
 
 }));
+function convertArrayToObjects(array) {
+    // Mapea cada elemento del array a un objeto con la propiedad 'text'
+    return array.map(item => ({ text: item }));
+}

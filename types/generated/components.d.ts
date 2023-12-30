@@ -112,6 +112,17 @@ export interface SupportVideoSupport extends Schema.Component {
   };
 }
 
+export interface VideoWhatYouWillLearn extends Schema.Component {
+  collectionName: 'components_video_what_you_will_learns';
+  info: {
+    displayName: 'ArrayText';
+    description: '';
+  };
+  attributes: {
+    text: Attribute.String;
+  };
+}
+
 declare module '@strapi/types' {
   export module Shared {
     export interface Components {
@@ -121,6 +132,7 @@ declare module '@strapi/types' {
       'pararelas.cardnet-response': PararelasCardnetResponse;
       'pararelas.pararelas-paises': PararelasPararelasPaises;
       'support.video-support': SupportVideoSupport;
+      'video.what-you-will-learn': VideoWhatYouWillLearn;
     }
   }
 }

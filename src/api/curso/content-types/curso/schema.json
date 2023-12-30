@@ -70,15 +70,6 @@
       "type": "string",
       "default": "0"
     },
-    "subTitles": {
-      "type": "string"
-    },
-    "whatYouWillLearn": {
-      "type": "text"
-    },
-    "requirements": {
-      "type": "text"
-    },
     "descripcion": {
       "type": "richtext"
     },
@@ -87,9 +78,6 @@
     },
     "precioDescuento": {
       "type": "decimal"
-    },
-    "whoIsThisCourseFor": {
-      "type": "text"
     },
     "status": {
       "type": "enumeration",
@@ -115,6 +103,26 @@
       "component": "course.conference",
       "required": false,
       "private": true
+    },
+    "whatYouWillLearn": {
+      "type": "component",
+      "repeatable": true,
+      "component": "video.what-you-will-learn"
+    },
+    "requeriments": {
+      "type": "component",
+      "repeatable": true,
+      "component": "video.what-you-will-learn"
+    },
+    "whoIsThisCourseFor": {
+      "type": "component",
+      "repeatable": true,
+      "component": "video.what-you-will-learn"
+    },
+    "subTitles": {
+      "type": "component",
+      "repeatable": true,
+      "component": "video.what-you-will-learn"
     }
   }
 }

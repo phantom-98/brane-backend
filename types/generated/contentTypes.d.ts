@@ -482,6 +482,97 @@ export interface PluginUploadFolder extends Schema.CollectionType {
   };
 }
 
+export interface PluginContentReleasesRelease extends Schema.CollectionType {
+  collectionName: 'strapi_releases';
+  info: {
+    singularName: 'release';
+    pluralName: 'releases';
+    displayName: 'Release';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  pluginOptions: {
+    'content-manager': {
+      visible: false;
+    };
+    'content-type-builder': {
+      visible: false;
+    };
+  };
+  attributes: {
+    name: Attribute.String & Attribute.Required;
+    releasedAt: Attribute.DateTime;
+    actions: Attribute.Relation<
+      'plugin::content-releases.release',
+      'oneToMany',
+      'plugin::content-releases.release-action'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'plugin::content-releases.release',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'plugin::content-releases.release',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface PluginContentReleasesReleaseAction
+  extends Schema.CollectionType {
+  collectionName: 'strapi_release_actions';
+  info: {
+    singularName: 'release-action';
+    pluralName: 'release-actions';
+    displayName: 'Release Action';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  pluginOptions: {
+    'content-manager': {
+      visible: false;
+    };
+    'content-type-builder': {
+      visible: false;
+    };
+  };
+  attributes: {
+    type: Attribute.Enumeration<['publish', 'unpublish']> & Attribute.Required;
+    entry: Attribute.Relation<
+      'plugin::content-releases.release-action',
+      'morphToOne'
+    >;
+    contentType: Attribute.String & Attribute.Required;
+    release: Attribute.Relation<
+      'plugin::content-releases.release-action',
+      'manyToOne',
+      'plugin::content-releases.release'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'plugin::content-releases.release-action',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'plugin::content-releases.release-action',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface PluginSlugifySlug extends Schema.CollectionType {
   collectionName: 'slugs';
   info: {
@@ -1189,20 +1280,20 @@ export interface ApiCursoCurso extends Schema.CollectionType {
       'api::categoria.categoria'
     >;
     idioma: Attribute.String;
-    cantidadEstudiantes: Attribute.Integer & Attribute.DefaultTo<0>;
-    subTitles: Attribute.String;
-    whatYouWillLearn: Attribute.Text;
-    requirements: Attribute.Text;
+    cantidadEstudiantes: Attribute.String & Attribute.DefaultTo<'0'>;
     descripcion: Attribute.RichText;
     shortDescription: Attribute.RichText;
     precioDescuento: Attribute.Decimal;
-    whoIsThisCourseFor: Attribute.Text;
     status: Attribute.Enumeration<['published', 'draft']> &
       Attribute.DefaultTo<'draft'>;
     additionalResources: Attribute.Integer & Attribute.DefaultTo<0>;
     nombre_institucion: Attribute.String;
     logo_institucion: Attribute.String;
     conference: Attribute.Component<'course.conference'> & Attribute.Private;
+    whatYouWillLearn: Attribute.Component<'video.what-you-will-learn', true>;
+    requeriments: Attribute.Component<'video.what-you-will-learn', true>;
+    whoIsThisCourseFor: Attribute.Component<'video.what-you-will-learn', true>;
+    subTitles: Attribute.Component<'video.what-you-will-learn', true>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -1873,6 +1964,8 @@ declare module '@strapi/types' {
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'plugin::upload.file': PluginUploadFile;
       'plugin::upload.folder': PluginUploadFolder;
+      'plugin::content-releases.release': PluginContentReleasesRelease;
+      'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::slugify.slug': PluginSlugifySlug;
       'plugin::email-designer.email-template': PluginEmailDesignerEmailTemplate;
       'plugin::strapi-google-auth.google-credential': PluginStrapiGoogleAuthGoogleCredential;

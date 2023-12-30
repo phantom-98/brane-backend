@@ -803,7 +803,7 @@ module.exports = createCoreController(
 				let { data } = await axios.post(`${CARDNET_ACCESS_LINK}/sessions`, {
 
 					"TransactionType": "200",
-					"CurrencyCode": "214",
+					"CurrencyCode": "814",
 					"AcquiringInstitutionCode": "349",
 					"MerchantType": `${CARDNET_MERCHANT_TYPE}`,
 					"MerchantNumber": `${CARDNET_MERCHANT_NUMBER}`,
@@ -904,11 +904,6 @@ module.exports = createCoreController(
 							textResponse: codigosDeRespuestaCardnet[data.ResponseCode]
 						},
 						estado: data.ResponseCode == '00' ? 'completado' : 'rechazado'
-
-
-
-
-
 					}
 				});
 
@@ -1721,11 +1716,10 @@ module.exports = createCoreController(
 
 				
 
-
+				
 
 				
 			let dataPedido=  await super.find(ctx);
-
 			if(!dataPedido){
 
 				return ctx.send({ data: [], meta: {} });
