@@ -43,5 +43,10 @@ module.exports = {
 				path: "/pedido/cardnet/failed-purchase/",
 				handler: "pedido.cardnetFailedPurchase",
 			},
+			{
+				method: "GET",
+				path: "/pedido/find-me/",
+				handler: "pedido.findMe",
+			},
 	],
 };

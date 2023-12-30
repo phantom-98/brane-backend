@@ -67,8 +67,8 @@
       "type": "string"
     },
     "cantidadEstudiantes": {
-      "type": "integer",
-      "default": 0
+      "type": "string",
+      "default": "0"
     },
     "subTitles": {
       "type": "string"

@@ -1198,35 +1198,16 @@ module.exports = createCoreController(
 							await strapi.db.query("api::mis-curso.mis-curso").create({ data: data });
 
 
+							if (!curso1.cantidadEstudiantes){
+
+								curso1.cantidadEstudiantes = 0;
+							}
+
 							await strapi.db.query("api::curso.curso").update({
 								where: { id: curso1.id },
 								data: { cantidadEstudiantes: curso1.cantidadEstudiantes + 1 },
 							});
 						}
-
-					/*	if (pedido.destinatarios) {
-
-							let destinations = JSON.parse(pedido.destinatarios);
-
-							for (let i = 0; i < destinations.length; i++) {
-
-								await stripe.transfers.create({
-
-									amount: destinations[i].amount,
-
-									currency: 'usd',
-
-									destination: destinations[i].account,
-
-									source_transaction: session.latest_charge
-
-
-
-								});
-							}
-
-						}*/
-
 
 
 
@@ -1325,8 +1306,10 @@ module.exports = createCoreController(
 				let curso = await strapi.db.query("api::curso.curso").findOne({
 					where: { id: cursos[i].curso },
 					populate: ['instructor', 'imagen'],
-					select: ['precio', 'precioDescuento', 'cupon_descuento', "name"]
+					select: ['precio', 'precioDescuento', 'cupon_descuento', "name", "cantidadEstudiantes"]
 				});
+
+				console.log("curso", curso);
 
 				if (!curso) {
 					return ctx.notFound(`No existe el curso`, { error: 'No existe el curso' });
@@ -1387,8 +1370,6 @@ module.exports = createCoreController(
 
 			}
 
-console.log("creditos.quantity", creditos.quantity);
-console.log("monto_centimos", monto_centimos);
 
 
 
@@ -1415,13 +1396,19 @@ console.log("monto_centimos", monto_centimos);
 
 			for (let i = 0; i < cursos.length; i++) {
 
-				const curso = cursos[i];
+				const curso = await strapi.db.query("api::curso.curso").findOne({
+
+					where: { id: cursos[i].curso },
+
+					populate: ['instructor']
+
+				});
 
 			let datos = {
 
 					usuario: user.id,
 
-					curso: curso.curso,
+					curso: curso.id,
 
 					instructor: curso.instructor,
 
@@ -1433,14 +1420,35 @@ console.log("monto_centimos", monto_centimos);
 
 				}
 
-				await strapi.db.query("api::mis-curso.mis-curso").create({ data: datos });
+			await strapi.db.query("api::mis-curso.mis-curso").create({ data: datos });
+			let cantidadEstudiantes	= 0;
 
+		
+			if (!curso.cantidadEstudiantes){ 
+
+				cantidadEstudiantes = 0;
+
+
+			}else{ 
+
+				// verifico sea un string pero numerico
+
+				cantidadEstudiantes = parseInt(curso.cantidadEstudiantes) ;
+
+
+
+			}
+
+
+
+			cantidadEstudiantes = (cantidadEstudiantes + 1).toString();
+			console.log("cantidadEstudiantes", cantidadEstudiantes);
 
 				await strapi.db.query("api::curso.curso").update({
 
-					where: { id: curso.curso },
+					where: { id: curso.id },
 
-					data: { cantidadEstudiantes: curso.cantidadEstudiantes + 1 },
+					data: { cantidadEstudiantes: cantidadEstudiantes },
 
 				});
 
@@ -1519,15 +1527,6 @@ console.log("monto_centimos", monto_centimos);
 
 				console.log("verification", verification.data);
 
-				/*	if (verification.data.verification_status !== 'SUCCESS') {
-	
-						console.log("error de verificacion");
-	
-						return ctx.badRequest(`Error de verificacion `, { error: 'Error de verificacion' })
-	
-					}*/
-
-				// saco el event_type para saber que tipo de evento es
 
 				const event_type = valores.event_type;
 
@@ -1616,7 +1615,11 @@ console.log("monto_centimos", monto_centimos);
 
 								await strapi.db.query("api::mis-curso.mis-curso").create({ data: data });
 
+								if(!curso1.cantidadEstudiantes){ 
 
+									curso1.cantidadEstudiantes = 0;
+
+								}
 								await strapi.db.query("api::curso.curso").update({
 									where: { id: curso1.id },
 									data: { cantidadEstudiantes: curso1.cantidadEstudiantes + 1 },
@@ -1678,6 +1681,114 @@ console.log("monto_centimos", monto_centimos);
 			// Redondea el monto a dos decimales para manejo de montos monetarios
 			return Number(monto.toFixed(2));
 		},
+
+		async findMe (ctx) {
+
+			// saco el user
+
+			const user = ctx.state.user;
+
+			if (!user) {
+
+				return ctx.unauthorized("No tienes permiso", { error: 'No autorizado' });
+
+			}
+
+			// si no es admin	solo puede ver sus pedidos
+
+
+	
+				ctx.query = {
+
+					...ctx.query,
+					filters: {
+		
+						...ctx.query.filters,
+		
+						usuario: {
+		
+							id: {
+		
+								"$eq": user.id
+		
+							}
+		
+						}
+		
+					}
+		
+				}
+
+				
+
+
+
+				
+			let dataPedido=  await super.find(ctx);
+
+			if(!dataPedido){
+
+				return ctx.send({ data: [], meta: {} });
+
+			}
+
+			let meta = dataPedido.meta;
+
+			
+
+				
+			dataPedido = dataPedido.data.map((pedido) => {
+
+				let data = pedido.attributes ;
+
+				let cursos = [];
+				if(data.cursos){
+
+				 cursos = data.cursos.data.map((curso) => {
+
+					return {
+
+						id: curso.id,
+						name: curso.attributes.name,
+						slug: curso.attributes.slug,
+						precio: curso.attributes.precio,
+						imagen: curso.attributes.imagen
+
+					}
+
+				});
+			}
+
+				// retorno metodo de pago, estado, total, subtotal, descuento, cantidad, fecha de creacion y	id
+
+
+				return {
+
+					id : data.id,
+					metodo_de_pago : data.metodo_de_pago,
+					estado : data.estado,
+					total : data.total,
+					subtotal : data.subtotal,
+					descuento : data.descuento,
+					cantidad : data.cantidad,
+					fecha_de_creacion : data.createdAt,
+					cursos : cursos,
+
+				}
+
+
+
+
+			});
+
+			// le añado
+
+
+
+			
+			return ctx.send({ data: dataPedido, meta: meta });
+
+		}
 
 
 
