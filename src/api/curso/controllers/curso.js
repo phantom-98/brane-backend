@@ -100,7 +100,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
     if (user.id != curso.instructor.id && user.role.type != "administrador") {
       return ctx.unauthorized(`You can't update this entry`);
     }
-    const { subTitles, whatYouWillLearn, requirements, whoIsThisCourseFor } =
+    const { subTitles, whatYouWillLearn, requeriments, whoIsThisCourseFor } =
       ctx.request.body.data;
 
 
@@ -112,8 +112,8 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
       ctx.request.body.data.whatYouWillLearn = JSON.stringify(whatYouWillLearn);
     }
 
-    if (requirements) {
-      ctx.request.body.data.requirements = JSON.stringify(requirements);
+    if (requeriments) {
+      ctx.request.body.data.requeriments = JSON.stringify(requeriments);
     }
 
     if (whoIsThisCourseFor) {
@@ -297,28 +297,23 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
 
 
-      // extraigo los campos subTitles , whatYouWillLearn y requirements
+      // extraigo los campos subTitles , whatYouWillLearn y requeriments
 
-      const { subTitles, whatYouWillLearn, requirements, whoIsThisCourseFor } = ctx.request.body.data;
+      const { subTitles, whatYouWillLearn, requeriments, whoIsThisCourseFor } = ctx.request.body.data;
 
-      console.log("subTitles", whatYouWillLearn);
+      console.log("subTitles", requeriments);
 
-      // son de tipo array, los serializo para poder guardarlos en la base de datos
 
-      // si subtittles no está definido, no lo serializo
 
       if (subTitles) {
         // verifico sea un array  sino retorno un error
-
-        
-
         if (!Array.isArray(subTitles)) {
           return ctx.badRequest("Tipo de dato invalido", {
             error: "El campo subtitulos debe ser un array",
           });
         }
 
-        ctx.request.body.subTitles =  convertArrayToObjects(subTitles);
+        ctx.request.body.data.subTitles =  convertArrayToObjects(subTitles);
 
 
 
@@ -326,28 +321,29 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
       }
 
       if (whatYouWillLearn) {
-        console.log("subTitles", whatYouWillLearn);
         if (!Array.isArray(whatYouWillLearn)) {
           return ctx.badRequest("Tipo de dato invalido", {
             error: "El campo que whatYouWillLearn debe ser un array",
           });
         }
 
-        ctx.request.body.whatYouWillLearn =  convertArrayToObjects(whatYouWillLearn);
+        ctx.request.body.data.whatYouWillLearn =  convertArrayToObjects(whatYouWillLearn);
 
-        console.log("subTitles", ctx.request.body.whatYouWillLearn);
+
 
       }
 
-      if (requirements) {
-        if (!Array.isArray(requirements)) {
+      if (requeriments) {
+        if (!Array.isArray(requeriments)) {
           return ctx.badRequest("Tipo de dato invalido", {
-            error: "El campo requirements debe ser un array",
+            error: "El campo requeriments debe ser un array",
           });
         }
 
-        ctx.request.body.requirements =  convertArrayToObjects(requirements);
+        ctx.request.body.data.requeriments =  convertArrayToObjects(requeriments);
       }
+
+      console.log ("whoIsThisCourseFor",requeriments);
 
       if (whoIsThisCourseFor) {
         if (!Array.isArray(whoIsThisCourseFor)) {
@@ -356,21 +352,9 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
           });
         }
 
-        ctx.request.body.whoIsThisCourseFor =  convertArrayToObjects(whoIsThisCourseFor);
+        ctx.request.body.data.whoIsThisCourseFor =  convertArrayToObjects(whoIsThisCourseFor);
 
       }
-
-      // si el usuario que está haciendo la petición es administrador, puede crear el curso
-
-      /* if (!ctx.request.body.instructor) {
-        if (user.role.type == 'instructor') {
-          ctx.request.body.instructor = user.id;
-        } else {
-          return ctx.unauthorized(`You can't create this entry`);
-        }
-      }*/
-
-      //populo el campo company del usuario que está haciendo la petición
 
       const userPopulate = await strapi.db
         .query("plugin::users-permissions.user")
@@ -425,11 +409,6 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
           },);
         }
 
-
-        // si el cupom_descuento existe en la tabla cupon verifico el instructor del cupon
-
-        // si el instructor del cupon es diferente al instructor del curso no se puede asignar el cupom_descuento al curso
-
         if (cupon.user.id != ctx.request.body.data.instructor) {
           return ctx.badRequest(null, [
             {
@@ -443,9 +422,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
           ]);
         }
 
-        // si el cupom_descuento existe en la tabla cupon y el instructor del cupon es igual al instructor del curso se puede asignar el cupom_descuento al curso y en la tabla cupon se actualiza el campo curso con el id del curso creado
-
-
+        
         data = await super.create(ctx);
 
         let cursos_cupon = [data.data.id, ...cupon.cursos.map((curso) => curso.id)]
@@ -588,17 +565,8 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
       }
 
 
-
-
-
-
-
-
-
-      //
-
-
-      return data;
+  
+      return ctx.send(data);
     } catch (error) {
       console.log(error);
       
@@ -1091,10 +1059,10 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
       data.curso.whatYouWillLearn = [];
     }
 
-    if (data.curso.requirements) {
-      data.curso.requirements = JSON.parse(data.curso.requirements);
+    if (data.curso.requeriments) {
+      data.curso.requeriments = JSON.parse(data.curso.requeriments);
     } else {
-      data.curso.requirements = [];
+      data.curso.requeriments = [];
     }
 
     if (data.curso.additionalResources) {
@@ -1452,10 +1420,10 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
       data.curso.whatYouWillLearn = [];
     }
 
-    if (data.curso.requirements) {
-      data.curso.requirements = JSON.parse(data.curso.requirements);
+    if (data.curso.requeriments) {
+      data.curso.requeriments = JSON.parse(data.curso.requeriments);
     } else {
-      data.curso.requirements = [];
+      data.curso.requeriments = [];
     }
 
     if (data.curso.additionalResources) {
