@@ -477,6 +477,7 @@ function extractSubtitleUrls(subtitles) {
   return subtitles.map((subtitle) => {
     const { lang, file } = subtitle;
     const url = file ? file.url : null;
+    
 
     return {
       lang,
