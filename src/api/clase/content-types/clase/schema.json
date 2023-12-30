@@ -44,14 +44,16 @@
     "duracion": {
       "type": "string"
     },
-    "additionalResources": {
-      "type": "text"
-    },
     "subtitles": {
       "displayName": "subtitles",
       "type": "component",
       "repeatable": true,
       "component": "class.subtitles"
+    },
+    "additionalResources": {
+      "type": "component",
+      "repeatable": true,
+      "component": "video.what-you-will-learn"
     }
   }
 }

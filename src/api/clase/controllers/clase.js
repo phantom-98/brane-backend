@@ -131,7 +131,7 @@ module.exports = createCoreController("api::clase.clase", ({ strapi }) => ({
 
       if (additionalResources.length) {
 
-        ctx.request.body.data.additionalResources = JSON.stringify(additionalResources);
+        ctx.request.body.data.additionalResources = convertArrayToObjects(additionalResources);
 
       }
 
@@ -455,3 +455,12 @@ module.exports = createCoreController("api::clase.clase", ({ strapi }) => ({
 
 
 }));
+function convertArrayToObjects(array) {
+  // Mapea cada elemento del array a un objeto con la propiedad 'text'
+  return array.map(item => ({ text: item }));
+}
+
+function convertObjectsToArray(objects) {
+// Mapea cada objeto del array extrayendo el valor de la propiedad 'text'
+return objects.map(obj => obj.text);
+}

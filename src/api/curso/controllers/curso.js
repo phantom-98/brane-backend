@@ -1339,7 +1339,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
       for (let i = 0; i < clases.length; i++) {
         const clase = clases[i];
         if (clase.additionalResources) {
-          clase.additionalResources = JSON.parse(clase.additionalResources);
+          clase.additionalResources = convertObjectsToArray(clase.additionalResources);
           cantidadRecursos += clase.additionalResources.length;
         }
       }

@@ -950,8 +950,8 @@ export interface ApiClaseClase extends Schema.CollectionType {
     uuid: Attribute.UID;
     publico: Attribute.Boolean & Attribute.DefaultTo<false>;
     duracion: Attribute.String;
-    additionalResources: Attribute.Text;
     subtitles: Attribute.Component<'class.subtitles', true>;
+    additionalResources: Attribute.Component<'video.what-you-will-learn', true>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
