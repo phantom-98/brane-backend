@@ -156,6 +156,9 @@ module.exports = createCoreController("api::clase.clase", ({ strapi }) => ({
   
     const curso = await this.getCursoData(claseData, user);
     if (!curso) return ctx.unauthorized(`No tienes permisos para realizar esta acción`);
+
+
+    console.log(subtitles, claseData);
   
     await this.processSubtitles(subtitles, claseData);
   
@@ -226,10 +229,71 @@ module.exports = createCoreController("api::clase.clase", ({ strapi }) => ({
   },
   
   async processSubtitles(subtitles, claseData) {
-    // Implementación de la lógica para procesar los subtítulos...
-    // Este método debería contener la lógica del manejo de los archivos
-    // y actualización de la base de datos.
+    const { subtitles: currentSubtitles } = claseData;
+  
+    // Crear un mapa de subt?tulos existentes para facilitar la b?squeda
+    const currentSubtitlesMap = new Map(currentSubtitles.map((subtitle) => [subtitle.lang, subtitle]));
+  
+    // Recorremos los subt?tulos proporcionados
+    for (const subtitle of subtitles) {
+      const { file, lang } = subtitle;
+  
+      const createAndAssignTmpWorkingDirectoryToFiles = () =>
+        fse.mkdtemp(path.join(os.tmpdir(), 'strapi-upload-'));
+  
+      let buffer = await fs.promises.readFile(file.path);
+  
+      const entity = {
+        name: `${file.name}`,
+        hash: uuid() + '_' + file.name,
+        ext: path.extname(file.name),
+        mime: file.type,
+        size: file.size / 1024,
+        provider: 'local',
+        tmpWorkingDirectory: await createAndAssignTmpWorkingDirectoryToFiles(),
+        getStream: () => Readable.from(buffer),
+        folderPath: '/1',
+      };
+  
+      // Subir y persistir el archivo
+      let [fileUpload] = await Promise.all([
+        strapi.plugin('upload').service('upload').uploadFileAndPersist(entity),
+        strapi.query('plugin::upload.file').create({ data: entity }),
+      ]);
+  
+      // Actualizar o agregar el subt?tulo en el mapa
+      currentSubtitlesMap.set(lang, {
+        lang,
+        file: fileUpload.id,
+      });
+    }
+  
+    // Identificar subt?tulos que deben eliminarse
+    const languagesToRemove = [];
+    for (const [lang, subtitle] of currentSubtitlesMap.entries()) {
+      if (!subtitles.find((s) => s.lang === lang)) {
+        languagesToRemove.push(lang);
+      }
+    }
+  
+    // Eliminar subt?tulos que no se incluyen en la lista subtitles
+    for (const langToRemove of languagesToRemove) {
+      currentSubtitlesMap.delete(langToRemove);
+    }
+  
+    // Convertir el mapa nuevamente en una lista de subt?tulos
+    const updatedSubtitles = Array.from(currentSubtitlesMap.values());
+  
+    // Actualizar los subt?tulos en la clase
+    await strapi.entityService.update('api::clase.clase', claseData.id, {
+      data: {
+        subtitles: updatedSubtitles,
+      },
+    });
   },
+  
+  
+  
   
   async getUpdatedClass(clase) {
     return await strapi.db.query("api::clase.clase").findOne({
