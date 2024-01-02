@@ -803,7 +803,7 @@ module.exports = createCoreController(
 				let { data } = await axios.post(`${CARDNET_ACCESS_LINK}/sessions`, {
 
 					"TransactionType": "200",
-					"CurrencyCode": "814",
+					"CurrencyCode": "840",
 					"AcquiringInstitutionCode": "349",
 					"MerchantType": `${CARDNET_MERCHANT_TYPE}`,
 					"MerchantNumber": `${CARDNET_MERCHANT_NUMBER}`,
@@ -1461,7 +1461,11 @@ module.exports = createCoreController(
 			});
 
 
-			return ctx.redirect(`${URL_FRONT}/successful-purchase/`);
+return ctx.send({ message: 'Compra realizada con exito' });
+
+
+
+
 
 
 

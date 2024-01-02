@@ -504,7 +504,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
               in_meeting: false,
 
-              join_before_host: false,
+              join_before_host: true,
 
               mute_upon_entry: false,
 
@@ -516,7 +516,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
               audio: "both",
 
-              auto_recording: "none",
+              auto_recording: true,
 
               enforce_login: false,
 
