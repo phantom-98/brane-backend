@@ -797,10 +797,8 @@ module.exports = createCoreController(
 
 
 			let pedido = await super.create(ctx);
-
-
-			try {
-				let { data } = await axios.post(`${CARDNET_ACCESS_LINK}/sessions`, {
+console.log(pedido)
+console.log("pedido", {
 
 					"TransactionType": "200",
 					"CurrencyCode": "840",
@@ -816,11 +814,36 @@ module.exports = createCoreController(
 					"Amount": monto_centimos,
 					"AVS": "33024 1000 ST JOHN PLACE PEMBROKE PINES FLORIDA",
 
+				});
+			try {
+				let { data } = await axios.post(`${CARDNET_ACCESS_LINK}/sessions`, {
+
+					"TransactionType": "200",
+					"CurrencyCode": "214",
+					"AcquiringInstitutionCode": "349",
+					"MerchantType": `${CARDNET_MERCHANT_TYPE}`,
+					"MerchantNumber": `${CARDNET_MERCHANT_NUMBER}`,
+					"MerchantTerminal": `${CARDNET_MERCHANT_TERMINAL}`,
+					"MerchantTerminal_amex": `${CARDNET_MERCHANT_TERMINAL_AMEX}`,
+					"ReturnUrl": `${REMOTE_URL}/api/pedido/cardnet/successful-purchase/`,
+					"CancelUrl": `${REMOTE_URL}/api/pedido/cardnet/failed-purchase/`,
+					"Tax": `${CARDNET_TAX}`,
+					"MerchantName": `${CARDNET_MERCHANT_NAME}`,
+					"Amount": monto_centimos,
+					"PageLanguaje": "ENG",
+					"OrdenId": pedido.data.id,
+					"TransactionId": pedido.data.id,
+					"MerchantName": "Brane, CA",
+					"AVS": "33024 1000 ST JOHN PLACE PEMBROKE PINES FLORIDA",
+
 				}, {
 					headers: {
 						'Content-Type': 'application/json'
 					}
 				});
+
+
+				console.log("data", data);
 
 				session = {
 					session: data.SESSION,
