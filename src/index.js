@@ -16,5 +16,28 @@ module.exports = {
    * This gives you an opportunity to set up your data model,
    * run jobs, or perform some special logic.
    */
-  bootstrap(/*{ strapi }*/) {},
+  bootstrap({ strapi }) {
+    const io = require("socket.io")(strapi.server.httpServer, {
+      cors: {
+        origin: "*",
+        transports: ["websocket"]
+      }
+    });
+    const socketFunctions = require("./socket/sockets");
+
+    const users = {};
+    const socketToRoom = {};
+    const tokens = {};
+
+    io.on("connection", (socket) => {
+      // socket is the user who is connecting to the server
+      socketFunctions.requestJoinRoom(socket, io, users, tokens);
+      socketFunctions.allowJoinRoom(socket, io, users, tokens, socketToRoom);
+      socketFunctions.joinRoom(socket, io, users, socketToRoom);
+      socketFunctions.readyRoom(socket);
+      socketFunctions.disconnect(socket, io, users, socketToRoom, tokens);
+      socketFunctions.sendMessage(socket, io, socketToRoom);
+      socketFunctions.sendSignals(socket, io, socketToRoom);
+    });
+  },
 };
