@@ -5,11 +5,8 @@
  */
 
 const { createCoreController } = require("@strapi/strapi").factories;
-const crypto = require('crypto')
-const qs = require('qs');
-const axios = require("axios");
-const { ZOOM_ACCOUNT_ID, ZOOM_CLIENT_ID, ZOOM_CLIENT_SECRET, ZOOM_SECRET_TOKEN, ZOOM_VERIFICATION_TOKEN, ZOOM_URL, ZOOM_MEETING_SDK_SECRET, ZOOM_MEETING_SDK_KEY } = process.env;
-const KJUR = require('jsrsasign')
+const { v4 } = require('uuid')
+
 module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
   // Method 2: Wrapping a core action (leaves core logic in place)
   async find(ctx) {
@@ -109,10 +106,6 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
       }
 
       ctx.request.body.data.subTitles =  convertArrayToObjects(subTitles);
-
-
-
-
     }
 
     if (whatYouWillLearn) {
@@ -123,9 +116,6 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
       }
 
       ctx.request.body.data.whatYouWillLearn =  convertArrayToObjects(whatYouWillLearn);
-
-
-
     }
 
     if (requeriments) {
@@ -147,22 +137,16 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
       }
 
       ctx.request.body.data.whoIsThisCourseFor =  convertArrayToObjects(whoIsThisCourseFor);
-
     }
-
-
 
     let data = [];
 
     const { cupon_descuento } = ctx.request.body.data;
 
     if (cupon_descuento) {
-
-
       const cupon = await strapi.db
         .query("api::cupon.cupon")
         .findOne({ where: { slug: cupon_descuento }, populate: true });
-
 
       // si el cupom_descuento no existe en la tabla cupon no se puede asignar el cupom_descuento al curso
 
@@ -176,7 +160,6 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
           ],
         },);
       }
-
 
       // si el cupom_descuento existe en la tabla cupon verifico el instructor del cupon
 
@@ -197,12 +180,9 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
       // si el cupom_descuento existe en la tabla cupon y el instructor del cupon es igual al instructor del curso se puede asignar el cupom_descuento al curso y en la tabla cupon se actualiza el campo curso con el id del curso creado
 
-
       data = await super.update(ctx);
 
       let cursos_cupon = [id, ...cupon.cursos.map((curso) => curso.id)]
-
-
 
       await strapi.db
         .query("api::cupon.cupon")
@@ -212,18 +192,10 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
             data: { cursos: cursos_cupon }
           }
         );
-
-
     } else {
-
-
       data = await super.update(ctx);
-
     }
-
-
     return data;
-
   },
 
   verificarConstraseña(codigo) {
@@ -278,8 +250,6 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
   //	modifico el create para que solo los cursos puedan ser creados por usuariostipo instructor y por el adminisrador
 
   async create(ctx) {
-
-
     try {
 
       const user = ctx.state.user;
@@ -302,7 +272,6 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
         ctx.request.body.data.instructor = user.id;
       }
 
-
       if (!ctx.request.body.data.instructor && user.role.type != "instructor") {
         return ctx.badRequest(null, [
           {
@@ -315,9 +284,6 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
           },
         ]);
       }
-
-
-
 
       // extraigo los campos subTitles , whatYouWillLearn y requeriments
 
@@ -333,10 +299,6 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
         }
 
         ctx.request.body.data.subTitles =  convertArrayToObjects(subTitles);
-
-
-
-
       }
 
       if (whatYouWillLearn) {
@@ -347,9 +309,6 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
         }
 
         ctx.request.body.data.whatYouWillLearn =  convertArrayToObjects(whatYouWillLearn);
-
-
-
       }
 
       if (requeriments) {
@@ -393,27 +352,16 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
           ctx.request.body.data.logo_institucion = company.avatar ? company.avatar.url : "";
           ctx.request.body.data.nombre_institucion = company.nombre;
         }
-
       }
-
-
-
-
-
-
 
       let data = [];
 
       const { cupon_descuento } = ctx.request.body.data;
 
       if (cupon_descuento) {
-
-
         const cupon = await strapi.db
           .query("api::cupon.cupon")
           .findOne({ where: { slug: cupon_descuento }, populate: true });
-
-
         // si el cupom_descuento no existe en la tabla cupon no se puede asignar el cupom_descuento al curso
 
         if (!cupon) {
@@ -440,12 +388,9 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
           ]);
         }
 
-        
         data = await super.create(ctx);
 
         let cursos_cupon = [data.data.id, ...cupon.cursos.map((curso) => curso.id)]
-
-
 
         await strapi.db
           .query("api::cupon.cupon")
@@ -456,153 +401,41 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
             }
           );
 
-
       } else {
-
-
-
         // SI tipo = conferencia, creo la conferencia en zoom
         if (ctx.request.body.data.tipo == "conferencia") {
 
-
-
-          let accessToken = await this.getZoomAccessTokenSofS();
-
           if (!this.verificarConstraseña(ctx.request.body.data.password)) {
-
             return ctx.badRequest("La contraseña debe tener entre 1 y 10 caracteres y solo puede contener letras, números y los siguientes caracteres especiales @ - _ .", {
               error: "La contraseña debe tener entre 1 y 10 caracteres y solo puede contener letras, números y los siguientes caracteres especiales @ - _ ."
             });
-
           };
 
-          const response = await axios.post(`${ZOOM_URL}/users/me/meetings`, {
-            topic: ctx.request.body.data.name,
-            type: 2,
-            start_time: ctx.request.body.data.fecha,
-            duration: ctx.request.body.data.duracion,
-
-            timezone: ctx.request.body.data.timezone,
-            password: ctx.request.body.data.password,
-            agenda: ctx.request.body.data.shortDescription,
-
-
-
-            /* recurrence: {
-               type: 2,  // Semanal
-               repeat_interval: 1,  // Cada semana
- 
-             },*/
-
-            settings: {
-
-              host_video: true,
-
-              participant_video: true,
-
-              cn_meeting: false,
-
-              in_meeting: false,
-
-              join_before_host: true,
-
-              mute_upon_entry: false,
-
-              watermark: false,
-
-              use_pmi: false,
-
-              approval_type: 2,
-
-              audio: "both",
-
-              auto_recording: true,
-
-              enforce_login: false,
-
-              registrants_email_notification: false,
-
-              waiting_room: true,
-
-              registrants_confirmation_email: false,
-
-
-              global_dial_in_countries: [],
-
-              registrants_restrict_number: 0,
-
-              contact_name: "",
-
-              contact_email: "",
-
-              registrants_restrict_email: 0,
-
-              meeting_authentication: true,
-
-              show_share_button: false,
-
-              allow_multiple_devices: false,
-              registration_type: 2,
-
-              encryption_type: "enhanced_encryption",
-
-            },
-
-          }, {
-
-            headers: {
-              'Authorization': `Bearer ${accessToken}`,
-              'Content-Type': 'application/json'
-            }
-
-          });
-
+          const uuid = v4();
 
           let conference = {
-
-            "ZoomMeetingID": response.data.id.toString(),
-            "ZoomURL": response.data.join_url,
-            "ZoomPassword": response.data.password,
-            "ZoomStart": response.data.start_time,
-            "ZoomDuration": response.data.duration.toString(),
+            "MeetingID": uuid,
+            "MeetingURL": process.env.URL_WEB + "/conference/" + uuid,
+            "MeetingPassword": ctx.request.body.data.password,
+            "MeetingStart": ctx.request.body.data.start,
+            "MeetingDuration": ctx.request.body.data.duracion.toString(),
             "state": "scheduled",
-            "meetingRAW": JSON.stringify(response.data),
-
-
+            // "meetingRAW": JSON.stringify(response.data),
           }
 
           ctx.request.body.data.conference = conference;
-
-
-
         }
-
-
         data = await super.create(ctx);
-
       }
 
-
-  
       return ctx.send(data);
     } catch (error) {
       console.log(error);
       
-
       return ctx.badRequest("Error al crear el curso", {
-
         ...error 
       });
-  
-
-
-      
-
     }
-
-
-
-
   },
   async registerMeeting(ctx) {
 
@@ -616,35 +449,26 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
         return ctx.unauthorized(`Not authorized`);
       }
 
-
       const { id } = ctx.params;
 
       if (!id) {
         return ctx.unauthorized(`Not id provided`);
       }
 
-
       const curso = await strapi.entityService.findOne("api::curso.curso", id, {
-
         populate: ["conference", "instructor"],
         fields: ["id", "tipo"]
-
-
-
       });
 
       console.log("curso", curso);
 
       if (!curso || curso.tipo != "conferencia" || !curso.conference) {
-
         return ctx.notFound(`Conference not found`);
-
       }
 
        const misCursos = await strapi.db
        .query("api::mis-curso.mis-curso")
        .findOne({ where: { curso: id, usuario: user.id } });
- 
  
        console.log("misCursos",misCursos);
  
@@ -654,132 +478,22 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
        // verifico si el usuario es el instructor del curso
 
-       let roleMetting = 0;
-      if (user.id == curso.instructor.id) {
-
-        roleMetting = 1;
-
-      }
-
-
-       
-        const signature = await this.getZoomAccessTokenMSDK({ meetingId: curso.conference.ZoomMeetingID, role: roleMetting })
-
-
-
-
-      const { ZoomMeetingID, ZoomPassword } = curso.conference;
-
-
-      /*const accessToken = await this.getZoomAccessTokenSofS();
-
-
-
-       await axios.post(`${ZOOM_URL}/meetings/${ZoomMeetingID}/registrants`, {
-
-        email: user.email,
-
-        first_name: "Daniel",
-
-        last_name: "Gonzalez",
-
-      }, {
-
-        headers: {
-
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        }
-
-      });*/
-
-
-       return {
-        role: roleMetting == 0 ? "participante" : "instructor",
+      return {
+        role: user.id != curso.instructor.id ? "participante" : "instructor",
         userId: user.id,
         userName: user.nombre + " " + user.apellidos,
         userEmail: user.email,
         signature: signature,
-        meetingNumber: curso.conference.ZoomMeetingID,
-        meetingPassword: curso.conference.ZoomPassword,
+        meetingNumber: curso.conference.MeetingID,
+        meetingPassword: curso.conference.MeetingPassword,
         meetingTopic: curso.name,
-        meetingStartTime: curso.conference.ZoomStart,
-        meetingDuration: curso.conference.ZoomDuration,
+        meetingStartTime: curso.conference.MeetingStart,
+        meetingDuration: curso.conference.MeetingDuration,
         meetingTimeZone: curso.timezone,
-        sdkKey : ZOOM_MEETING_SDK_KEY,
      } ;
-
-
 
     } catch (error) {
       console.log(error);
-    }
-
-
-
-
-
-
-
-
-
-
-
-  },
-  async getZoomAccessTokenSofS() {
-    try {
-      const response = await axios.post('https://zoom.us/oauth/token', qs.stringify({
-        grant_type: 'account_credentials',
-        account_id: ZOOM_ACCOUNT_ID,
-      }), {
-        headers: {
-          'Authorization': `Basic ${Buffer.from(`${ZOOM_CLIENT_ID}:${ZOOM_CLIENT_SECRET}`).toString('base64')}`
-        }
-      });
-      //ZOOM_ACCOUNT_ID, ZOOM_CLIENT_ID, ZOOM_CLIENT_SECRET, ZOOM_SECRET_TOKEN, ZOOM_VERIFICATION_TOKEN,ZOOM_UR
-
-      return response.data.access_token;
-    } catch (error) {
-      console.log('Error al obtener el token de acceso de Zoom:', error);
-
-
-      return ctx.badRequest("Error al obtener el token de acceso de Zoom", {
-        error: "Error al obtener el token de acceso de Zoom"
-      });
-    }
-  },
-  async getZoomAccessTokenMSDK(data) {
-    try {
-      const iat = Math.round(new Date().getTime() / 1000) - 30;
-      const exp = iat + 60 * 60 * 2
-    
-      const oHeader = { alg: 'HS256', typ: 'JWT' }
-    
-      const oPayload = {
-        sdkKey: ZOOM_MEETING_SDK_KEY,
-        mn: data.meetingId,
-        role: data.role,
-        iat: iat,
-        exp: exp,
-        appKey: ZOOM_MEETING_SDK_KEY,
-        tokenExp:exp
-      }
-
-      console.log("oPayload",oPayload);
-    
-      const sHeader = JSON.stringify(oHeader)
-      const sPayload = JSON.stringify(oPayload)
-      const signature = KJUR.jws.JWS.sign('HS256', sHeader, sPayload, ZOOM_MEETING_SDK_SECRET)
-
-      // Firmar el token
-      return signature;
-    } catch (error) {
-      console.log('Error al obtener el token de acceso de Zoom:', error);
-
-
-      return ctx.badRequest("Error al obtener el token de acceso de Zoom", {
-        error: "Error al obtener el token de acceso de Zoom"
-      });
     }
   },
 
@@ -1362,10 +1076,8 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
       return { data, meta };
     } catch (error) {
        console.log(error)
-
        return ctx.badRequest("Ha ocurrido un error", ...error)
     }
-
   },
 
   async miStudent(ctx) {
@@ -1522,69 +1234,20 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
     }
 
-    let accessToken = await this.getZoomAccessTokenSofS();
-
-    //obtengo el ZoomMeetingId de la conferencia 
-
-    let conferenceId = await strapi.entityService.findOne('api::curso.curso', id, {
-
-      populate: { conference: true }
-
-
-    });
-
-
-    let zoomMeetingId = conferenceId.conference.ZoomMeetingID;
-
-    //console.log("ZoomMeetingId", conferenceId.conference.ZoomMeetingID);
-
-    //console.log(ctx.request.body.data);
-
-    const response = await axios.patch(`${ZOOM_URL}/meetings/${zoomMeetingId}`, {
-      topic: ctx.request.body.data.name,
-      start_time: ctx.request.body.data.fecha,
-      duration: ctx.request.body.data.duracion,
-      timezone: "America/Argentina/Buenos_Aires",
-      //password: ctx.request.body.data.password,
-      agenda: ctx.request.body.data.shortDescription,
-
-
-
-
-    }, {
-
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json'
-      }
-
-    });
-
     // busco la conferencia en zoom para actualizar en mi base de datos
 
-
-
     let conference = {
-
-      //"ZoomPassword": response.data.password,
-      "ZoomStart": ctx.request.body.data.fecha,
-      "ZoomDuration": ctx.request.body.data.duracion,
+      //"MeetingPassword": response.data.password,
+      "MeetingStart": ctx.request.body.data.fecha,
+      "MeetingDuration": ctx.request.body.data.duracion,
       "state": "scheduled",
-
-
-
     }
 
     ctx.request.body.data.conference = conference;
 
-
     //retorno la conferencia editada en zoom 
 
-
     return ctx.send({ message: "Conferencia editada con éxito" });
-
-
-
   },
 
   async deleteMeeting(ctx) {
@@ -1636,220 +1299,18 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
       return ctx.unauthorized(`You can't edit this entry`);
 
     }
-
-    let accessToken = await this.getZoomAccessTokenSofS();
-
-    let conferenceId = await strapi.entityService.findOne('api::curso.curso', id, {
-
-      populate: { conference: true }
-
-
-    });
-
-    let zoomMeetingId = conferenceId.conference.ZoomMeetingID;
-    console.log(zoomMeetingId);
-
-    //elimino la conferencia en zoom
-
-    await axios.delete(`${ZOOM_URL}/meetings/${zoomMeetingId}`, {
-
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json'
-      }
-
-    });
-
+ 
     //elimino el curso de la base de datos
 
     await strapi.db.query("api::curso.curso").delete({
       where: {
         id: id
       }
-
     })
 
 
     return ctx.send({ message: "Conferencia eliminada con éxito" });
   },
-
-  async getAccessZommMeeting(ctx) {
-
-    const message = `v0:${ctx.request.headers['x-zm-request-timestamp']}:${JSON.stringify(ctx.request.body)}`
-
-    const hashForVerify = crypto.createHmac('sha256', ZOOM_SECRET_TOKEN).update(message).digest('hex')
-
-    const signature = `v0=${hashForVerify}`;
-
-    if (ctx.request.headers['x-zm-signature'] !== signature) {
-
-      // lanzo error 401 unauthorized
-
-      return ctx.unauthorized(`You can't edit this entry`);
-    }
-
-    let { event, payload } = ctx.request.body;
-
-
-
-    if (event === 'endpoint.url_validation') {
-
-      const { plainToken } = payload.plainToken;
-
-
-
-      const hashForValidate = crypto.createHmac('sha256', ZOOM_SECRET_TOKEN).update(plainToken).digest('hex')
-      ctx.send({
-        "plainToken": plainToken,
-        "encryptedToken": hashForValidate
-      })
-    } else if (event === 'meeting.started') {
-
-      console.log("meeting.started");
-
-
-      try {
-        const { object } = ctx.request.body.payload;
-
-        // consulto el curso por el id de la conferencia usando strapi entity manager
-
-        let entry = await strapi.entityService.findMany("api::curso.curso",
-
-          {
-            filters: {
-              conference: {
-
-                ZoomMeetingID: {
-                  $eq: object.id
-                }
-              }
-            },
-            fields: ['status', 'name', 'slug']
-          }
-
-
-        );
-
-        // llega un  array uso el primer elemento
-
-        entry = entry[0];
-
-
-        //
-
-        if (!entry) {
-
-          return ctx.notFound();
-
-        }
-
-        // busco todas las personas que estan inscritas en el curso y les creo una notificacion
-
-        const misCursos = await strapi.db.query("api::mis-curso.mis-curso").findMany({
-
-          where: { curso: entry.id },
-
-          populate: true
-
-        });
-
-        if (!misCursos) {
-
-          return ctx.notFound();
-
-        }
-
-
-        // le cambio el estado al curso
-
-        await strapi.entityService.update("api::curso.curso", entry.id, {
-
-
-
-          data: { conference: { state: "in_progress" } }
-
-        });
-
-
-        misCursos.forEach(async (misCurso) => {
-
-          await strapi.db.query("api::notificacion.notificacion").create({
-
-            data: {
-              user: misCurso.usuario.id,
-              tipo: "aviso",
-              descripcion: `La conferencia ${entry.name} ha comenzado`,
-
-              estado: false,
-              fecha: new Date(),
-
-              url: `/curso/${misCurso.curso.id}/clase/${entry.id}`
-            }
-
-          });
-
-        });
-
-
-
-        return ctx.send({
-
-          "data": entry
-        });
-
-      } catch (error) {
-        console.log(error);
-
-        // retorno error 500
-
-        return ctx.badRequest('Ha ocurrido un error', { message: error });
-
-      }
-
-
-
-
-
-
-
-
-
-    } else if (event === 'meeting.participant_joined_waiting_room') {
-
-
-      console.log("meeting.participant_joined_waiting_room");
-
-      console.log(payload);
-
-
-
-    } else if (event === 'meeting.participant_joined') {
-
-
-      console.log("meeting.participant_joined");
-
-
-      console.log(payload);
-
-
-    } else {
-
-      console.log("otro evento", event);
-
-      console.log(payload);
-
-    }
-
-
-
-    return ctx.send({
-      "data": "ok"
-    });
-
-  }
-
-
-
 }));
 function convertArrayToObjects(array) {
     // Mapea cada elemento del array a un objeto con la propiedad 'text'

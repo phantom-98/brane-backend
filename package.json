@@ -37,7 +37,8 @@
     "strapi-plugin-rest-cache": "^4.2.8",
     "strapi-plugin-slugify": "^2.3.3",
     "stripe": "^11.16.0",
-    "styled-components": "^5.3.11"
+    "styled-components": "^5.3.11",
+    "uuid": "^11.0.3"
   },
   "browserslist": [
     "> 1%",
