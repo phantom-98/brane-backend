@@ -6,17 +6,17 @@
   },
   "options": {},
   "attributes": {
-    "MeetingID": {
+    "ZoomMeetingID": {
       "type": "string",
       "unique": false
     },
-    "MeetingURL": {
+    "ZoomURL": {
       "type": "string"
     },
-    "MeetingStart": {
+    "ZoomStart": {
       "type": "datetime"
     },
-    "MeetingDuration": {
+    "ZoomDuration": {
       "type": "string"
     },
     "state": {
@@ -33,7 +33,7 @@
       "type": "text",
       "private": true
     },
-    "MeetingPassword": {
+    "ZoomPassword": {
       "type": "string"
     }
   }

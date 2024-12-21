@@ -414,11 +414,11 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
           const uuid = v4();
 
           let conference = {
-            "MeetingID": uuid,
-            "MeetingURL": process.env.URL_WEB + "/conference/" + uuid,
-            "MeetingPassword": ctx.request.body.data.password,
-            "MeetingStart": ctx.request.body.data.start,
-            "MeetingDuration": ctx.request.body.data.duracion.toString(),
+            "ZoomMeetingID": uuid,
+            "ZoomURL": process.env.URL_WEB + "/conference/" + uuid,
+            "ZoomPassword": ctx.request.body.data.password,
+            "ZoomStart": ctx.request.body.data.start,
+            "ZoomDuration": ctx.request.body.data.duracion.toString(),
             "state": "scheduled",
             // "meetingRAW": JSON.stringify(response.data),
           }
@@ -484,11 +484,11 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
         userName: user.nombre + " " + user.apellidos,
         userEmail: user.email,
         signature: signature,
-        meetingNumber: curso.conference.MeetingID,
-        meetingPassword: curso.conference.MeetingPassword,
+        meetingNumber: curso.conference.ZoomMeetingID,
+        meetingPassword: curso.conference.ZoomPassword,
         meetingTopic: curso.name,
-        meetingStartTime: curso.conference.MeetingStart,
-        meetingDuration: curso.conference.MeetingDuration,
+        meetingStartTime: curso.conference.ZoomStart,
+        meetingDuration: curso.conference.ZoomDuration,
         meetingTimeZone: curso.timezone,
      } ;
 
@@ -1237,9 +1237,9 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
     // busco la conferencia en zoom para actualizar en mi base de datos
 
     let conference = {
-      //"MeetingPassword": response.data.password,
-      "MeetingStart": ctx.request.body.data.fecha,
-      "MeetingDuration": ctx.request.body.data.duracion,
+      //"ZoomPassword": response.data.password,
+      "ZoomStart": ctx.request.body.data.fecha,
+      "ZoomDuration": ctx.request.body.data.duracion,
       "state": "scheduled",
     }
 
