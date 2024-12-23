@@ -27,15 +27,11 @@ module.exports = {
 
     const users = {};
     const socketToRoom = {};
-    const tokens = {};
 
     io.on("connection", (socket) => {
-      // socket is the user who is connecting to the server
-      socketFunctions.requestJoinRoom(socket, io, users, tokens);
-      socketFunctions.allowJoinRoom(socket, io, users, tokens, socketToRoom);
       socketFunctions.joinRoom(socket, io, users, socketToRoom);
       socketFunctions.readyRoom(socket);
-      socketFunctions.disconnect(socket, io, users, socketToRoom, tokens);
+      socketFunctions.disconnect(socket, io, users, socketToRoom);
       socketFunctions.sendMessage(socket, io, socketToRoom);
       socketFunctions.sendSignals(socket, io, socketToRoom);
     });

@@ -1,81 +1,12 @@
 const helperFunctions = require("./utils");
 
-const requestJoinRoom = (socket, io, users, tokens) => {
-  socket.on("request-join", ({ roomId, peerId, user }) => {
-    try {
-      console.log("request-join", roomId, user, socket.id);
-      const host = helperFunctions.getHostUser(users, roomId);
-      if (host) {
-        if (tokens[roomId]) {
-          socket.emit("user-allow-join", {roomId, token: tokens[roomId]});
-        } else {
-          io.to(roomId).emit("user-request-join", {roomId, socketId: socket.id, peerId, user});
-        }
-      } else {
-        socket.emit("host-not-found", roomId);
-      }
-    } catch (err) {
-      console.log("Error in request-join: ", err);
-    }
-  });
-};
-
-const allowJoinRoom = (socket, io, users, tokens, socketToRoom) => {
-  socket.on("allow-join", ({ roomId, socketId, user }) => {
-    try {
-      console.log("allow-join", roomId, socketId, user);
-      const host = helperFunctions.getHostUser(users, roomId);
-      if (host && host.socketId === socket.id) {
-        socket.to(socketId).emit("user-allow-join", {roomId, token: socket.id});
-        console.log("allowed user", socketId, user.name)
-      }
-    } catch (err) {
-      console.log("Error in allow-join: ", err);
-    }
-  });
-  socket.on('reject-join', ({roomId, socketId, user}) => {
-    try {
-      console.log("reject-join", roomId, socketId);
-      const host = helperFunctions.getHostUser(users, roomId);
-      if (host && host.socketId === socket.id) {
-        socket.to(socketId).emit("user-reject-join", roomId);
-        console.log("rejected user", socketId, user.name)
-      }
-    } catch (err) {
-      console.log("Error in reject-join: ", err);
-    }
-  })
-  socket.on("allow-all", ({roomId, newUsers}) => {
-    try {
-      console.log("allow-all", roomId, socket.id);
-      const host = helperFunctions.getHostUser(users, roomId);
-      if (host && host.socketId === socket.id) {
-        tokens[roomId] = socket.id;
-        helperFunctions.appendMultiUsers(users, roomId, newUsers);
-        io.to(roomId).emit("multi-users-joined", newUsers);
-        console.log('multi-users-join', newUsers)
-
-        socket.to(newUsers.map(u => {
-          socketToRoom[u.socketId] = roomId;
-          io.sockets.sockets.get(u.socketId).join(roomId);
-
-          return u.socketId;
-        })).emit("all-users", users[roomId]);
-        console.log("allowed all user", roomId)
-      }
-    } catch (err) {
-      console.log("Error in allow-all: ", err);
-    }
-  })
-};
-
 const joinRoom = (socket, io, users, socketToRoom) => {
-  socket.on("join-room", ({roomId, peerId, token, user}) => {
+  socket.on("join-room", ({roomId, peerId, user}) => {
     try {
-      console.log("new user joined the room", roomId, peerId, user, token);
+      console.log("new user joined the room", roomId, peerId, user);
 
       // Store the user's socket id in the users object with the key as userID
-      helperFunctions.appendUser(users, roomId, peerId, user, socket.id, token);
+      helperFunctions.appendUser(users, roomId, peerId, user, socket.id);
       socketToRoom[socket.id] = roomId;
       // It lets the user join the room
       socket.join(roomId);
@@ -100,7 +31,7 @@ const readyRoom = (socket) => {
   });
 };
 
-const disconnect = (socket, io, users, socketToRoom, tokens) => {
+const disconnect = (socket, io, users, socketToRoom) => {
   socket.on("disconnect", () => {
     try {
       const roomID = socketToRoom[socket.id];
@@ -119,7 +50,6 @@ const disconnect = (socket, io, users, socketToRoom, tokens) => {
         );
         if (usersInThisRoom.length === 0) {
           delete users[roomID];
-          delete tokens[roomID];
         } else {
           users[roomID] = usersInThisRoom;
           io.to(roomID).emit("user-left", user);
@@ -155,8 +85,6 @@ const sendSignals = (socket, io, socketToRoom) => {
 };
 
 const socketFunctions = {
-  allowJoinRoom,
-  requestJoinRoom,
   joinRoom,
   readyRoom,
   disconnect,

@@ -10,6 +10,11 @@ module.exports = {
       },
       {
         method: "GET",
+        path: "/cursos/link/:link",
+        handler: "curso.findByLink",
+      },
+      {
+        method: "GET",
         path: "/cursos/slug/:slug",
         handler: "curso.findBySlug",
       },

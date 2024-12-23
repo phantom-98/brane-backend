@@ -6,19 +6,11 @@ const getHostUser = (users, roomId) => {
   return undefined;
 };
 
-const appendUser = (users, roomId, peerId, user, socketId, token) => {
+const appendUser = (users, roomId, peerId, user, socketId) => {
   if (users[roomId]) {
-    const host = getHostUser(users, roomId);
-    if (host && host.socketId === token) {
-      if (users[roomId].find((user) => user.peerId === peerId)) {
-        return;
-      }
-      users[roomId].push({ socketId, peerId, ...user });
-    }
+    users[roomId].push({ socketId, peerId, ...user });
   } else {
-    if (roomId === peerId) {
-      users[roomId] = [{ socketId, peerId, ...user }];
-    }
+    users[roomId] = [{ socketId, peerId, ...user }];
   }
 };
 

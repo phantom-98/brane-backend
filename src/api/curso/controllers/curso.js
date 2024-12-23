@@ -415,7 +415,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
           let conference = {
             "ZoomMeetingID": uuid,
-            "ZoomURL": process.env.URL_WEB + "/conference/" + uuid,
+            "ZoomURL": process.env.URL_WEB + "/conference/join/" + uuid,
             "ZoomPassword": ctx.request.body.data.password,
             "ZoomStart": ctx.request.body.data.start,
             "ZoomDuration": ctx.request.body.data.duracion.toString(),
@@ -854,6 +854,33 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
     data.projects = projects;
 
     return { data, meta };
+  },
+
+  async findByLink(ctx) {
+    try {
+      const { link } = ctx.params;
+      const entity = await strapi.db.query("api::curso.curso").findOne({
+        where: { 
+          conference: {
+            ZoomMeetingID: link
+          }
+         },
+        populate: true,
+      });
+
+      if (!entity) {
+        console.log("curso no encontrado");
+        return ctx.notFound("curso no encontrado", {
+          error: "No existe curso con ese slug",
+        });
+      }
+
+      return { data : entity };
+
+    } catch (e) {
+      console.log(error);
+      return ctx.badRequest("server error", ...error)
+    }
   },
 
   async findBySlug(ctx) {
