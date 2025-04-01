@@ -18,16 +18,17 @@ export interface CourseConference extends Schema.Component {
     description: '';
   };
   attributes: {
-    ZoomMeetingID: Attribute.String;
-    ZoomURL: Attribute.String;
-    ZoomStart: Attribute.DateTime;
-    ZoomDuration: Attribute.String;
+    MeetingID: Attribute.String;
+    MeetingURL: Attribute.String;
+    MeetingStart: Attribute.DateTime;
+    Duration: Attribute.String;
     state: Attribute.Enumeration<
-      ['scheduled', 'in_progress', 'completed', 'canceled']
+      ['scheduled', 'in_progress', 'completed', 'canceled', 'deleted']
     > &
       Attribute.DefaultTo<'scheduled'>;
     meetingRAW: Attribute.Text & Attribute.Private;
-    ZoomPassword: Attribute.String;
+    Password: Attribute.String;
+    storingTime: Attribute.String & Attribute.DefaultTo<'14'>;
   };
 }
 

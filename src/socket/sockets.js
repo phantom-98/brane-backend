@@ -13,6 +13,11 @@ const joinRoom = (socket, io, users, socketToRoom) => {
       
       socket.emit("all-users", users[roomId]);
       socket.to(roomId).emit("user-joined", {roomId, peerId, ...user});
+      if (roomId === peerId) {
+        strapi.db.connection.raw(
+          "UPDATE components_course_conferences SET state = 'in_progress' WHERE meeting_id = '" + roomId + "';"
+        ).then(res => {console.log("update meet", res)}).catch(err => console.log("error updating meet", err));
+      }
       console.log("emit all-users event to user", roomId, users[roomId])
     } catch (err) {
       console.log("Error in join-room: ", err);
@@ -31,7 +36,7 @@ const readyRoom = (socket) => {
   });
 };
 
-const disconnect = (socket, io, users, socketToRoom) => {
+const disconnect = (socket, io, users, socketToRoom, stream, strapi) => {
   socket.on("disconnect", () => {
     try {
       const roomID = socketToRoom[socket.id];
@@ -50,6 +55,11 @@ const disconnect = (socket, io, users, socketToRoom) => {
         );
         if (usersInThisRoom.length === 0) {
           delete users[roomID];
+          //save video stream and delete entry
+          helperFunctions.saveAndRemoveStream(roomID, stream);
+          strapi.db.connection.raw(
+            "UPDATE components_course_conferences SET state = 'completed' WHERE meeting_id = '" + roomID + "';"
+          ).then(res => {console.log("update meet", res)}).catch(err => console.log("error updating meet", err));
         } else {
           users[roomID] = usersInThisRoom;
           io.to(roomID).emit("user-left", user);
@@ -61,6 +71,22 @@ const disconnect = (socket, io, users, socketToRoom) => {
     }
   });
 };
+
+const getStream = (socket, stream) => {
+  socket.on("stream", ({roomId, peerId, chunk}) => {
+    try {
+      console.log("getting stream chunk", roomId, peerId);
+      if (roomId !== peerId) return;
+      if (stream[roomId]) {
+        stream[roomId].push(chunk)
+      } else {
+        stream[roomId] = [chunk];
+      }
+    } catch (err) {
+      console.log("Error in ready-room: ", err);
+    }
+  });
+}
 
 const sendMessage = (socket, io, socketToRoom) => {
   socket.on("send-message", (payload) => {
@@ -87,6 +113,7 @@ const sendSignals = (socket, io, socketToRoom) => {
 const socketFunctions = {
   joinRoom,
   readyRoom,
+  getStream,
   disconnect,
   sendMessage,
   sendSignals,

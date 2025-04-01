@@ -5,7 +5,8 @@
  */
 
 const { createCoreController } = require("@strapi/strapi").factories;
-const { v4 } = require('uuid')
+const { v4 } = require('uuid');
+const fs = require('fs-extra');
 
 module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
   // Method 2: Wrapping a core action (leaves core logic in place)
@@ -402,7 +403,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
           );
 
       } else {
-        // SI tipo = conferencia, creo la conferencia en zoom
+        // SI tipo = conferencia, creo la conferencia en meeting
         if (ctx.request.body.data.tipo == "conferencia") {
 
           if (!this.verificarConstraseña(ctx.request.body.data.password)) {
@@ -414,11 +415,12 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
           const uuid = v4();
 
           let conference = {
-            "ZoomMeetingID": uuid,
-            "ZoomURL": process.env.URL_WEB + "/conference/join/" + uuid,
-            "ZoomPassword": ctx.request.body.data.password,
-            "ZoomStart": ctx.request.body.data.start,
-            "ZoomDuration": ctx.request.body.data.duracion.toString(),
+            "MeetingID": uuid,
+            "MeetingURL": process.env.URL_WEB + "/conference/join/" + uuid,
+            "Password": ctx.request.body.data.password,
+            "MeetingStart": ctx.request.body.data.start,
+            "Duration": ctx.request.body.data.duracion.toString(),
+            "storingTime": ctx.request.body.data.storingTime.toString(),
             "state": "scheduled",
             // "meetingRAW": JSON.stringify(response.data),
           }
@@ -483,13 +485,14 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
         userId: user.id,
         userName: user.nombre + " " + user.apellidos,
         userEmail: user.email,
-        signature: signature,
-        meetingNumber: curso.conference.ZoomMeetingID,
-        meetingPassword: curso.conference.ZoomPassword,
+        // signature: signature,
+        meetingNumber: curso.conference.MeetingID,
+        meetingPassword: curso.conference.Password,
         meetingTopic: curso.name,
-        meetingStartTime: curso.conference.ZoomStart,
-        meetingDuration: curso.conference.ZoomDuration,
+        meetingStartTime: curso.conference.MeetingStart,
+        meetingDuration: curso.conference.Duration,
         meetingTimeZone: curso.timezone,
+        state: curso.conference.state,
      } ;
 
     } catch (error) {
@@ -862,7 +865,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
       const entity = await strapi.db.query("api::curso.curso").findOne({
         where: { 
           conference: {
-            ZoomMeetingID: link
+            MeetingID: link
           }
          },
         populate: true,
@@ -891,7 +894,7 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
         populate: true,
       });
 
-      console.log(entity)
+      console.log("cursor entity", entity)
       if (!entity) {
         console.log("curso no encontrado");
         return ctx.notFound("curso no encontrado", {
@@ -1261,18 +1264,18 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
     }
 
-    // busco la conferencia en zoom para actualizar en mi base de datos
+    // busco la conferencia en meeting para actualizar en mi base de datos
 
     let conference = {
-      //"ZoomPassword": response.data.password,
-      "ZoomStart": ctx.request.body.data.fecha,
-      "ZoomDuration": ctx.request.body.data.duracion,
+      //"Password": response.data.password,
+      "MeetingStart": ctx.request.body.data.fecha,
+      "Duration": ctx.request.body.data.duracion,
       "state": "scheduled",
     }
 
     ctx.request.body.data.conference = conference;
 
-    //retorno la conferencia editada en zoom 
+    //retorno la conferencia editada en meeting 
 
     return ctx.send({ message: "Conferencia editada con éxito" });
   },
@@ -1338,6 +1341,28 @@ module.exports = createCoreController("api::curso.curso", ({ strapi }) => ({
 
     return ctx.send({ message: "Conferencia eliminada con éxito" });
   },
+
+  async downloadMeeting(ctx) {
+    // verifico que el usuario este logueado  
+    if (!ctx.state.user) {
+      return ctx.unauthorized(`You can't edit this entry`);
+    }
+
+    // obtengo el id del curso que se quiere consultar
+    const { id } = ctx.params;
+    const path = "/apenox/records/" + id + ".webm"
+    if (!fs.existsSync(path)) {
+      console.log("file does not exist", path);
+      return ctx.throw(404, 'File not found');
+    }
+    // Set headers for the response
+    ctx.set('Content-Type', 'application/octet-stream');
+    ctx.set('Content-Disposition', `attachment; filename="${id}.webm"`);
+
+    // Stream the file to the response
+    const readStream = fs.createReadStream(path);
+    ctx.body = readStream;
+  }
 }));
 function convertArrayToObjects(array) {
     // Mapea cada elemento del array a un objeto con la propiedad 'text'

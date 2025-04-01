@@ -6,17 +6,17 @@
   },
   "options": {},
   "attributes": {
-    "ZoomMeetingID": {
+    "MeetingID": {
       "type": "string",
       "unique": false
     },
-    "ZoomURL": {
+    "MeetingURL": {
       "type": "string"
     },
-    "ZoomStart": {
+    "MeetingStart": {
       "type": "datetime"
     },
-    "ZoomDuration": {
+    "Duration": {
       "type": "string"
     },
     "state": {
@@ -25,7 +25,8 @@
         "scheduled",
         "in_progress",
         "completed",
-        "canceled"
+        "canceled",
+        "deleted"
       ],
       "default": "scheduled"
     },
@@ -33,8 +34,12 @@
       "type": "text",
       "private": true
     },
-    "ZoomPassword": {
+    "Password": {
       "type": "string"
+    },
+    "storingTime": {
+      "type": "string",
+      "default": "14"
     }
   }
 }

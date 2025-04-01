@@ -41,5 +41,12 @@ module.exports = {
         handler: "curso.deleteMeeting",
 
       },
+
+      //download recorded video
+      {
+        method: "GET",
+        path: "/conferencia/descargar/:id",
+        handler: "curso.downloadMeeting"
+      }
     ]
   };
