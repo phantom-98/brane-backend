@@ -28,13 +28,14 @@ module.exports = {
     const users = {};
     const socketToRoom = {};
     const stream = {};
+    const msg = {}
 
     io.on("connection", (socket) => {
       socketFunctions.joinRoom(socket, io, users, socketToRoom, strapi);
-      socketFunctions.readyRoom(socket);
+      socketFunctions.readyRoom(socket, io, msg);
       socketFunctions.getStream(socket, stream, socketToRoom);
-      socketFunctions.disconnect(socket, io, users, socketToRoom, stream, strapi);
-      socketFunctions.sendMessage(socket, io, socketToRoom);
+      socketFunctions.disconnect(socket, io, users, socketToRoom, stream, strapi, msg);
+      socketFunctions.sendMessage(socket, io, socketToRoom, msg);
       socketFunctions.sendSignals(socket, io, socketToRoom);
     });
   },

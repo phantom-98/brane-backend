@@ -25,18 +25,19 @@ const joinRoom = (socket, io, users, socketToRoom) => {
   });
 };
 
-const readyRoom = (socket) => {
+const readyRoom = (socket, io, msg) => {
   socket.on("am-ready", ({roomId, peerId, user}) => {
     try {
       console.log("user is ready", roomId, peerId, user);
       socket.to(roomId).emit("user-ready", {roomId, peerId, ...user});
+      io.to(roomId).emit("message", msg[roomId]);
     } catch (err) {
       console.log("Error in ready-room: ", err);
     }
   });
 };
 
-const disconnect = (socket, io, users, socketToRoom, stream, strapi) => {
+const disconnect = (socket, io, users, socketToRoom, stream, strapi, msg) => {
   socket.on("disconnect", () => {
     try {
       const roomID = socketToRoom[socket.id];
@@ -55,6 +56,7 @@ const disconnect = (socket, io, users, socketToRoom, stream, strapi) => {
         );
         if (usersInThisRoom.length === 0) {
           delete users[roomID];
+          delete msg[roomID];
           //save video stream and delete entry
           helperFunctions.saveAndRemoveStream(roomID, stream);
           strapi.db.connection.raw(
@@ -88,11 +90,17 @@ const getStream = (socket, stream) => {
   });
 }
 
-const sendMessage = (socket, io, socketToRoom) => {
+const sendMessage = (socket, io, socketToRoom, msg) => {
   socket.on("send-message", (payload) => {
     try {
-      io.to(socketToRoom[socket.id]).emit("message", payload);
-      console.log("message sent to room", socketToRoom[socket.id], payload);
+      const roomId = socketToRoom[socket.id];
+      if (msg[roomId]) {
+        msg[roomId].push(payload);
+      } else {
+        msg[roomId] = [payload]
+      }
+      io.to(roomId).emit("message", msg[roomId]);
+      console.log("message sent to room", roomId, payload);
     } catch (err) {
       console.log("Error in send message: ", err);
     }
